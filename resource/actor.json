@@ -1,0 +1,44 @@
+{
+  "userId": "id123",
+  "userName": "´ë²¿",
+  "id": "cat123",
+  "name": "²Ä³ÉÀÌ",
+  "point": 1000,
+  "property": {
+    "strength": 10,
+    "intelligence": 1,
+    "appeal": 0
+  },
+  "inventory": {
+    "growth": [
+      {
+        "id": 1,
+        "quantity": 10
+      },
+      {
+        "id": 3,
+        "quantity": 10
+      }
+    ],
+    "race": [
+      {
+        "id": 13,
+        "quantity": 10
+      },
+      {
+        "id": 14,
+        "quantity": 10
+      }
+    ],
+    "adorn": [
+      {
+        "id": 15,
+        "quantity": 1
+      },
+      {
+        "id": 16,
+        "quantity": 1
+      }
+    ]
+  }
+}
