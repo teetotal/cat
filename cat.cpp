@@ -98,6 +98,12 @@ void init() {
 
 	Document d;
 	d.Parse(str.c_str());
+	//error message
+	const Value& valueErr = d["errors"];
+	for (SizeType i = 0; i < valueErr.Size(); i++)
+	{
+		logic.addErrorMessage(utf8_to_utf16(valueErr[i].GetString()));
+	}
 	//Add Items
 	const Value& valueInfo = d["items"];
 	for (SizeType i = 0; i < valueInfo.Size(); i++)
@@ -171,6 +177,10 @@ void init() {
 	actor->id = d2["id"].GetString();
 
 	actor->point = d2["point"].GetInt();
+	actor->hp = d2["hp"].GetInt();
+	actor->exp = d2["exp"].GetInt();
+	actor->level = d2["level"].GetInt();
+
 	actor->property.strength = d2["property"]["strength"].GetInt();
 	actor->property.intelligence = d2["property"]["intelligence"].GetInt();
 	actor->property.appeal = d2["property"]["appeal"].GetInt();
@@ -209,15 +219,16 @@ void training() {
 
 	errorCode err = logic.isValidTraining(key);
 	if (err != error_success) {
-		printf("Validation Failure! reason = %d \n", err);
+		wprintf( L"%s \n", logic.getErrorMessage(err));
 		return;
 	}
 	vector<_itemPair> rewards;
-	printf("errorCode = %d \n", logic.runTraining(key, rewards));
-	printf("보상 아이템 ---- \n");
+	_property property;
+	int point;
+	wprintf( L"%s \n", logic.getErrorMessage(logic.runTraining(key, rewards, &property, point)));
+	wprintf( L"보상 내용 ---- \n Point: %d \n S: %d, I: %d, A: %d \n", point, property.strength, property.intelligence, property.appeal);
 	for (int n = 0; n < rewards.size(); n++) {
-		wprintf(L"%d: %s - %d \n"
-			, n + 1
+		wprintf(L" %s(%d) \n"
 			, logic.getItem(rewards[n].itemId).name.c_str()
 			, rewards[n].val
 		);		
@@ -233,7 +244,7 @@ void buy() {
 	scanf("%d", &key);
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	printf("errorCode = %d \n", logic.runTrade(true, key, quantity));
+	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(true, key, quantity)));
 	logic.print(0);
 }
 
@@ -247,13 +258,23 @@ void sell() {
 	scanf("%d", &key);
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	printf("errorCode = %d \n", logic.runTrade(false, key, quantity));
+	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(false, key, quantity)));
+	logic.print(0);
+}
+
+void hp() {
+	int key, quantity;
+	printf("HP Item ID > ");
+	scanf("%d", &key);
+	printf("Quantity > ");
+	scanf("%d", &quantity);
+	wprintf(L"%s \n", logic.getErrorMessage(logic.runRecharge(key, quantity)));
 	logic.print(0);
 }
 
 void ask() {
 	printf("------------------------------------------------------------------------ \n");
-	printf(" 1: Training, 2: Buy Item, 3. Sell Item, 4: race, 0: Actor Info \n > ");
+	wprintf( L" > 1: 액션, 2: 아이템 구매, 3. 아이템 판매, 4: 경묘, 5: 체력보충, 0: Actor Info \n > ");
 	int key;
 	scanf("%d", &key);
 	switch (key)
@@ -271,6 +292,9 @@ void ask() {
 		sell();
 		break;
 	case 4:
+		break;
+	case 5:
+		hp();
 		break;
 	default:
 		break;

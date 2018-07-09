@@ -3,56 +3,56 @@
     {
       "id": 1,
       "name": "식품 사료",
-      "type": 0,
+      "type": 1,
       "value": 1,
       "grade": 1
     },
     {
       "id": 2,
       "name": "식품 정어리",
-      "type": 0,
+      "type": 1,
       "value": 10,
       "grade": 1
     },
     {
       "id": 3,
       "name": "식품 캔",
-      "type": 0,
+      "type": 1,
       "value": 20,
       "grade": 3
     },
     {
       "id": 4,
       "name": "모래 벤토나이트",
-      "type": 1,
+      "type": 3,
       "value": 1,
       "grade": 1
     },
     {
       "id": 5,
       "name": "모래 두부",
-      "type": 1,
+      "type": 3,
       "value": 10,
       "grade": 2
     },
     {
       "id": 6,
       "name": "모래 우드펠렛",
-      "type": 1,
+      "type": 3,
       "value": 20,
       "grade": 3
     },
     {
       "id": 7,
       "name": "모래 크리스탈",
-      "type": 1,
+      "type": 3,
       "value": 30,
       "grade": 4
     },
     {
       "id": 8,
       "name": "모래 홍화씨",
-      "type": 1,
+      "type": 3,
       "value": 40,
       "grade": 5
     },
@@ -73,42 +73,42 @@
     {
       "id": 11,
       "name": "보조식품 개다래 열매",
-      "type": 0,
+      "type": 101,
       "value": 1,
       "grade": 1
     },
     {
       "id": 12,
       "name": "보조식품 캣닢",
-      "type": 0,
+      "type": 101,
       "value": 10,
       "grade": 2
     },
     {
       "id": 13,
       "name": "아이템 실뭉치",
-      "type": 3,
+      "type": 201,
       "value": 1,
       "grade": 1
     },
     {
       "id": 14,
       "name": "아이템 츄르",
-      "type": 3,
+      "type": 201,
       "value": 10,
       "grade": 2
     },
     {
       "id": 15,
       "name": "치장 토끼머리띠",
-      "type": 4,
+      "type": 301,
       "value": 1,
       "grade": 1
     },
     {
       "id": 16,
       "name": "치장 별머리띠",
-      "type": 4,
+      "type": 301,
       "value": 10,
       "grade": 2
     }
@@ -116,9 +116,9 @@
   "training": [
     {
       "id": 1,
-      "name": "쥐돌이 놀이",
+      "name": "[훈련] 쥐돌이 놀이",
       "reward": {
-        "strength": 1,
+        "strength": 3,
         "intelligence": 0,
         "appeal": 0,
         "point": 0,
@@ -148,10 +148,10 @@
     },
     {
       "id": 2,
-      "name": "정어리 낚시",
+      "name": "[훈련] 정어리 낚시",
       "reward": {
         "strength": 0,
-        "intelligence": 1,
+        "intelligence": 3,
         "appeal": 0,
         "point": 0,
         "items": [
@@ -172,11 +172,11 @@
     },
     {
       "id": 3,
-      "name": "클럽 알바",
+      "name": "[알바] 클럽 알바",
       "reward": {
         "strength": 0,
         "intelligence": 0,
-        "appeal": 1,
+        "appeal": 3,
         "point": 10,
         "items": [
         ]
@@ -189,7 +189,55 @@
         "items": [        
         ]
       }
+    },
+    {
+      "id": 4,
+      "name": "[공부] 무사 수행",
+      "reward": {
+        "strength": 20,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [
+        ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 20,
+        "items": [        
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "name": "[공부] 외국어 과외 - 강아지말 배우기",
+      "reward": {
+        "strength": 0,
+        "intelligence": 20,
+        "appeal": 0,
+        "point": 0,
+        "items": [
+        ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 20,
+        "items": [        
+        ]
+      }
     }
+  ],
+  "errors": [
+    "성공",
+    "추카추카 레벨업!!",
+    "잘못된 아이디입니다",
+    "속성이 부족해요",
+    "고냥이 캐시가 부족해요",
+    "아이템이 부족해요",
+    "피곤해요~ HP를 올리세요"
   ]
-
 }

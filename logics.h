@@ -10,24 +10,32 @@
 using namespace std;
 enum errorCode {
 	error_success = 0,
+	error_levelup,
 	error_invalid_id,
-	error_not_enought_property,
-	error_not_enought_point,
-	error_not_enought_item,
+	error_not_enough_property,
+	error_not_enough_point,
+	error_not_enough_item,
+	error_not_enough_hp
 };
 enum inventoryType {
 	inventoryType_growth=0,
+	inventoryType_HP,
 	inventoryType_race,
 	inventoryType_adorn,
 };
 //아이템 종류
 enum itemType {
-	itemType_strength = 0,
-	itemType_intelligence,
-	itemType_appeal,
-	itemType_race_offense, //경묘 공격
-	itemType_adorn_head, //머리치장
-	max_itemType
+	itemType_training = 0,
+	itemType_training_food,
+	itemType_training_doll,
+	itemType_training_etc,
+	itemType_hp = 100,
+	itemType_hp_meal,
+	itemType_race = 200, //경묘
+	itemType_race_attact,
+	itemType_adorn = 300, //치장
+	itemType_adorn_head,
+	itemType_max
 };
 //아이템
 struct _item {
@@ -49,6 +57,8 @@ struct _itemPair {
 #define maxTradeValue 100
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
+//기본 HP
+#define defaultHP 4
 
 //성장 보상
 struct _reward {
@@ -87,6 +97,7 @@ typedef map<int, int> keyQuantity;
 //인벤토리
 struct _inventory {
 	keyQuantity growth;	//성장용 아이템
+	keyQuantity hp;		//HP충전 아이템
 	keyQuantity race;	//경묘용 아이템
 	keyQuantity adorn;	//치장용 아이템
 };
@@ -98,6 +109,9 @@ struct _actor {
 	string id;			//고양이ID
 	wstring name;		//고양이 이름
 	int point;			//보유캐시
+	int hp;				//피로도
+	int exp;			//경험치
+	int level;			//레벨
 	_property property;		//속성
 	_inventory inventory;	//인벤토리
 };
@@ -115,15 +129,29 @@ public:
 	void print(int type = 0);
 	_item getItem(int id) {
 		return mItems[id];
-	}
+	};
+	void addErrorMessage(const wstring & sz) {
+		mErrorMessages.push_back(sz);
+	};
+
+	const wchar_t * getErrorMessage(errorCode code) {
+		return mErrorMessages[code].c_str();
+	};
 
 	//Training 
 	errorCode isValidTraining(int id);
-	errorCode runTraining(int id, vector<_itemPair> &rewards);
+	errorCode runTraining(int id, vector<_itemPair> &rewards, _property * rewardProperty, int &point);
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
+
+	//charge
+	errorCode runRecharge(int id, int quantity);
+	void recharge(int val);
 private:
+	//error messages
+	typedef vector<wstring> errorMessages;
+	errorMessages mErrorMessages;
 	//트레이닝 보상, 비용
 	typedef vector<int, _itemPair> itemVector;
 
@@ -146,7 +174,36 @@ private:
 		return getItemPriceBuy(tradeIndex) * 0.9;
 	};
 	//add inventory
-	bool addInventory(inventoryType type, int itemId, int quantity) {		
+	bool addInventory(inventoryType type, int itemId, int quantity) {	
+		/*
+		keyQuantity * p;
+		switch (type)
+		{
+		case inventoryType_growth:
+			p = &mActor->inventory.growth;
+			break;
+		case inventoryType_HP:
+			p = &mActor->inventory.hp;
+			break;
+		case inventoryType_race:
+			p = &mActor->inventory.race;
+			break;
+		case inventoryType_adorn:
+			p = &mActor->inventory.adorn;
+			break;
+		default:
+			return false;
+		}
+		int v = p->find(itemId)->second;
+		if ((quantity < 0 && p->find(itemId) == p->end())
+			|| p->find(itemId)->second + quantity < 0
+			)
+			return false;
+		p->find(itemId)->second += quantity;
+		if (p->find(itemId)->second == 0)
+			p->erase(itemId);
+		*/
+		
 		switch (type)
 		{
 		case inventoryType_growth:					
@@ -156,6 +213,14 @@ private:
 			mActor->inventory.growth[itemId] += quantity;
 			if (mActor->inventory.growth[itemId] == 0)
 				mActor->inventory.growth.erase(itemId);
+			break;
+		case inventoryType_HP:
+			if ((quantity < 0 && mActor->inventory.hp.find(itemId) == mActor->inventory.hp.end())
+				|| mActor->inventory.hp[itemId] + quantity < 0)
+				return false;
+			mActor->inventory.hp[itemId] += quantity;
+			if (mActor->inventory.hp[itemId] == 0)
+				mActor->inventory.hp.erase(itemId);
 			break;
 		case inventoryType_race:
 			if ((quantity < 0 && mActor->inventory.race.find(itemId) == mActor->inventory.race.end())
@@ -174,7 +239,7 @@ private:
 				mActor->inventory.adorn.erase(itemId);
 			break;
 		default:
-			break;
+			return false;
 		}
 		return true;
 	}
@@ -183,6 +248,31 @@ private:
 		mActor->property.strength += strength;
 		mActor->property.intelligence += intelligence;
 		mActor->property.appeal += appeal;
+	}
+
+	int getRandValue(int max) {
+		if (max == 0)
+			return 0;
+		return rand() % max;
+	}
+	//경험치 증가
+	bool increaseExp() {
+		mActor->exp++;
+		int maxExp = getMaxExp();
+		if (maxExp <= mActor->exp) {
+			mActor->level++;
+			mActor->exp = 0;
+			mActor->hp = getMaxHP();
+			return true;
+		}
+
+		return false;
+	}
+	int getMaxExp() {
+		return 1 << mActor->level;
+	}
+	int getMaxHP() {
+		return defaultHP + (1.5*mActor->level);
 	}
 };
 

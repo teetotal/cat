@@ -12,25 +12,34 @@ bool logics::init() {
 
 void logics::print(int type) {
 	if (type == 0) {
-		wstring szGrowth, szRace, szAdorn;
+		wstring szGrowth, szHP, szRace, szAdorn;
 		for (keyQuantity::iterator it = mActor->inventory.growth.begin(); it != mActor->inventory.growth.end(); ++it) {
-			szGrowth += mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
+			szGrowth += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
+		}
+		for (keyQuantity::iterator it = mActor->inventory.hp.begin(); it != mActor->inventory.hp.end(); ++it) {
+			szHP += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		for (keyQuantity::iterator it = mActor->inventory.race.begin(); it != mActor->inventory.race.end(); ++it) {
-			szRace += mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
+			szRace += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		for (keyQuantity::iterator it = mActor->inventory.adorn.begin(); it != mActor->inventory.adorn.end(); ++it) {
-			szAdorn += mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
+			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		printf("[Actor]\n ------------------------------------------------------------------------ \n");
-		wprintf(L" Name: %s(%s), Point:%d,\n strength: %d, intelligence: %d, appeal: %d,\n GROWTH\t %s \n RACE\t %s \n ADORN\t %s \n"
+		wprintf(L" Name: %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n Point:%d \n S: %d, I: %d, A: %d \n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
+			, mActor->level
+			, mActor->exp
+			, getMaxExp()
+			, mActor->hp
+			, getMaxHP()
 			, mActor->point
 			, mActor->property.strength
 			, mActor->property.intelligence
 			, mActor->property.appeal
 			, szGrowth.c_str()
+			, szHP.c_str()
 			, szRace.c_str()
 			, szAdorn.c_str()
 		);
@@ -53,19 +62,21 @@ void logics::print(int type) {
 					costItems += to_wstring(p->val) + L") ";
 				}
 			}			
-			wprintf(L" ID: %d,\t %s \n \t Reward Point: %d \t [S: %d, I: %d, A: %d, %s ] \n \t Cost Point: %d \t [S: %d, I: %d, A: %d, %s] \n"
+			wprintf(L" ID: %d,\t %s ($%d) [%s] S(%d) I(%d) A(%d) \n \t Reward $%d  [%s] S(%d) I(%d) A(%d) \n\n"
 				, it->first
 				, it->second.name.c_str()
-				, it->second.reward.point
-				, it->second.reward.strength
-				, it->second.reward.intelligence
-				, it->second.reward.appeal
-				, rewardItems.c_str()
 				, it->second.cost.point
+				, costItems.c_str()
 				, it->second.cost.strength
 				, it->second.cost.intelligence
 				, it->second.cost.appeal
-				, costItems.c_str()
+				
+				, it->second.reward.point
+				, rewardItems.c_str()
+				, it->second.reward.strength
+				, it->second.reward.intelligence
+				, it->second.reward.appeal
+				
 			);
 		}
 	}else if (type == 2) {
@@ -133,8 +144,12 @@ errorCode logics::isValidTraining(int id) {
 	//check validation
 	if (mTraining.find(id) == mTraining.end()) {
 		return error_invalid_id;
-	} else if (mTraining[id].cost.point > mActor->point)  
-		return error_not_enought_point;
+	}
+	else if (mActor->hp <= 0) {
+		return error_not_enough_hp;
+	}
+	else if (mTraining[id].cost.point > mActor->point)
+		return error_not_enough_point;
 	/*
 	else if (mTraining[id].cost.strength > mActor->property.strength ||
 		mTraining[id].cost.intelligence > mActor->property.intelligence ||
@@ -150,13 +165,15 @@ errorCode logics::isValidTraining(int id) {
 			break;
 		if (mActor->inventory.growth.find(p->itemId) == mActor->inventory.growth.end()
 			|| mActor->inventory.growth[p->itemId] < p->val)
-			return error_not_enought_item;
+			return error_not_enough_item;
 	}
 
 	return error_success;
 }
 
-errorCode logics::runTraining(int id, vector<_itemPair> &rewards ) {
+errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * rewardProperty, int &point) {
+	//hp
+	mActor->hp--;
 	//pay point
 	mActor->point -= mTraining[id].cost.point;
 	//substract property
@@ -168,13 +185,19 @@ errorCode logics::runTraining(int id, vector<_itemPair> &rewards ) {
 		if (p == NULL)
 			break;
 		if(!addInventory(inventoryType_growth, p->itemId, p->val * -1))
-			return error_not_enought_item;		
+			return error_not_enough_item;		
 	}
 
 	//give point
-	mActor->point += mTraining[id].reward.point;
+	point = getRandValue(mTraining[id].reward.point);
+	mActor->point += point;
 	//give growth
-	addProperty(mTraining[id].reward.strength, mTraining[id].reward.intelligence, mTraining[id].reward.appeal);
+	rewardProperty->strength = getRandValue(mTraining[id].reward.strength);
+	rewardProperty->intelligence = getRandValue(mTraining[id].reward.intelligence);
+	rewardProperty->appeal = getRandValue(mTraining[id].reward.appeal);
+	addProperty(rewardProperty->strength
+		, rewardProperty->intelligence
+		, rewardProperty->appeal);
 	//give item
 	for (int n = 0; n < maxTrainingItems; n++) {
 		_itemPair * p = mTraining[id].reward.items[n];
@@ -186,12 +209,13 @@ errorCode logics::runTraining(int id, vector<_itemPair> &rewards ) {
 		item.val = (rand() % p->val);
 		if (item.val > 0) {			
 			if (!addInventory(inventoryType_growth, item.itemId, item.val))
-				return error_not_enought_item; //어차피 추가라 이부분은 필요 없지만 걍 넣어둠
+				return error_not_enough_item; //어차피 추가라 이부분은 필요 없지만 걍 넣어둠
 
 			rewards.push_back(item);
 		}
 	}
-
+	if (increaseExp())
+		return error_levelup;
 	return error_success;
 }
 
@@ -203,7 +227,7 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	if (isBuy) {
 		amount = getItemPriceBuy(id) * quantity;
 		if (mActor->point < amount) 
-			return error_not_enought_point;		
+			return error_not_enough_point;		
 		//substract point
 		amount = amount * -1;
 	}		
@@ -214,24 +238,40 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	//give items
 	_item item = mItems[mTrade[id].itemId];
 	bool ret = false;
-	switch (item.type) {
-	case itemType_strength: 
-	case itemType_intelligence:
-	case itemType_appeal:
-		ret = addInventory(inventoryType_growth, item.id, quantity);
-		break;
-	case itemType_race_offense:
-		ret = addInventory(inventoryType_race, item.id, quantity);
-		break;
-	case itemType_adorn_head:
-		ret = addInventory(inventoryType_adorn, item.id, quantity);
-		break;
+	inventoryType t;
+	if (item.type > itemType_training && item.type < itemType_hp) {
+		t = inventoryType_growth;
+	} else if (item.type > itemType_hp && item.type < itemType_race) {
+		t = inventoryType_HP;
+	} else if (item.type > itemType_race && item.type < itemType_adorn) {
+		t = inventoryType_race;
+	} else if (item.type > itemType_adorn && item.type < itemType_max) {
+		t = inventoryType_adorn;
 	}
-	
-	if (ret)
-		mActor->point += amount;
-	else
-		return error_not_enought_item;
 
+	if (!addInventory(t, item.id, quantity))
+		return error_not_enough_item;
+
+	mActor->point += amount;
+	if (increaseExp())
+		return error_levelup;
+	return error_success;
+}
+
+void logics::recharge(int val) {
+	int maxHP = getMaxHP();
+	if (mActor->hp + val >= maxHP)
+		mActor->hp = maxHP;
+	else
+		mActor->hp += val;
+}
+
+errorCode logics::runRecharge(int id, int quantity) {
+	int val = mItems[id].value;
+	if (!addInventory(inventoryType_HP, id, quantity * -1)) {
+		return error_not_enough_item;
+	}
+
+	recharge(val);
 	return error_success;
 }
