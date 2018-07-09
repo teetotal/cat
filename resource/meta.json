@@ -2,113 +2,113 @@
   "items": [
     {
       "id": 1,
-      "name": "½ÄÇ° »ç·á",
+      "name": "ì‹í’ˆ ì‚¬ë£Œ",
       "type": 0,
       "value": 1,
       "grade": 1
     },
     {
       "id": 2,
-      "name": "½ÄÇ° Á¤¾î¸®",
+      "name": "ì‹í’ˆ ì •ì–´ë¦¬",
       "type": 0,
       "value": 10,
-      "grade": 2
+      "grade": 1
     },
     {
       "id": 3,
-      "name": "½ÄÇ° Äµ",
+      "name": "ì‹í’ˆ ìº”",
       "type": 0,
       "value": 20,
       "grade": 3
     },
     {
       "id": 4,
-      "name": "¸ğ·¡ º¥Åä³ªÀÌÆ®",
+      "name": "ëª¨ë˜ ë²¤í† ë‚˜ì´íŠ¸",
       "type": 1,
       "value": 1,
       "grade": 1
     },
     {
       "id": 5,
-      "name": "¸ğ·¡ µÎºÎ",
+      "name": "ëª¨ë˜ ë‘ë¶€",
       "type": 1,
       "value": 10,
       "grade": 2
     },
     {
       "id": 6,
-      "name": "¸ğ·¡ ¿ìµåÆç·¿",
+      "name": "ëª¨ë˜ ìš°ë“œí ë ›",
       "type": 1,
       "value": 20,
       "grade": 3
     },
     {
       "id": 7,
-      "name": "¸ğ·¡ Å©¸®½ºÅ»",
+      "name": "ëª¨ë˜ í¬ë¦¬ìŠ¤íƒˆ",
       "type": 1,
       "value": 30,
       "grade": 4
     },
     {
       "id": 8,
-      "name": "¸ğ·¡ È«È­¾¾",
+      "name": "ëª¨ë˜ í™í™”ì”¨",
       "type": 1,
       "value": 40,
       "grade": 5
     },
     {
       "id": 9,
-      "name": "Àå³­°¨ °­¾ÆÁöÇ®",
+      "name": "ì¥ë‚œê° ê°•ì•„ì§€í’€",
       "type": 2,
       "value": 1,
       "grade": 1
     },
     {
       "id": 10,
-      "name": "Àå³­°¨ Áãµ¹ÀÌ",
+      "name": "ì¥ë‚œê° ì¥ëŒì´",
       "type": 2,
       "value": 10,
       "grade": 2
     },
     {
       "id": 11,
-      "name": "º¸Á¶½ÄÇ° °³´Ù·¡ ¿­¸Å",
-      "type": 3,
+      "name": "ë³´ì¡°ì‹í’ˆ ê°œë‹¤ë˜ ì—´ë§¤",
+      "type": 0,
       "value": 1,
       "grade": 1
     },
     {
       "id": 12,
-      "name": "º¸Á¶½ÄÇ° Ä¹´Ø",
-      "type": 3,
+      "name": "ë³´ì¡°ì‹í’ˆ ìº£ë‹¢",
+      "type": 0,
       "value": 10,
       "grade": 2
     },
     {
       "id": 13,
-      "name": "¾ÆÀÌÅÛ ½Ç¹¶Ä¡",
-      "type": 4,
+      "name": "ì•„ì´í…œ ì‹¤ë­‰ì¹˜",
+      "type": 3,
       "value": 1,
       "grade": 1
     },
     {
       "id": 14,
-      "name": "¾ÆÀÌÅÛ Ãò¸£",
-      "type": 4,
+      "name": "ì•„ì´í…œ ì¸„ë¥´",
+      "type": 3,
       "value": 10,
       "grade": 2
     },
     {
       "id": 15,
-      "name": "Ä¡Àå Åä³¢¸Ó¸®¶ì",
-      "type": 5,
+      "name": "ì¹˜ì¥ í† ë¼ë¨¸ë¦¬ë ",
+      "type": 4,
       "value": 1,
       "grade": 1
     },
     {
       "id": 16,
-      "name": "Ä¡Àå º°¸Ó¸®¶ì",
-      "type": 5,
+      "name": "ì¹˜ì¥ ë³„ë¨¸ë¦¬ë ",
+      "type": 4,
       "value": 10,
       "grade": 2
     }
@@ -116,20 +116,20 @@
   "training": [
     {
       "id": 1,
-      "name": "Áãµ¹ÀÌ ³îÀÌ",
+      "name": "ì¥ëŒì´ ë†€ì´",
       "reward": {
-        "strength": 5,
+        "strength": 1,
         "intelligence": 0,
         "appeal": 0,
         "point": 0,
         "items": [
           {
             "id": 1,
-            "quantity": 2
+            "quantity": 10
           },
           {
             "id": 2,
-            "quantity": 1
+            "quantity": 3
           }
         ]
       },
@@ -143,6 +143,50 @@
             "id": 10,
             "quantity": 1
           }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "name": "ì •ì–´ë¦¬ ë‚šì‹œ",
+      "reward": {
+        "strength": 0,
+        "intelligence": 1,
+        "appeal": 0,
+        "point": 0,
+        "items": [
+          {
+            "id": 2,
+            "quantity": 10
+          }
+        ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 12,
+        "items": [
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "name": "í´ëŸ½ ì•Œë°”",
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 1,
+        "point": 10,
+        "items": [
+        ]
+      },
+      "cost": {
+        "strength": 5,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [        
         ]
       }
     }

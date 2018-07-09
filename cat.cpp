@@ -10,18 +10,91 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 using namespace rapidjson;
+logics logic;
 
-int main()
+std::wstring utf8_to_utf16(const std::string& utf8)
 {
-	setlocale(LC_ALL, "en_US.UTF-8");
+	std::vector<unsigned long> unicode;
+	size_t i = 0;
+	while (i < utf8.size())
+	{
+		unsigned long uni;
+		size_t todo;
+		bool error = false;
+		unsigned char ch = utf8[i++];
+		if (ch <= 0x7F)
+		{
+			uni = ch;
+			todo = 0;
+		}
+		else if (ch <= 0xBF)
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		else if (ch <= 0xDF)
+		{
+			uni = ch & 0x1F;
+			todo = 1;
+		}
+		else if (ch <= 0xEF)
+		{
+			uni = ch & 0x0F;
+			todo = 2;
+		}
+		else if (ch <= 0xF7)
+		{
+			uni = ch & 0x07;
+			todo = 3;
+		}
+		else
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		for (size_t j = 0; j < todo; ++j)
+		{
+			if (i == utf8.size())
+				throw std::logic_error("not a UTF-8 string");
+			unsigned char ch = utf8[i++];
+			if (ch < 0x80 || ch > 0xBF)
+				throw std::logic_error("not a UTF-8 string");
+			uni <<= 6;
+			uni += ch & 0x3F;
+		}
+		if (uni >= 0xD800 && uni <= 0xDFFF)
+			throw std::logic_error("not a UTF-8 string");
+		if (uni > 0x10FFFF)
+			throw std::logic_error("not a UTF-8 string");
+		unicode.push_back(uni);
+	}
+	std::wstring utf16;
+	for (size_t i = 0; i < unicode.size(); ++i)
+	{
+		unsigned long uni = unicode[i];
+		if (uni <= 0xFFFF)
+		{
+			utf16 += (wchar_t)uni;
+		}
+		else
+		{
+			uni -= 0x10000;
+			utf16 += (wchar_t)((uni >> 10) + 0xD800);
+			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
+		}
+	}
+	return utf16;
+}
+
+void init() {
+	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
-	//_wsetlocale(LC_ALL, L"korean");
-	logics logic;
+	_wsetlocale(LC_ALL, L"korean");
+	
 
 	std::ifstream fileopen;
 	fileopen.open("resource/meta.json", ios::in | ios::binary);
 	std::string str((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
 	fileopen.close();
+
 
 	Document d;
 	d.Parse(str.c_str());
@@ -29,12 +102,13 @@ int main()
 	const Value& valueInfo = d["items"];
 	for (SizeType i = 0; i < valueInfo.Size(); i++)
 	{
-		_item p;	
+		_item p;
 		p.id = valueInfo[i]["id"].GetInt();
 		p.type = (itemType)valueInfo[i]["type"].GetInt();
 		p.value = valueInfo[i]["value"].GetInt();
 		p.grade = valueInfo[i]["grade"].GetInt();
-		p.name = valueInfo[i]["name"].GetString();
+		string sz = valueInfo[i]["name"].GetString();
+		p.name = utf8_to_utf16(sz);
 		logic.insertItem(p);
 	}
 
@@ -46,7 +120,8 @@ int main()
 			p.cost.items[k] = NULL;
 		}
 		p.id = t[i]["id"].GetInt();
-		p.name = t[i]["name"].GetString();
+		string sz = t[i]["name"].GetString();
+		p.name = utf8_to_utf16(sz);
 
 		p.reward.strength = t[i]["reward"]["strength"].GetInt();
 		p.reward.intelligence = t[i]["reward"]["intelligence"].GetInt();
@@ -79,20 +154,20 @@ int main()
 		}
 		logic.insertTraining(p);
 	}
-	
+
 	logic.init();
 
 	fileopen.open("resource/actor.json", ios::in | ios::binary);
 	std::string sz((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
+	fileopen.close();
 
 	Document d2;
 	d2.Parse(sz.c_str());
 	_actor* actor = new _actor;
-
-	actor->userName = d2["userName"].GetString();
+	actor->userName = utf8_to_utf16(string(d2["userName"].GetString()));
 	actor->userId = d2["userId"].GetString();
 
-	actor->name = d2["name"].GetString();
+	actor->name = utf8_to_utf16(string(d2["name"].GetString()));
 	actor->id = d2["id"].GetString();
 
 	actor->point = d2["point"].GetInt();
@@ -101,14 +176,114 @@ int main()
 	actor->property.appeal = d2["property"]["appeal"].GetInt();
 
 	//인벤토리
-	logic.setActor(actor);
-
-	while (true) {
-		::getchar();
-		logic.setTradeMarketPrice();
-		logic.print();
+	const Value& growth = d2["inventory"]["growth"];
+	for (SizeType i = 0; i < growth.Size(); i++) {
+		int id = growth[i]["id"].GetInt();
+		int quantity = growth[i]["quantity"].GetInt();
+		actor->inventory.growth[id] = quantity;
+	}
+	const Value& race = d2["inventory"]["race"];
+	for (SizeType i = 0; i < race.Size(); i++) {
+		int id = race[i]["id"].GetInt();
+		int quantity = race[i]["quantity"].GetInt();
+		actor->inventory.race[id] = quantity;
+	}
+	const Value& adorn = d2["inventory"]["adorn"];
+	for (SizeType i = 0; i < adorn.Size(); i++) {
+		int id = adorn[i]["id"].GetInt();
+		int quantity = adorn[i]["quantity"].GetInt();
+		actor->inventory.adorn[id] = quantity;
 	}
 
+	logic.setActor(actor);
+	logic.print();
+
+	
+}
+
+void training() {
+	logic.print(1);
+	int key;
+	printf("choose > ");
+	scanf("%d", &key);
+
+	errorCode err = logic.isValidTraining(key);
+	if (err != error_success) {
+		printf("Validation Failure! reason = %d \n", err);
+		return;
+	}
+	vector<_itemPair> rewards;
+	printf("errorCode = %d \n", logic.runTraining(key, rewards));
+	printf("보상 아이템 ---- \n");
+	for (int n = 0; n < rewards.size(); n++) {
+		wprintf(L"%d: %s - %d \n"
+			, n + 1
+			, logic.getItem(rewards[n].itemId).name.c_str()
+			, rewards[n].val
+		);		
+	}	
+}
+
+void buy() {
+	logic.setTradeMarketPrice();
+	logic.print(2);
+
+	int key, quantity;
+	printf("ID > ");
+	scanf("%d", &key);
+	printf("Quantity > ");
+	scanf("%d", &quantity);
+	printf("errorCode = %d \n", logic.runTrade(true, key, quantity));
+	logic.print(0);
+}
+
+void sell() {
+	logic.setTradeMarketPrice();	
+	logic.print(0); 
+	logic.print(2);
+
+	int key, quantity;
+	printf("ID > ");
+	scanf("%d", &key);
+	printf("Quantity > ");
+	scanf("%d", &quantity);
+	printf("errorCode = %d \n", logic.runTrade(false, key, quantity));
+	logic.print(0);
+}
+
+void ask() {
+	printf("------------------------------------------------------------------------ \n");
+	printf(" 1: Training, 2: Buy Item, 3. Sell Item, 4: race, 0: Actor Info \n > ");
+	int key;
+	scanf("%d", &key);
+	switch (key)
+	{
+	case 0:
+		logic.print();
+		break;
+	case 1:
+		training();
+		break;
+	case 2:
+		buy();
+		break;
+	case 3:
+		sell();
+		break;
+	case 4:
+		break;
+	default:
+		break;
+	}
+}
+
+
+int main()
+{
+	init();
+	while (true) {
+		ask();					
+	}
     return 0;
 }
 

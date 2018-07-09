@@ -8,7 +8,18 @@
 #include <locale>
 #include <codecvt>
 using namespace std;
-
+enum errorCode {
+	error_success = 0,
+	error_invalid_id,
+	error_not_enought_property,
+	error_not_enought_point,
+	error_not_enought_item,
+};
+enum inventoryType {
+	inventoryType_growth=0,
+	inventoryType_race,
+	inventoryType_adorn,
+};
 //아이템 종류
 enum itemType {
 	itemType_strength = 0,
@@ -21,7 +32,7 @@ enum itemType {
 //아이템
 struct _item {
 	int id;
-	string name;
+	wstring name;
 	itemType type; //기본, 공격, 수비
 	int grade;
 	int value;
@@ -60,7 +71,7 @@ struct _cost {
 //성장
 struct _training {
 	int id;
-	string name;
+	wstring name;
 	_reward reward;
 	_cost cost;
 };
@@ -83,9 +94,9 @@ struct _inventory {
 //캐릭터
 struct _actor {
 	string userId;		//사용자ID
-	string userName;	//사용자명
+	wstring userName;	//사용자명
 	string id;			//고양이ID
-	string name;		//고양이 이름
+	wstring name;		//고양이 이름
 	int point;			//보유캐시
 	_property property;		//속성
 	_inventory inventory;	//인벤토리
@@ -101,7 +112,17 @@ public:
 	bool setTradeMarketPrice();
 	bool insertTraining(_training traning);
 	bool setActor(_actor* actor);
-	void print();
+	void print(int type = 0);
+	_item getItem(int id) {
+		return mItems[id];
+	}
+
+	//Training 
+	errorCode isValidTraining(int id);
+	errorCode runTraining(int id, vector<_itemPair> &rewards);
+
+	//Trade
+	errorCode runTrade(bool isBuy, int id, int quantity);
 private:
 	//트레이닝 보상, 비용
 	typedef vector<int, _itemPair> itemVector;
@@ -114,5 +135,54 @@ private:
 	__training mTraining;
 
 	_actor* mActor;
+
+	//price at buy
+	int getItemPriceBuy(int tradeIndex) {
+		return mTrade[tradeIndex].val + (mItems[mTrade[tradeIndex].itemId].grade * 10);
+		
+	};
+	//price at sell
+	int getItemPriceSell(int tradeIndex) {
+		return getItemPriceBuy(tradeIndex) * 0.9;
+	};
+	//add inventory
+	bool addInventory(inventoryType type, int itemId, int quantity) {		
+		switch (type)
+		{
+		case inventoryType_growth:					
+			if ((quantity < 0 && mActor->inventory.growth.find(itemId) == mActor->inventory.growth.end())
+				|| mActor->inventory.growth[itemId] + quantity < 0)
+				return false;
+			mActor->inventory.growth[itemId] += quantity;
+			if (mActor->inventory.growth[itemId] == 0)
+				mActor->inventory.growth.erase(itemId);
+			break;
+		case inventoryType_race:
+			if ((quantity < 0 && mActor->inventory.race.find(itemId) == mActor->inventory.race.end())
+				|| mActor->inventory.race[itemId] + quantity < 0)
+				return false;
+			mActor->inventory.race[itemId] += quantity;
+			if (mActor->inventory.race[itemId] == 0)
+				mActor->inventory.race.erase(itemId);
+			break;
+		case inventoryType_adorn:
+			if ((quantity < 0 && mActor->inventory.adorn.find(itemId) == mActor->inventory.adorn.end())
+				|| mActor->inventory.adorn[itemId] + quantity < 0)
+				return false;
+			mActor->inventory.adorn[itemId] += quantity;
+			if (mActor->inventory.adorn[itemId] == 0)
+				mActor->inventory.adorn.erase(itemId);
+			break;
+		default:
+			break;
+		}
+		return true;
+	}
+	//increase property
+	void addProperty(int strength, int intelligence, int appeal) {
+		mActor->property.strength += strength;
+		mActor->property.intelligence += intelligence;
+		mActor->property.appeal += appeal;
+	}
 };
 
