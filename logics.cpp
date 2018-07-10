@@ -299,11 +299,13 @@ void logics::recharge(int val) {
 }
 
 errorCode logics::runRecharge(int id, int quantity) {
-	int val = mItems[id].value;
+	
+	if (getInventoryType(id) != inventoryType_HP)
+		return error_invalid_id;
 	if (!addInventory(id, quantity * -1)) {
 		return error_not_enough_item;
 	}
-
+	int val = mItems[id].value * quantity;
 	recharge(val);
 	return error_success;
 }
@@ -416,6 +418,10 @@ int logics::getMaxHP() {
 bool logics::isValidTraningTime(int id) {
 
 	_training* t = &mTraining[id];
+
+	if (mActor->level < t->level)
+		return false;
+
 	if (t->start == 0)
 		return true;
 

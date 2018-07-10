@@ -86,6 +86,7 @@ struct _cost {
 struct _training {
 	int id;
 	wstring name;
+	int level;      //시작 레벨
 	time_t start;	//시작
 	int count;		//등장 횟수
 	int keep;		//유지
@@ -116,6 +117,7 @@ struct _actor {
 	wstring userName;	//사용자명
 	string id;			//고양이ID
 	wstring name;		//고양이 이름
+	wstring title;		//타이틀. 속성 합산이 0 이하면 이번생은 망했어묘
 	int point;			//보유캐시
 	int hp;				//피로도
 	int exp;			//경험치

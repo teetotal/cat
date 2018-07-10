@@ -93,7 +93,7 @@
     },
     {
       "id": 1005,
-      "name": "[도감] 18k순금 반지",
+      "name": "[도감] 18k 순금 반지",
       "type": 1000,
       "value": 0,
       "grade": 2
@@ -110,6 +110,7 @@
     {
       "id": 1,
       "name": "[기본 훈련] 쥐돌이 놀이",
+      "level": 1,
       "reward": {
         "strength": 3,
         "intelligence": 0,
@@ -142,6 +143,7 @@
     {
       "id": 2,
       "name": "[기본 훈련] 정어리 낚시",
+      "level": 1,
       "reward": {
         "strength": 0,
         "intelligence": 3,
@@ -159,66 +161,70 @@
         "intelligence": 0,
         "appeal": 0,
         "point": 12,
-        "items": []
+        "items": [ ]
       }
     },
     {
       "id": 3,
       "name": "[기본 알바] 클럽 알바",
+      "level": 1,
       "reward": {
         "strength": 0,
         "intelligence": 0,
         "appeal": 3,
         "point": 10,
-        "items": []
+        "items": [ ]
       },
       "cost": {
         "strength": 5,
         "intelligence": 10,
         "appeal": 0,
         "point": 0,
-        "items": []
+        "items": [ ]
       }
     },
     {
       "id": 4,
       "name": "[기본 공부] 무사 수행",
+      "level": 3,
       "reward": {
         "strength": 20,
         "intelligence": 0,
         "appeal": 0,
         "point": 0,
-        "items": []
+        "items": [ ]
       },
       "cost": {
         "strength": 0,
         "intelligence": 0,
         "appeal": 0,
         "point": 20,
-        "items": []
+        "items": [ ]
       }
     },
     {
       "id": 5,
       "name": "[기본 공부] 외국어 과외 - 강아지말 배우기",
+      "level": 3,
       "reward": {
         "strength": 0,
         "intelligence": 20,
         "appeal": 0,
         "point": 0,
-        "items": []
+        "items": [ ]
       },
       "cost": {
         "strength": 0,
         "intelligence": 0,
         "appeal": 0,
         "point": 20,
-        "items": []
+        "items": [ ]
       }
     },
     {
       "id": 6,
       "name": "[특별 훈련] 태공냥 - 고래낚시",
+      "level": 5,
       "moment": {
         "start": {
           "hour": 18,
@@ -270,7 +276,7 @@
         "intelligence": 0,
         "appeal": 0,
         "point": 20,
-        "items": []
+        "items": [ ]
       }
     }
   ],
@@ -279,8 +285,127 @@
     "추카추카 레벨업!!",
     "잘못된 아이디입니다",
     "속성이 부족해요",
-    "고냥이 캐시가 부족해요",
-    "아이템이 부족해요",
+    "고냥이 캐시가 부족해요. 고양이 시장에서 아이템을 팔면 고냥이 캐시를 벌 수 있어요",
+    "아이템이 부족해요. 고양이 시장에서 필요한 아이템을 사세요",
     "피곤해요~ HP를 올리세요"
-  ]
+  ],
+  "title": { 
+    "minus": "이번생은 망했어묘",
+    "prefix": [
+      {
+        "level": 5,
+        "title": "견습"
+      },
+      {
+        "level": 10,
+        "title": "평민"
+      },
+      {
+        "level": 20,
+        "title": "중산층"
+      },
+      {
+        "level": 40,
+        "title": "귀족"
+      },
+      {
+        "level": 80,
+        "title": "왕족"
+      },
+      {
+        "level": 160,
+        "title": "황족"
+      },
+      {
+        "level": 320,
+        "title": "지존"
+      }
+    ],
+    "body": [
+      {
+        "S": 90,
+        "I": 0,
+        "A": 0,
+        "title": "프로급 운동선수묘"
+      },
+      {
+        "S": 80,
+        "I": 0,
+        "A": 0,
+        "title": "운동선수묘"
+      },
+      {
+        "S": 70,
+        "I": 0,
+        "A": 0,
+        "title": "튼튼묘"
+      },
+      {
+        "S": 0,
+        "I": 90,
+        "A": 0,
+        "title": "천재묘"
+      },
+      {
+        "S": 0,
+        "I": 80,
+        "A": 0,
+        "title": "영재묘"
+      },
+      {
+        "S": 0,
+        "I": 70,
+        "A": 0,
+        "title": "똘똘묘"
+      },
+      {
+        "S": 0,
+        "I": 0,
+        "A": 90,
+        "title": "치명적 매력묘"
+      },
+      {
+        "S": 0,
+        "I": 0,
+        "A": 80,
+        "title": "나름 동네에서 알아주는 바람둥이묘"
+      },
+      {
+        "S": 0,
+        "I": 0,
+        "A": 70,
+        "title": "아이돌묘"
+      },
+      {
+        "S": 40,
+        "I": 40,
+        "A": 0,
+        "title": "엄친아묘"
+      },
+      {
+        "S": 40,
+        "I": 0,
+        "A": 40,
+        "title": "체육돌묘"
+      },
+      {
+        "S": 0,
+        "I": 40,
+        "A": 40,
+        "title": "사기꾼묘"
+      },
+      {
+        "S": 20,
+        "I": 20,
+        "A": 20,
+        "title": "적당히 때뭍은 교회오빠묘"
+      },
+      {
+        "S": 0,
+        "I": 0,
+        "A": 0,
+        "title": "정체를 알 수 없는 길고양이"
+      }
+    ]
+  }
 }

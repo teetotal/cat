@@ -89,7 +89,7 @@ time_t getTime(int hour, int min, int sec) {
 	ltm->tm_hour = hour;
 	ltm->tm_min = min;
 	ltm->tm_sec = sec;
-
+	/*
 	// print various components of tm structure.
 	cout << " " << 1900 + ltm->tm_year ;
 	cout << "-" << 1 + ltm->tm_mon;
@@ -97,7 +97,7 @@ time_t getTime(int hour, int min, int sec) {
 	cout << " " << 1 + ltm->tm_hour << ":";
 	cout << 1 + ltm->tm_min << ":";
 	cout << 1 + ltm->tm_sec << endl;
-
+	*/
 	return mktime(ltm);
 
 }
@@ -145,6 +145,7 @@ void init() {
 		p.id = t[i]["id"].GetInt();
 		string sz = t[i]["name"].GetString();
 		p.name = utf8_to_utf16(sz);
+		p.level = t[i]["level"].GetInt();
 
 		p.reward.strength = t[i]["reward"]["strength"].GetInt();
 		p.reward.intelligence = t[i]["reward"]["intelligence"].GetInt();
