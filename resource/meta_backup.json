@@ -2,17 +2,73 @@
   "items": [
     {
       "id": 1,
-      "name": "식품 정어리",
+      "name": "식품 사료",
       "type": 1,
-      "value": 0,
+      "value": 1,
       "grade": 1
     },
     {
       "id": 2,
+      "name": "식품 정어리",
+      "type": 1,
+      "value": 10,
+      "grade": 1
+    },
+    {
+      "id": 3,
+      "name": "식품 캔",
+      "type": 1,
+      "value": 20,
+      "grade": 3
+    },
+    {
+      "id": 4,
+      "name": "모래 벤토나이트",
+      "type": 3,
+      "value": 1,
+      "grade": 1
+    },
+    {
+      "id": 5,
+      "name": "모래 두부",
+      "type": 3,
+      "value": 10,
+      "grade": 2
+    },
+    {
+      "id": 6,
+      "name": "모래 우드펠렛",
+      "type": 3,
+      "value": 20,
+      "grade": 3
+    },
+    {
+      "id": 7,
+      "name": "모래 크리스탈",
+      "type": 3,
+      "value": 30,
+      "grade": 4
+    },
+    {
+      "id": 8,
+      "name": "모래 홍화씨",
+      "type": 3,
+      "value": 40,
+      "grade": 5
+    },
+    {
+      "id": 9,
+      "name": "장난감 강아지풀",
+      "type": 2,
+      "value": 1,
+      "grade": 1
+    },
+    {
+      "id": 10,
       "name": "장난감 쥐돌이",
       "type": 2,
-      "value": 0,
-      "grade": 1
+      "value": 10,
+      "grade": 2
     },
     {
       "id": 11,
@@ -25,7 +81,7 @@
       "id": 12,
       "name": "보조식품 캣닢",
       "type": 101,
-      "value": 5,
+      "value": 10,
       "grade": 2
     },
     {
@@ -55,61 +111,12 @@
       "type": 301,
       "value": 10,
       "grade": 2
-    },
-    {
-      "id": 1000,
-      "name": "[도감] 나뭇가지",
-      "type": 1000,
-      "value": 0,
-      "grade": 1
-    },
-    {
-      "id": 1001,
-      "name": "[도감] 호랑나비",
-      "type": 1000,
-      "value": 0,
-      "grade": 1
-    },
-    {
-      "id": 1002,
-      "name": "[도감] 잠자리",
-      "type": 1000,
-      "value": 0,
-      "grade": 1
-    },
-    {
-      "id": 1003,
-      "name": "[도감] 할머니 신발한짝",
-      "type": 1000,
-      "value": 0,
-      "grade": 1
-    },
-    {
-      "id": 1004,
-      "name": "[도감] 죽은 쥐",
-      "type": 1000,
-      "value": 0,
-      "grade": 1
-    },
-    {
-      "id": 1005,
-      "name": "[도감] 18k순금 반지",
-      "type": 1000,
-      "value": 0,
-      "grade": 2
-    },
-    {
-      "id": 1006,
-      "name": "[도감] 외계인 신발한짝",
-      "type": 1000,
-      "value": 0,
-      "grade": 3
     }
   ],
   "training": [
     {
       "id": 1,
-      "name": "[기본 훈련] 쥐돌이 놀이",
+      "name": "[훈련] 쥐돌이 놀이",
       "reward": {
         "strength": 3,
         "intelligence": 0,
@@ -133,7 +140,7 @@
         "point": 10,
         "items": [
           {
-            "id": 2,
+            "id": 10,
             "quantity": 1
           }
         ]
@@ -141,7 +148,7 @@
     },
     {
       "id": 2,
-      "name": "[기본 훈련] 정어리 낚시",
+      "name": "[훈련] 정어리 낚시",
       "reward": {
         "strength": 0,
         "intelligence": 3,
@@ -159,110 +166,39 @@
         "intelligence": 0,
         "appeal": 0,
         "point": 12,
-        "items": []
+        "items": [
+        ]
       }
     },
     {
       "id": 3,
-      "name": "[기본 알바] 클럽 알바",
+      "name": "[알바] 클럽 알바",
       "reward": {
         "strength": 0,
         "intelligence": 0,
         "appeal": 3,
         "point": 10,
-        "items": []
+        "items": [
+        ]
       },
       "cost": {
         "strength": 5,
         "intelligence": 10,
         "appeal": 0,
         "point": 0,
-        "items": []
+        "items": [        
+        ]
       }
     },
     {
       "id": 4,
-      "name": "[기본 공부] 무사 수행",
+      "name": "[공부] 무사 수행",
       "reward": {
         "strength": 20,
         "intelligence": 0,
         "appeal": 0,
         "point": 0,
-        "items": []
-      },
-      "cost": {
-        "strength": 0,
-        "intelligence": 0,
-        "appeal": 0,
-        "point": 20,
-        "items": []
-      }
-    },
-    {
-      "id": 5,
-      "name": "[기본 공부] 외국어 과외 - 강아지말 배우기",
-      "reward": {
-        "strength": 0,
-        "intelligence": 20,
-        "appeal": 0,
-        "point": 0,
-        "items": []
-      },
-      "cost": {
-        "strength": 0,
-        "intelligence": 0,
-        "appeal": 0,
-        "point": 20,
-        "items": []
-      }
-    },
-    {
-      "id": 6,
-      "name": "[특별 훈련] 태공냥 - 고래낚시",
-      "moment": {
-        "start": {
-          "hour": 18,
-          "min": 0,
-          "sec": 0
-        },
-        "count": 150,
-        "keep": 60,
-        "interval": 60
-      },
-      "reward": {
-        "strength": 0,
-        "intelligence": 100,
-        "appeal": 0,
-        "point": 0,
         "items": [
-          {
-            "id": 1000,
-            "quantity": 10
-          },
-          {
-            "id": 1001,
-            "quantity": 10
-          },
-          {
-            "id": 1002,
-            "quantity": 10
-          },
-          {
-            "id": 1003,
-            "quantity": 10
-          },
-          {
-            "id": 1004,
-            "quantity": 10
-          },
-          {
-            "id": 1005,
-            "quantity": 10
-          },
-          {
-            "id": 1006,
-            "quantity": 10
-          }
         ]
       },
       "cost": {
@@ -270,7 +206,28 @@
         "intelligence": 0,
         "appeal": 0,
         "point": 20,
-        "items": []
+        "items": [        
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "name": "[공부] 외국어 과외 - 강아지말 배우기",
+      "reward": {
+        "strength": 0,
+        "intelligence": 20,
+        "appeal": 0,
+        "point": 0,
+        "items": [
+        ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 20,
+        "items": [        
+        ]
       }
     }
   ],

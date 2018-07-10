@@ -47,6 +47,9 @@ void logics::print(int type) {
 		printf("[Training]\n ------------------------------------------------------------------------ \n");
 
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {
+			if (!isValidTraningTime(it->first))
+				continue;
+
 			wstring rewardItems;
 			wstring costItems;
 			
@@ -81,18 +84,38 @@ void logics::print(int type) {
 		}
 	}else if (type == 2) {
 		printf("[Trade]\n ------------------------------------------------------------------------ \n");
-		for (int n = 0; n < mTrade.size(); n++) {			
-			wprintf(L" ID: %03d, Price: %d(%d),\t %s \n", n, getItemPriceBuy(n), getItemPriceSell(n), mItems[mTrade[n].itemId].name.c_str());
+		for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
+			if (mItems[it->first].type < itemType_max) {
+				wprintf(L" ID: %03d, Price: %d(%d),\t %s \n"
+					, it->first
+					, getItemPriceBuy(it->first)
+					, getItemPriceSell(it->first)
+					, mItems[it->first].name.c_str()
+				);
+			}
 		}
 	}
-
-	/*
-	for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
-		wprintf( L"[Items] ID: %d,\t Type: %d,\t %s \n", it->first, it->second.type, it->second.name.c_str());
+	else if (type == 3) // 상품보기
+	{
+		for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
+			wprintf(L"[Items] ID: %d,\t Type: %d,\t %s \n", it->first, it->second.type, it->second.name.c_str());
+		}
 	}
-	*/
-
-	
+	else if (type == 4) { //도감 보기
+		for (__items::iterator it = mItems.find(collectionStartId); it != mItems.end(); ++it) {
+			if (it->second.type == itemType_collection) {
+				bool has = false;
+				if (mActor->collection.find(it->first) != mActor->collection.end())
+					has = true;
+				wprintf(L" [%s] %s(%d) lv.%d \n"
+					, has ? L"O" : L" "
+					, it->second.name.c_str()
+					, it->first
+					, it->second.grade
+				);
+			}	
+		}
+	}
 }
 
 bool logics::insertItem(_item item) {
@@ -106,31 +129,30 @@ bool logics::insertTraining(_training traning) {
 }
 
 bool logics::setTradeMarketPrice() {
-	int avg = maxTradeValue / mItems.size();
+	unsigned int avg = (unsigned int)(maxTradeValue / mItems.size());
 	mTrade.clear();
 	for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
-		_itemPair p;
-		p.itemId = it->second.id;
-		p.val = avg;
-		mTrade.push_back(p);
+		mTrade[it->first] = avg;		
 	}
 
 	int sum = 0;
-	for (int n = 0; n < mTrade.size(); n++) {
-		int id = mTrade[n].itemId;
-		int r = (rand() % mTrade[n].val);
-		int val = r - (mTrade[n].val / 2);
+	size_t cnt = 0;
+	for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
+		int id = it->first;
+		int r = (rand() % it->second);
+		int val = r - (it->second / 2);
 
-		mTrade[n].val += val;
-		sum += mTrade[n].val;
+		it->second += val;
+		sum += it->second;
 		
-		int gap = val / int(mTrade.size() - n);
-		for (int j = n + 1; j < mTrade.size(); j++) {
-			mTrade[j].val -= gap;
+		int gap = val / int(mTrade.size() - cnt);
+		for (__keyValInt::iterator it2 = next(it); it2 != mTrade.end(); ++it2) {
+			it2->second -= gap;
 		}
+		cnt++;
 	}
 
-	//printf("sum = %d \n", sum);
+	printf("sum = %d \n", sum);
 	return true;
 }
 
@@ -142,7 +164,7 @@ bool logics::setActor(_actor* actor) {
 
 errorCode logics::isValidTraining(int id) {
 	//check validation
-	if (mTraining.find(id) == mTraining.end()) {
+	if (mTraining.find(id) == mTraining.end() || isValidTraningTime(id) == false) {
 		return error_invalid_id;
 	}
 	else if (mActor->hp <= 0) {
@@ -184,7 +206,7 @@ errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * re
 		_itemPair * p = mTraining[id].cost.items[n];
 		if (p == NULL)
 			break;
-		if(!addInventory(inventoryType_growth, p->itemId, p->val * -1))
+		if(!addInventory(p->itemId, p->val * -1))
 			return error_not_enough_item;		
 	}
 
@@ -198,17 +220,24 @@ errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * re
 	addProperty(rewardProperty->strength
 		, rewardProperty->intelligence
 		, rewardProperty->appeal);
-	//give item
+
+	//give only 1 item	
+	int cnt = 0;
 	for (int n = 0; n < maxTrainingItems; n++) {
 		_itemPair * p = mTraining[id].reward.items[n];
-		if (p == NULL)
+		if (p == NULL) {
+			cnt = n;
 			break;
-
+		}		
+	}
+	if(cnt > 0){
+		int idx = (rand() % cnt);
+		_itemPair * p = mTraining[id].reward.items[idx];
 		_itemPair item;
 		item.itemId = p->itemId;
 		item.val = (rand() % p->val);
 		if (item.val > 0) {			
-			if (!addInventory(inventoryType_growth, item.itemId, item.val))
+			if (!addInventory(item.itemId, item.val))
 				return error_not_enough_item; //어차피 추가라 이부분은 필요 없지만 걍 넣어둠
 
 			rewards.push_back(item);
@@ -220,7 +249,10 @@ errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * re
 }
 
 errorCode logics::runTrade(bool isBuy, int id, int quantity) {
-	if (mTrade.size() -1 < id) {
+	if (mTrade.find(id) == mTrade.end()) {
+		return error_invalid_id;
+	}
+	if (mItems[id].type >= itemType_max) {
 		return error_invalid_id;
 	}
 	int amount;
@@ -236,9 +268,9 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 		quantity = quantity * -1;
 	}	
 	//give items
-	_item item = mItems[mTrade[id].itemId];
+	_item item = mItems[id];
 	bool ret = false;
-	inventoryType t;
+	/*
 	if (item.type > itemType_training && item.type < itemType_hp) {
 		t = inventoryType_growth;
 	} else if (item.type > itemType_hp && item.type < itemType_race) {
@@ -248,8 +280,8 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	} else if (item.type > itemType_adorn && item.type < itemType_max) {
 		t = inventoryType_adorn;
 	}
-
-	if (!addInventory(t, item.id, quantity))
+	*/
+	if (!addInventory(item.id, quantity))
 		return error_not_enough_item;
 
 	mActor->point += amount;
@@ -268,10 +300,138 @@ void logics::recharge(int val) {
 
 errorCode logics::runRecharge(int id, int quantity) {
 	int val = mItems[id].value;
-	if (!addInventory(inventoryType_HP, id, quantity * -1)) {
+	if (!addInventory(id, quantity * -1)) {
 		return error_not_enough_item;
 	}
 
 	recharge(val);
 	return error_success;
+}
+
+//add inventory
+bool logics::addInventory(int itemId, int quantity) {
+	/*
+	keyQuantity * p;
+	switch (type)
+	{
+	case inventoryType_growth:
+	p = &mActor->inventory.growth;
+	break;
+	case inventoryType_HP:
+	p = &mActor->inventory.hp;
+	break;
+	case inventoryType_race:
+	p = &mActor->inventory.race;
+	break;
+	case inventoryType_adorn:
+	p = &mActor->inventory.adorn;
+	break;
+	default:
+	return false;
+	}
+	int v = p->find(itemId)->second;
+	if ((quantity < 0 && p->find(itemId) == p->end())
+	|| p->find(itemId)->second + quantity < 0
+	)
+	return false;
+	p->find(itemId)->second += quantity;
+	if (p->find(itemId)->second == 0)
+	p->erase(itemId);
+	*/
+	inventoryType type = getInventoryType(itemId);
+	switch (type)
+	{
+	case inventoryType_growth:
+		if ((quantity < 0 && mActor->inventory.growth.find(itemId) == mActor->inventory.growth.end())
+			|| mActor->inventory.growth[itemId] + quantity < 0)
+			return false;
+		mActor->inventory.growth[itemId] += quantity;
+		if (mActor->inventory.growth[itemId] == 0)
+			mActor->inventory.growth.erase(itemId);
+		break;
+	case inventoryType_HP:
+		if ((quantity < 0 && mActor->inventory.hp.find(itemId) == mActor->inventory.hp.end())
+			|| mActor->inventory.hp[itemId] + quantity < 0)
+			return false;
+		mActor->inventory.hp[itemId] += quantity;
+		if (mActor->inventory.hp[itemId] == 0)
+			mActor->inventory.hp.erase(itemId);
+		break;
+	case inventoryType_race:
+		if ((quantity < 0 && mActor->inventory.race.find(itemId) == mActor->inventory.race.end())
+			|| mActor->inventory.race[itemId] + quantity < 0)
+			return false;
+		mActor->inventory.race[itemId] += quantity;
+		if (mActor->inventory.race[itemId] == 0)
+			mActor->inventory.race.erase(itemId);
+		break;
+	case inventoryType_adorn:
+		if ((quantity < 0 && mActor->inventory.adorn.find(itemId) == mActor->inventory.adorn.end())
+			|| mActor->inventory.adorn[itemId] + quantity < 0)
+			return false;
+		mActor->inventory.adorn[itemId] += quantity;
+		if (mActor->inventory.adorn[itemId] == 0)
+			mActor->inventory.adorn.erase(itemId);
+		break;
+	case inventoryType_collection:
+		mActor->collection[itemId] = true;
+		break;
+	default:
+		return false;
+	}
+	return true;
+}
+//increase property
+void logics::addProperty(int strength, int intelligence, int appeal) {
+	mActor->property.strength += strength;
+	mActor->property.intelligence += intelligence;
+	mActor->property.appeal += appeal;
+}
+
+int logics::getRandValue(int max) {
+	if (max == 0)
+		return 0;
+	return rand() % max;
+}
+//경험치 증가
+bool logics::increaseExp() {
+	mActor->exp++;
+	int maxExp = getMaxExp();
+	if (maxExp <= mActor->exp) {
+		mActor->level++;
+		mActor->exp = 0;
+		mActor->hp = getMaxHP();
+		return true;
+	}
+
+	return false;
+}
+int logics::getMaxExp() {
+	return 1 << mActor->level;
+}
+int logics::getMaxHP() {
+	return (int)(defaultHP + (1.5*mActor->level));
+}
+
+bool logics::isValidTraningTime(int id) {
+
+	_training* t = &mTraining[id];
+	if (t->start == 0)
+		return true;
+
+	time_t now = time(0);
+	const int c = (t->keep + t->interval);
+	time_t end = t->start + (t->count * c);
+	if (now < t->start || end < now)
+		return false;
+
+	for (int x = 0; x < t->count; x++) {
+		time_t s = t->start + (x * c);
+		time_t e = s + t->keep;
+
+		if (s <= now && now < e)
+			return true;
+	}
+	
+	return false;
 }

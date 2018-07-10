@@ -83,7 +83,24 @@ std::wstring utf8_to_utf16(const std::string& utf8)
 	}
 	return utf16;
 }
+time_t getTime(int hour, int min, int sec) {
+	time_t now = time(0);
+	tm *ltm = localtime(&now);
+	ltm->tm_hour = hour;
+	ltm->tm_min = min;
+	ltm->tm_sec = sec;
 
+	// print various components of tm structure.
+	cout << " " << 1900 + ltm->tm_year ;
+	cout << "-" << 1 + ltm->tm_mon;
+	cout << "-" << ltm->tm_mday;
+	cout << " " << 1 + ltm->tm_hour << ":";
+	cout << 1 + ltm->tm_min << ":";
+	cout << 1 + ltm->tm_sec << endl;
+
+	return mktime(ltm);
+
+}
 void init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
@@ -138,6 +155,20 @@ void init() {
 		p.cost.intelligence = t[i]["cost"]["intelligence"].GetInt();
 		p.cost.appeal = t[i]["cost"]["appeal"].GetInt();
 		p.cost.point = t[i]["cost"]["point"].GetInt();
+		
+		p.start = 0;
+		//  반짝 
+		if (t[i].HasMember("moment")) {
+			p.start = getTime(
+				t[i]["moment"]["start"]["hour"].GetInt()
+				, t[i]["moment"]["start"]["min"].GetInt()
+				, t[i]["moment"]["start"]["sec"].GetInt()
+			);
+			p.count = t[i]["moment"]["count"].GetInt();
+			p.keep = t[i]["moment"]["keep"].GetInt();
+			p.interval = t[i]["moment"]["keep"].GetInt();
+
+		}
 
 		const Value& item = t[i]["reward"]["items"];
 		for (SizeType m = 0; m < item.Size(); m++) {
@@ -204,18 +235,24 @@ void init() {
 		int quantity = adorn[i]["quantity"].GetInt();
 		actor->inventory.adorn[id] = quantity;
 	}
+	const Value& collection = d2["collection"];
+	for (SizeType i = 0; i < collection.Size(); i++) {
+		int id = collection[i].GetInt();		
+		actor->collection[id] = true;
+	}
 
 	logic.setActor(actor);
+	logic.print(3);
 	logic.print();
-
-	
-}
+} 
 
 void training() {
 	logic.print(1);
 	int key;
 	printf("choose > ");
 	scanf("%d", &key);
+	if (key == -1)
+		return;
 
 	errorCode err = logic.isValidTraining(key);
 	if (err != error_success) {
@@ -242,8 +279,12 @@ void buy() {
 	int key, quantity;
 	printf("ID > ");
 	scanf("%d", &key);
+	if (key == -1)
+		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
+	
+
 	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(true, key, quantity)));
 	logic.print(0);
 }
@@ -256,6 +297,8 @@ void sell() {
 	int key, quantity;
 	printf("ID > ");
 	scanf("%d", &key);
+	if (key == -1)
+		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
 	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(false, key, quantity)));
@@ -266,6 +309,8 @@ void hp() {
 	int key, quantity;
 	printf("HP Item ID > ");
 	scanf("%d", &key);
+	if (key == -1)
+		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
 	wprintf(L"%s \n", logic.getErrorMessage(logic.runRecharge(key, quantity)));
@@ -274,7 +319,7 @@ void hp() {
 
 void ask() {
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" > 1: 액션, 2: 아이템 구매, 3. 아이템 판매, 4: 경묘, 5: 체력보충, 0: Actor Info \n > ");
+	wprintf( L" 1: 액션 \n 2: 아이템 구매, 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충, 6: 도감 보기, 0: Actor Info \n > ");
 	int key;
 	scanf("%d", &key);
 	switch (key)
@@ -296,6 +341,9 @@ void ask() {
 	case 5:
 		hp();
 		break;
+	case 6:
+		logic.print(4);
+		break;
 	default:
 		break;
 	}
@@ -303,10 +351,12 @@ void ask() {
 
 
 int main()
-{
+{		
 	init();
+	
 	while (true) {
-		ask();					
+		ask();	
+		//scanf("%d", &n);
 	}
     return 0;
 }

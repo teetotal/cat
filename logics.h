@@ -22,6 +22,7 @@ enum inventoryType {
 	inventoryType_HP,
 	inventoryType_race,
 	inventoryType_adorn,
+	inventoryType_collection,
 };
 //아이템 종류
 enum itemType {
@@ -35,7 +36,8 @@ enum itemType {
 	itemType_race_attact,
 	itemType_adorn = 300, //치장
 	itemType_adorn_head,
-	itemType_max
+	itemType_max,
+	itemType_collection = 1000,	//도감용
 };
 //아이템
 struct _item {
@@ -59,6 +61,8 @@ struct _itemPair {
 #define maxTrainingItems 10
 //기본 HP
 #define defaultHP 4
+//도감용 아이템 시작 id
+#define collectionStartId 1000
 
 //성장 보상
 struct _reward {
@@ -72,16 +76,20 @@ struct _reward {
 //성장 비용
 struct _cost {
 	int strength;
-	int intelligence;
+	int intelligence;	
 	int appeal;
 	int point;
-	_itemPair* items[maxTrainingItems];
+	_itemPair* items[maxTrainingItems];	
 };
 
 //성장
 struct _training {
 	int id;
 	wstring name;
+	time_t start;	//시작
+	int count;		//등장 횟수
+	int keep;		//유지
+	int interval;	//사라지는 시간
 	_reward reward;
 	_cost cost;
 };
@@ -101,7 +109,7 @@ struct _inventory {
 	keyQuantity race;	//경묘용 아이템
 	keyQuantity adorn;	//치장용 아이템
 };
-
+typedef map<int, bool> keyBoolMap;
 //캐릭터
 struct _actor {
 	string userId;		//사용자ID
@@ -114,6 +122,7 @@ struct _actor {
 	int level;			//레벨
 	_property property;		//속성
 	_inventory inventory;	//인벤토리
+	keyBoolMap collection;	//도감
 };
 
 class logics 
@@ -151,128 +160,60 @@ public:
 private:
 	//error messages
 	typedef vector<wstring> errorMessages;
-	errorMessages mErrorMessages;
-	//트레이닝 보상, 비용
-	typedef vector<int, _itemPair> itemVector;
-
-	typedef map<int, _item> __items; //items
-	__items mItems;
-	typedef vector<_itemPair> __pair; //무역 시세
-	__pair mTrade;
-	typedef map<int, _training> __training; //성장
-	__training mTraining;
+	errorMessages mErrorMessages;	
+	
+	typedef map<int, _item> __items; 
+	__items mItems;		//items
+	typedef map<int, int> __keyValInt; 
+	__keyValInt mTrade;	//무역 시세
+	typedef map<int, _training> __training; 
+	__training mTraining;//성장
 
 	_actor* mActor;
 
 	//price at buy
-	int getItemPriceBuy(int tradeIndex) {
-		return mTrade[tradeIndex].val + (mItems[mTrade[tradeIndex].itemId].grade * 10);
-		
+	int getItemPriceBuy(int itemId) {
+		return (int)(mTrade[itemId] + (mItems[itemId].grade * 10));
 	};
 	//price at sell
-	int getItemPriceSell(int tradeIndex) {
-		return getItemPriceBuy(tradeIndex) * 0.9;
+	int getItemPriceSell(int itemId) {
+		return (int)(getItemPriceBuy(itemId) * 0.9);
 	};
 	//add inventory
-	bool addInventory(inventoryType type, int itemId, int quantity) {	
-		/*
-		keyQuantity * p;
-		switch (type)
-		{
-		case inventoryType_growth:
-			p = &mActor->inventory.growth;
-			break;
-		case inventoryType_HP:
-			p = &mActor->inventory.hp;
-			break;
-		case inventoryType_race:
-			p = &mActor->inventory.race;
-			break;
-		case inventoryType_adorn:
-			p = &mActor->inventory.adorn;
-			break;
-		default:
-			return false;
-		}
-		int v = p->find(itemId)->second;
-		if ((quantity < 0 && p->find(itemId) == p->end())
-			|| p->find(itemId)->second + quantity < 0
-			)
-			return false;
-		p->find(itemId)->second += quantity;
-		if (p->find(itemId)->second == 0)
-			p->erase(itemId);
-		*/
-		
-		switch (type)
-		{
-		case inventoryType_growth:					
-			if ((quantity < 0 && mActor->inventory.growth.find(itemId) == mActor->inventory.growth.end())
-				|| mActor->inventory.growth[itemId] + quantity < 0)
-				return false;
-			mActor->inventory.growth[itemId] += quantity;
-			if (mActor->inventory.growth[itemId] == 0)
-				mActor->inventory.growth.erase(itemId);
-			break;
-		case inventoryType_HP:
-			if ((quantity < 0 && mActor->inventory.hp.find(itemId) == mActor->inventory.hp.end())
-				|| mActor->inventory.hp[itemId] + quantity < 0)
-				return false;
-			mActor->inventory.hp[itemId] += quantity;
-			if (mActor->inventory.hp[itemId] == 0)
-				mActor->inventory.hp.erase(itemId);
-			break;
-		case inventoryType_race:
-			if ((quantity < 0 && mActor->inventory.race.find(itemId) == mActor->inventory.race.end())
-				|| mActor->inventory.race[itemId] + quantity < 0)
-				return false;
-			mActor->inventory.race[itemId] += quantity;
-			if (mActor->inventory.race[itemId] == 0)
-				mActor->inventory.race.erase(itemId);
-			break;
-		case inventoryType_adorn:
-			if ((quantity < 0 && mActor->inventory.adorn.find(itemId) == mActor->inventory.adorn.end())
-				|| mActor->inventory.adorn[itemId] + quantity < 0)
-				return false;
-			mActor->inventory.adorn[itemId] += quantity;
-			if (mActor->inventory.adorn[itemId] == 0)
-				mActor->inventory.adorn.erase(itemId);
-			break;
-		default:
-			return false;
-		}
-		return true;
-	}
+	bool addInventory(int itemId, int quantity);
 	//increase property
-	void addProperty(int strength, int intelligence, int appeal) {
-		mActor->property.strength += strength;
-		mActor->property.intelligence += intelligence;
-		mActor->property.appeal += appeal;
-	}
+	void addProperty(int strength, int intelligence, int appeal);
+	//get random value
+	int getRandValue(int max);
+	//increment exp
+	bool increaseExp();
+	//get max exp
+	int getMaxExp();
+	//get max HP
+	int getMaxHP();
+	//check traning time validation
+	bool isValidTraningTime(int id);
 
-	int getRandValue(int max) {
-		if (max == 0)
-			return 0;
-		return rand() % max;
-	}
-	//경험치 증가
-	bool increaseExp() {
-		mActor->exp++;
-		int maxExp = getMaxExp();
-		if (maxExp <= mActor->exp) {
-			mActor->level++;
-			mActor->exp = 0;
-			mActor->hp = getMaxHP();
-			return true;
+	inventoryType getInventoryType(int itemId) {
+		_item item = mItems[itemId];
+		inventoryType t;
+		if (item.type > itemType_training && item.type < itemType_hp) {
+			t = inventoryType_growth;
+		}
+		else if (item.type > itemType_hp && item.type < itemType_race) {
+			t = inventoryType_HP;
+		}
+		else if (item.type > itemType_race && item.type < itemType_adorn) {
+			t = inventoryType_race;
+		}
+		else if (item.type > itemType_adorn && item.type < itemType_max) {
+			t = inventoryType_adorn;
+		}
+		else {
+			t = inventoryType_collection;
 		}
 
-		return false;
-	}
-	int getMaxExp() {
-		return 1 << mActor->level;
-	}
-	int getMaxHP() {
-		return defaultHP + (1.5*mActor->level);
-	}
+		return t;
+	};
 };
 
