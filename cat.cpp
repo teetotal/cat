@@ -193,6 +193,29 @@ void init() {
 		logic.insertTraining(p);
 	}
 
+	//jobTitle
+	const Value& job = d["jobTitle"];
+	logic.setDefaultJobTitle(utf8_to_utf16(job["default"].GetString()));
+	const Value& jobPrefix = job["prefix"];
+	for (SizeType i = 0; i < jobPrefix.Size(); i++) {
+		jobTitlePrefix p;
+		p.level = jobPrefix[i]["level"].GetInt();
+		p.title = utf8_to_utf16(jobPrefix[i]["title"].GetString());
+
+		logic.addJobTitlePrefix(p);
+	}
+
+	const Value& jobBody = job["body"];
+	for (SizeType i = 0; i < jobBody.Size(); i++) {
+		jobTitleBody p;
+		p.S = jobBody[i]["S"].GetInt();
+		p.I = jobBody[i]["I"].GetInt();
+		p.A = jobBody[i]["A"].GetInt();
+		p.title = utf8_to_utf16(jobBody[i]["title"].GetString());
+
+		logic.addJobTitleBody(p);
+	}
+
 	logic.init();
 
 	fileopen.open("resource/actor.json", ios::in | ios::binary);

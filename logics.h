@@ -7,6 +7,8 @@
 #include <iostream>
 #include <locale>
 #include <codecvt>
+#include <algorithm>
+
 using namespace std;
 enum errorCode {
 	error_success = 0,
@@ -117,7 +119,7 @@ struct _actor {
 	wstring userName;	//사용자명
 	string id;			//고양이ID
 	wstring name;		//고양이 이름
-	wstring title;		//타이틀. 속성 합산이 0 이하면 이번생은 망했어묘
+	wstring jobTitle;		//타이틀. 속성 합산이 0 이하면 이번생은 망했어묘
 	int point;			//보유캐시
 	int hp;				//피로도
 	int exp;			//경험치
@@ -127,16 +129,31 @@ struct _actor {
 	keyBoolMap collection;	//도감
 };
 
+//직업명 prefix
+struct jobTitlePrefix {
+	int level;
+	wstring title;
+};
+
+//직업명 body
+struct jobTitleBody {
+	int S;
+	int I;
+	int A;
+	wstring title;
+};
+
+
 class logics 
 {
 public:
 	logics() {};
 	~logics() {};
 	bool init();
-	bool insertItem(_item item);
+	bool insertItem(_item);
 	bool setTradeMarketPrice();
-	bool insertTraining(_training traning);
-	bool setActor(_actor* actor);
+	bool insertTraining(_training);
+	bool setActor(_actor*);
 	void print(int type = 0);
 	_item getItem(int id) {
 		return mItems[id];
@@ -148,6 +165,10 @@ public:
 	const wchar_t * getErrorMessage(errorCode code) {
 		return mErrorMessages[code].c_str();
 	};
+
+	void setDefaultJobTitle(wstring);
+	void addJobTitlePrefix(jobTitlePrefix&);
+	void addJobTitleBody(jobTitleBody&);
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -173,6 +194,17 @@ private:
 
 	_actor* mActor;
 
+	//직업명
+	typedef vector<jobTitlePrefix> jobTitlePrefixVector;
+	typedef vector<jobTitleBody> jobTitleBodyVector;
+
+	struct jobTitle {
+		wstring default;
+		jobTitlePrefixVector prefix;
+		jobTitleBodyVector body;
+	};
+	jobTitle mJobTitle;
+
 	//price at buy
 	int getItemPriceBuy(int itemId) {
 		return (int)(mTrade[itemId] + (mItems[itemId].grade * 10));
@@ -195,6 +227,8 @@ private:
 	int getMaxHP();
 	//check traning time validation
 	bool isValidTraningTime(int id);
+	//set jobTitle
+	void setJobTitle();
 
 	inventoryType getInventoryType(int itemId) {
 		_item item = mItems[itemId];

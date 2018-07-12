@@ -26,7 +26,7 @@ void logics::print(int type) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		printf("[Actor]\n ------------------------------------------------------------------------ \n");
-		wprintf(L" Name: %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n Point:%d \n S: %d, I: %d, A: %d \n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
+		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n S: %d, I: %d, A: %d \n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
@@ -34,6 +34,7 @@ void logics::print(int type) {
 			, getMaxExp()
 			, mActor->hp
 			, getMaxHP()
+			, mActor->jobTitle.c_str()
 			, mActor->point
 			, mActor->property.strength
 			, mActor->property.intelligence
@@ -403,6 +404,9 @@ bool logics::increaseExp() {
 		mActor->level++;
 		mActor->exp = 0;
 		mActor->hp = getMaxHP();
+
+		//set job title
+		setJobTitle();
 		return true;
 	}
 
@@ -440,4 +444,59 @@ bool logics::isValidTraningTime(int id) {
 	}
 	
 	return false;
+}
+
+void logics::setDefaultJobTitle(wstring sz) {
+	mJobTitle.default = sz;
+}
+void logics::addJobTitlePrefix(jobTitlePrefix& prefix) {
+	mJobTitle.prefix.push_back(prefix);
+}
+void logics::addJobTitleBody(jobTitleBody& body) {
+	mJobTitle.body.push_back(body);
+}
+
+void logics::setJobTitle() {
+	wstring szPrefix;
+	wstring szBody = mJobTitle.default;
+	
+	for (int n = 0; n < mJobTitle.prefix.size(); n++) {
+		if (mActor->level <= mJobTitle.prefix[0].level) {
+			szPrefix = mJobTitle.prefix[n].title;
+			break;
+		}			
+	}
+
+	int S = mActor->property.strength;
+	int I = mActor->property.intelligence;
+	int A = mActor->property.appeal;
+
+	int sum = S + I + A;
+	if (sum < 0) {		
+		mActor->jobTitle = szPrefix + L" " + szBody;
+		return;
+	}
+	int min = std::min(std::min(S, I), A);
+	if (min < 0) {
+		S += min;
+		I += min;
+		A += min;
+	}
+	float sum2 = S + I + A;
+	int pS, pI, pA;
+	pS = (int)((S / sum2) * 100.0f);
+	pI = (int)((I / sum2) * 100.0f);
+	pA = (int)((A / sum2) * 100.0f);
+
+	for (int n = 0; n < mJobTitle.body.size(); n++) {
+		if (pS >= mJobTitle.body[n].S
+			&& pI >= mJobTitle.body[n].I
+			&& pA >= mJobTitle.body[n].A) {
+			szBody = mJobTitle.body[n].title;
+			break;
+		}
+	}
+
+	mActor->jobTitle = szPrefix + L" " + szBody;
+	return;
 }
