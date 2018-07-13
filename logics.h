@@ -8,8 +8,24 @@
 #include <locale>
 #include <codecvt>
 #include <algorithm>
+#include <mutex>
 
 using namespace std;
+//HP 추가 간격
+#define HPIncreaseInterval	60 * 5
+//최대 무역 합산 시세
+#define maxTradeValue 100
+//최대 아이템 보상/비용
+#define maxTrainingItems 10
+//기본 HP
+#define defaultHP 4
+//도감용 아이템 시작 id
+#define collectionStartId 1000
+//나를 제외한 경묘 참가자 수
+#define raceParticipantNum 4
+//한번 race에서 사용가능한 아이템 수
+#define raceItemSlot 3
+
 enum errorCode {
 	error_success = 0,
 	error_levelup,
@@ -17,7 +33,8 @@ enum errorCode {
 	error_not_enough_property,
 	error_not_enough_point,
 	error_not_enough_item,
-	error_not_enough_hp
+	error_not_enough_hp,
+	error_not_enough_strength,
 };
 enum inventoryType {
 	inventoryType_growth=0,
@@ -56,15 +73,6 @@ struct _itemPair {
 	int val;
 };
 
-
-//최대 무역 합산 시세
-#define maxTradeValue 100
-//최대 아이템 보상/비용
-#define maxTrainingItems 10
-//기본 HP
-#define defaultHP 4
-//도감용 아이템 시작 id
-#define collectionStartId 1000
 
 //성장 보상
 struct _reward {
@@ -127,27 +135,47 @@ struct _actor {
 	_property property;		//속성
 	_inventory inventory;	//인벤토리
 	keyBoolMap collection;	//도감
+
+	time_t loginTime;	//시작시간
+	time_t lastUpdateTime; //지난 HP 업데이트 시간
 };
 
 //직업명 prefix
-struct jobTitlePrefix {
+struct _jobTitlePrefix {
 	int level;
 	wstring title;
 };
 
 //직업명 body
-struct jobTitleBody {
+struct _jobTitleBody {
 	int S;
 	int I;
 	int A;
 	wstring title;
 };
 
+//race 상금 + 부상
+struct _raceReward {
+	int prize;
+	vector<_itemPair> items;
+};
+//race
+struct _race {
+	int id;
+	wstring title;
+	int length;
+	int levelMin;
+	int levelMax;
+	int fee;
+	vector<_raceReward> rewards;
+};
 
 class logics 
 {
 public:
-	logics() {};
+	logics() {
+		srand((int)time(0));
+	};
 	~logics() {};
 	bool init();
 	bool insertItem(_item);
@@ -167,8 +195,11 @@ public:
 	};
 
 	void setDefaultJobTitle(wstring);
-	void addJobTitlePrefix(jobTitlePrefix&);
-	void addJobTitleBody(jobTitleBody&);
+	void addJobTitlePrefix(_jobTitlePrefix&);
+	void addJobTitleBody(_jobTitleBody&);
+
+	//경묘 메타 정보
+	void addRaceMeta(_race & race);
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -177,9 +208,15 @@ public:
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
 
+	//Race
+	errorCode runRace(int id);
+
 	//charge
-	errorCode runRecharge(int id, int quantity);
-	void recharge(int val);
+	errorCode runRecharge(int id, int quantity);	
+
+	//auto recharge HP
+	//충전이 되면 true, 이미 만땅이거나 시간이 아니면 false
+	bool rechargeHP();
 private:
 	//error messages
 	typedef vector<wstring> errorMessages;
@@ -194,9 +231,12 @@ private:
 
 	_actor* mActor;
 
+	//HP lock
+	mutex lockHP;
+
 	//직업명
-	typedef vector<jobTitlePrefix> jobTitlePrefixVector;
-	typedef vector<jobTitleBody> jobTitleBodyVector;
+	typedef vector<_jobTitlePrefix> jobTitlePrefixVector;
+	typedef vector<_jobTitleBody> jobTitleBodyVector;
 
 	struct jobTitle {
 		wstring default;
@@ -204,6 +244,34 @@ private:
 		jobTitleBodyVector body;
 	};
 	jobTitle mJobTitle;
+
+	//경묘
+	typedef map<int, _race> raceMeta;
+	raceMeta mRace;
+
+	//경묘 참가자
+	struct _raceParticipant : _property {
+		int items[raceItemSlot];
+		int currentLength; //현재 이동 거리
+		int rank; //현재 등수
+	};
+
+	//경묘 대회 참가자 벡터
+	typedef vector<_raceParticipant> raceParticipants;
+	raceParticipants mRaceParticipants;
+
+	//경묘 진행 정보
+	struct _raceCurrent
+	{
+		int id;
+	};
+	_raceCurrent mRaceCurrent;
+	
+
+	//race 랜덤 아이템
+	int getRandomRaceItem();
+	//race 진행
+	void getNextRaceStatus();
 
 	//price at buy
 	int getItemPriceBuy(int itemId) {
@@ -219,12 +287,21 @@ private:
 	void addProperty(int strength, int intelligence, int appeal);
 	//get random value
 	int getRandValue(int max);
+	
 	//increment exp
 	bool increaseExp();
 	//get max exp
 	int getMaxExp();
+
 	//get max HP
 	int getMaxHP();
+	//increment HP
+	bool increaseHP(int);
+	//set Max HP
+	void setMaxHP();
+	//get HP
+	int getHP();
+	
 	//check traning time validation
 	bool isValidTraningTime(int id);
 	//set jobTitle

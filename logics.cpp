@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "logics.h"
 
-bool logics::init() {
-	srand((int)time(0));
+bool logics::init() {	
 
 	if (!setTradeMarketPrice())
 		return false;
 
+	mActor->loginTime = time(0);
+	mActor->lastUpdateTime = mActor->loginTime;
 	return true;
 }
 
@@ -32,7 +33,7 @@ void logics::print(int type) {
 			, mActor->level
 			, mActor->exp
 			, getMaxExp()
-			, mActor->hp
+			, getHP()
 			, getMaxHP()
 			, mActor->jobTitle.c_str()
 			, mActor->point
@@ -117,6 +118,30 @@ void logics::print(int type) {
 			}	
 		}
 	}
+	else if (type == 5) { //경묘 목록
+		wprintf(L"------------- 경묘 대회 목록 -------------\n");
+		for (raceMeta::iterator it = mRace.begin(); it != mRace.end(); ++it) {
+			printf("\n");
+			wprintf(L"[%03d] %s \n▷ 참가비: %d, 경주거리: %d m, level: (lv.%d ~ lv.%d) \n▷ 우승상금 --------\n"
+				, it->second.id
+				, it->second.title.c_str()
+				, it->second.fee
+				, it->second.length
+				, it->second.levelMin
+				, it->second.levelMax
+			);
+			
+			for (int m = 0; m < it->second.rewards.size(); m++) {
+				wprintf(L"%d등 상금: %d (%s 외 %d)\n"
+					, m+1 
+					, it->second.rewards[m].prize
+					, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
+					, (int)it->second.rewards[m].items.size() -1
+				);
+			}
+		}
+		printf("\n");
+	}
 }
 
 bool logics::insertItem(_item item) {
@@ -168,7 +193,7 @@ errorCode logics::isValidTraining(int id) {
 	if (mTraining.find(id) == mTraining.end() || isValidTraningTime(id) == false) {
 		return error_invalid_id;
 	}
-	else if (mActor->hp <= 0) {
+	else if (getHP() <= 0) {
 		return error_not_enough_hp;
 	}
 	else if (mTraining[id].cost.point > mActor->point)
@@ -196,7 +221,7 @@ errorCode logics::isValidTraining(int id) {
 
 errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * rewardProperty, int &point) {
 	//hp
-	mActor->hp--;
+	increaseHP(-1);
 	//pay point
 	mActor->point -= mTraining[id].cost.point;
 	//substract property
@@ -291,14 +316,6 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	return error_success;
 }
 
-void logics::recharge(int val) {
-	int maxHP = getMaxHP();
-	if (mActor->hp + val >= maxHP)
-		mActor->hp = maxHP;
-	else
-		mActor->hp += val;
-}
-
 errorCode logics::runRecharge(int id, int quantity) {
 	
 	if (getInventoryType(id) != inventoryType_HP)
@@ -307,7 +324,7 @@ errorCode logics::runRecharge(int id, int quantity) {
 		return error_not_enough_item;
 	}
 	int val = mItems[id].value * quantity;
-	recharge(val);
+	increaseHP(val);
 	return error_success;
 }
 
@@ -403,7 +420,7 @@ bool logics::increaseExp() {
 	if (maxExp <= mActor->exp) {
 		mActor->level++;
 		mActor->exp = 0;
-		mActor->hp = getMaxHP();
+		setMaxHP();
 
 		//set job title
 		setJobTitle();
@@ -417,6 +434,42 @@ int logics::getMaxExp() {
 }
 int logics::getMaxHP() {
 	return (int)(defaultHP + (1.5*mActor->level));
+}
+void logics::setMaxHP() {	
+	mActor->hp = getMaxHP();	
+}
+
+bool logics::increaseHP(int val) {
+	int maxHP = getMaxHP();	
+	bool ret = true;
+	lockHP.lock();	
+	
+	if (val > 0 && maxHP == mActor->hp)
+		ret = false;	
+	else if (mActor->hp + val >= maxHP)
+		setMaxHP();
+	else
+		mActor->hp += val;
+	lockHP.unlock();
+
+	return ret;
+}
+
+int logics::getHP() {
+	lockHP.lock();
+	int hp = mActor->hp;
+	lockHP.unlock();
+	return hp;
+}
+
+bool logics::rechargeHP() {
+	time_t now = time(0);
+	if (now - mActor->lastUpdateTime >= HPIncreaseInterval) {
+		mActor->lastUpdateTime = now;
+		return increaseHP(1);
+
+	}
+	return false;
 }
 
 bool logics::isValidTraningTime(int id) {
@@ -449,10 +502,10 @@ bool logics::isValidTraningTime(int id) {
 void logics::setDefaultJobTitle(wstring sz) {
 	mJobTitle.default = sz;
 }
-void logics::addJobTitlePrefix(jobTitlePrefix& prefix) {
+void logics::addJobTitlePrefix(_jobTitlePrefix& prefix) {
 	mJobTitle.prefix.push_back(prefix);
 }
-void logics::addJobTitleBody(jobTitleBody& body) {
+void logics::addJobTitleBody(_jobTitleBody& body) {
 	mJobTitle.body.push_back(body);
 }
 
@@ -482,7 +535,7 @@ void logics::setJobTitle() {
 		I += min;
 		A += min;
 	}
-	float sum2 = S + I + A;
+	float sum2 = (float)(S + I + A);
 	int pS, pI, pA;
 	pS = (int)((S / sum2) * 100.0f);
 	pI = (int)((I / sum2) * 100.0f);
@@ -499,4 +552,43 @@ void logics::setJobTitle() {
 
 	mActor->jobTitle = szPrefix + L" " + szBody;
 	return;
+}
+
+void logics::addRaceMeta(_race & race) {
+	mRace[race.id] = race;
+}
+
+errorCode logics::runRace(int id) {
+	if (mActor->property.strength < 0) {
+		return error_not_enough_strength;
+	}
+	if (!increaseHP(-1)) {
+		return error_not_enough_hp;
+	}
+
+	mRaceCurrent.id = id;
+
+	mRaceParticipants.clear();
+	//내 능력치랑 비슷하게 구성
+	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
+	//참가자 목록
+	for (int n = 0; n < raceParticipantNum; n++) {
+		_raceParticipant p;
+		p.strength = getRandValue(sum);	
+		p.intelligence = getRandValue(sum - p.strength);
+		p.appeal = sum - p.strength - p.intelligence;
+		p.current = 0;
+		for (int m = 0; m < raceItemSlot; m++) {
+			p.items[m] = getRandomRaceItem();
+		}
+		printf("(%d) S: %d, I: %d, A: %d, [%d,%d,%d]\n",n+1,  p.strength, p.intelligence, p.appeal, p.items[0], p.items[1], p.items[2]);
+		mRaceParticipants.push_back(p);
+	}
+	
+
+	return error_success;
+}
+
+int logics::getRandomRaceItem() {
+	return 13;
 }

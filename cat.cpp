@@ -5,12 +5,74 @@
 #include "logics.h"
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+
+#ifdef _WIN32
+	#include <Windows.h>
+#endif // WIN32
+
 using namespace rapidjson;
 logics logic;
+bool isRunThread = false;
+
+void cls() {
+#ifdef _WIN32
+	system("cls");
+#endif
+}
+/*
+void progress() {
+	float progress = 0.0;
+	while (progress < 1.0) {
+		int barWidth = 70;
+
+		std::cout << "[";
+		int pos = barWidth * progress;
+		for (int i = 0; i < barWidth; ++i) {
+			if (i < pos) std::cout << "=";
+			else if (i == pos) std::cout << ">";
+			else std::cout << " ";
+		}
+		std::cout << "] " << int(progress * 100.0) << " %\r";
+	
+
+		std::cout.flush();
+
+		progress += 0.16; // for demonstration only
+		::_sleep(500);
+	}
+	std::cout << std::endl;
+}
+*/
+
+void result(const wchar_t * sz) {
+	cls();
+	wprintf(L"★     ☆                       ☆        \n");
+	wprintf(L"                                   ☆     \n");
+	wprintf(L"☆                                        \n\n");
+	wprintf(L"\t %s         \n\n", sz);
+	wprintf(L"☆           ☆                    ☆     \n");
+	wprintf(L"                     ★                   \n");
+	wprintf(L"☆    ★       ☆               ★   ☆   \n");
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	cls();
+}
+
+void runThread() {
+	isRunThread = true;
+
+	while (isRunThread) {
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		if (logic.rechargeHP()) {
+			wprintf(L"\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
+		}
+			
+	}
+}
 
 std::wstring utf8_to_utf16(const std::string& utf8)
 {
@@ -89,15 +151,7 @@ time_t getTime(int hour, int min, int sec) {
 	ltm->tm_hour = hour;
 	ltm->tm_min = min;
 	ltm->tm_sec = sec;
-	/*
-	// print various components of tm structure.
-	cout << " " << 1900 + ltm->tm_year ;
-	cout << "-" << 1 + ltm->tm_mon;
-	cout << "-" << ltm->tm_mday;
-	cout << " " << 1 + ltm->tm_hour << ":";
-	cout << 1 + ltm->tm_min << ":";
-	cout << 1 + ltm->tm_sec << endl;
-	*/
+	
 	return mktime(ltm);
 
 }
@@ -198,7 +252,7 @@ void init() {
 	logic.setDefaultJobTitle(utf8_to_utf16(job["default"].GetString()));
 	const Value& jobPrefix = job["prefix"];
 	for (SizeType i = 0; i < jobPrefix.Size(); i++) {
-		jobTitlePrefix p;
+		_jobTitlePrefix p;
 		p.level = jobPrefix[i]["level"].GetInt();
 		p.title = utf8_to_utf16(jobPrefix[i]["title"].GetString());
 
@@ -207,7 +261,7 @@ void init() {
 
 	const Value& jobBody = job["body"];
 	for (SizeType i = 0; i < jobBody.Size(); i++) {
-		jobTitleBody p;
+		_jobTitleBody p;
 		p.S = jobBody[i]["S"].GetInt();
 		p.I = jobBody[i]["I"].GetInt();
 		p.A = jobBody[i]["A"].GetInt();
@@ -216,7 +270,37 @@ void init() {
 		logic.addJobTitleBody(p);
 	}
 
-	logic.init();
+	//Race Meta
+	const Value& race = d["race"];
+	for (SizeType i = 0; i < race.Size(); i++) {
+		_race r;
+		r.id = race[i]["id"].GetInt();
+		r.title = utf8_to_utf16(race[i]["title"].GetString());
+		r.fee = race[i]["fee"].GetInt();
+		r.length = race[i]["length"].GetInt();
+		r.levelMin = race[i]["level"]["min"].GetInt();
+		r.levelMax = race[i]["level"]["max"].GetInt();
+
+		const Value& rewards = race[i]["rewards"];
+		for (SizeType j = 0; j < rewards.Size(); j++) {
+			_raceReward rr;
+			rr.prize = rewards[j]["prize"].GetInt();
+
+			const Value& items = rewards[j]["items"];
+			for (SizeType k = 0; k < items.Size(); k++) {
+				_itemPair ip;
+				ip.itemId = items[k]["id"].GetInt();
+				ip.val = items[k]["quantity"].GetInt();
+
+				rr.items.push_back(ip);
+			}
+			r.rewards.push_back(rr);
+		}
+		logic.addRaceMeta(r);
+	}
+	
+
+	//Set Actor
 
 	fileopen.open("resource/actor.json", ios::in | ios::binary);
 	std::string sz((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
@@ -247,10 +331,10 @@ void init() {
 		int quantity = growth[i]["quantity"].GetInt();
 		actor->inventory.growth[id] = quantity;
 	}
-	const Value& race = d2["inventory"]["race"];
-	for (SizeType i = 0; i < race.Size(); i++) {
-		int id = race[i]["id"].GetInt();
-		int quantity = race[i]["quantity"].GetInt();
+	const Value& raceItem = d2["inventory"]["race"];
+	for (SizeType i = 0; i < raceItem.Size(); i++) {
+		int id = raceItem[i]["id"].GetInt();
+		int quantity = raceItem[i]["quantity"].GetInt();
 		actor->inventory.race[id] = quantity;
 	}
 	const Value& adorn = d2["inventory"]["adorn"];
@@ -266,6 +350,8 @@ void init() {
 	}
 
 	logic.setActor(actor);
+
+	logic.init();
 	logic.print(3);
 	logic.print();
 } 
@@ -286,14 +372,21 @@ void training() {
 	vector<_itemPair> rewards;
 	_property property;
 	int point;
-	wprintf( L"%s \n", logic.getErrorMessage(logic.runTraining(key, rewards, &property, point)));
-	wprintf( L"보상 내용 ---- \n Point: %d \n S: %d, I: %d, A: %d \n", point, property.strength, property.intelligence, property.appeal);
+
+	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point));
+	sz += L"\n\n";
+	sz += L"[보상 내용]\n Point: " + std::to_wstring(point);
+	sz += L"\n S: " + std::to_wstring(property.strength);
+	sz += L", I: " + std::to_wstring(property.intelligence);
+	sz += L", A: " + std::to_wstring(property.appeal);
+	sz += L"\n";
 	for (int n = 0; n < rewards.size(); n++) {
-		wprintf(L" %s(%d) \n"
-			, logic.getItem(rewards[n].itemId).name.c_str()
-			, rewards[n].val
-		);		
-	}	
+		sz += logic.getItem(rewards[n].itemId).name + L"(";
+		sz += std::to_wstring(rewards[n].val);
+		sz += L") \n";		
+	}
+
+	result(sz.c_str());
 }
 
 void buy() {
@@ -309,7 +402,7 @@ void buy() {
 	scanf("%d", &quantity);
 	
 
-	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(true, key, quantity)));
+	result(logic.getErrorMessage(logic.runTrade(true, key, quantity)));
 	logic.print(0);
 }
 
@@ -325,7 +418,7 @@ void sell() {
 		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	wprintf( L"%s \n", logic.getErrorMessage(logic.runTrade(false, key, quantity)));
+	result(logic.getErrorMessage(logic.runTrade(false, key, quantity)));
 	logic.print(0);
 }
 
@@ -337,17 +430,33 @@ void hp() {
 		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	wprintf(L"%s \n", logic.getErrorMessage(logic.runRecharge(key, quantity)));
+	result(logic.getErrorMessage(logic.runRecharge(key, quantity)));
 	logic.print(0);
 }
 
-void ask() {
+void race() {
+	logic.print(5);
+
+	int key;
+	printf("ID > ");
+	scanf("%d", &key);
+	if (key == -1)
+		return;
+
+	result(logic.getErrorMessage(logic.runRace(key)));
+	logic.print(0);
+}
+
+bool ask() {
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" 1: 액션 \n 2: 아이템 구매, 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충, 6: 도감 보기, 0: Actor Info \n > ");
+	wprintf( L" 1: 액션 \n 2: 아이템 구매, 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충, 6: 도감 보기 \n 0: Actor Info \n > ");
 	int key;
 	scanf("%d", &key);
+	cls();
 	switch (key)
 	{
+	case -1:
+		return false;
 	case 0:
 		logic.print();
 		break;
@@ -361,6 +470,7 @@ void ask() {
 		sell();
 		break;
 	case 4:
+		race();		
 		break;
 	case 5:
 		hp();
@@ -371,17 +481,20 @@ void ask() {
 	default:
 		break;
 	}
+	return true;
 }
 
-
 int main()
-{		
+{	
 	init();
-	
+	thread p(runThread);
+		
 	while (true) {
-		ask();	
-		//scanf("%d", &n);
+		if (!ask())
+			break;		
 	}
+	isRunThread = false;
+	p.join();	
     return 0;
 }
 
