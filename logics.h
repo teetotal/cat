@@ -30,6 +30,7 @@ enum errorCode {
 	error_success = 0,
 	error_levelup,
 	error_invalid_id,
+	error_invalid_quantity,
 	error_not_enough_property,
 	error_not_enough_point,
 	error_not_enough_item,
@@ -72,7 +73,7 @@ struct _itemPair {
 	int itemId;
 	int val;
 };
-
+typedef vector<_itemPair> itemsVector;
 
 //성장 보상
 struct _reward {
@@ -157,7 +158,7 @@ struct _jobTitleBody {
 //race 상금 + 부상
 struct _raceReward {
 	int prize;
-	vector<_itemPair> items;
+	itemsVector items;
 };
 //race
 struct _race {
@@ -169,12 +170,31 @@ struct _race {
 	int fee;
 	vector<_raceReward> rewards;
 };
+//경묘 참가자
+struct _raceParticipant : _property {
+	int items[raceItemSlot];
+	int currentLength;	//현재 이동 거리
+	int totalLength;	//전체 이동 거리
+	float ratioLength;	//전체 거리중 이동한 거리 비율 %
+	int rank;			//현재 등수
+	int itemAttack;		//공격에 사용한 아이템 1. 1등 공격, 2. 내앞에 공격, 3.방어, 4. 다음 턴 이동 거리 증가
+};
+//경묘 대회 참가자 벡터
+typedef vector<_raceParticipant> raceParticipants;
+//경묘 진행 정보
+struct _raceCurrent
+{
+	int id;
+	int prize;			//보상 상금
+	int rewardItemId;	//보상 아이템
+};
 
 class logics 
 {
 public:
 	logics() {
 		srand((int)time(0));
+		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {};
 	bool init();
@@ -203,14 +223,19 @@ public:
 
 	//Training 
 	errorCode isValidTraining(int id);
-	errorCode runTraining(int id, vector<_itemPair> &rewards, _property * rewardProperty, int &point);
+	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point);
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
 
 	//Race
-	errorCode runRace(int id);
-
+	errorCode runRace(int id, itemsVector &items);
+	//race 진행
+	raceParticipants* getNextRaceStatus(bool &ret);
+	//race 결과
+	_raceCurrent* getRaceResult() {
+		return &mRaceCurrent;
+	}
 	//charge
 	errorCode runRecharge(int id, int quantity);	
 
@@ -246,32 +271,20 @@ private:
 	jobTitle mJobTitle;
 
 	//경묘
+	raceParticipants* mRaceParticipants;
+
 	typedef map<int, _race> raceMeta;
 	raceMeta mRace;
 
-	//경묘 참가자
-	struct _raceParticipant : _property {
-		int items[raceItemSlot];
-		int currentLength; //현재 이동 거리
-		int rank; //현재 등수
-	};
-
-	//경묘 대회 참가자 벡터
-	typedef vector<_raceParticipant> raceParticipants;
-	raceParticipants mRaceParticipants;
-
-	//경묘 진행 정보
-	struct _raceCurrent
-	{
-		int id;
-	};
+	
 	_raceCurrent mRaceCurrent;
 	
+	//경묘용 아이템만 따로 모아논 벡터
+	typedef vector<int> intVector;
+	intVector mItemRace;
 
 	//race 랜덤 아이템
 	int getRandomRaceItem();
-	//race 진행
-	void getNextRaceStatus();
 
 	//price at buy
 	int getItemPriceBuy(int itemId) {

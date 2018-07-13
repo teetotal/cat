@@ -146,6 +146,8 @@ void logics::print(int type) {
 
 bool logics::insertItem(_item item) {
 	mItems[item.id] = item;
+	if (getInventoryType(item.id) == inventoryType_race)
+		mItemRace.push_back(item.id);
 	return true;
 }
 
@@ -219,7 +221,7 @@ errorCode logics::isValidTraining(int id) {
 	return error_success;
 }
 
-errorCode logics::runTraining(int id, vector<_itemPair> &rewards, _property * rewardProperty, int &point) {
+errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point) {
 	//hp
 	increaseHP(-1);
 	//pay point
@@ -558,7 +560,10 @@ void logics::addRaceMeta(_race & race) {
 	mRace[race.id] = race;
 }
 
-errorCode logics::runRace(int id) {
+errorCode logics::runRace(int id, itemsVector &items) {
+	if (mRace.find(id) == mRace.end())
+		return error_invalid_id;
+
 	if (mActor->property.strength < 0) {
 		return error_not_enough_strength;
 	}
@@ -566,29 +571,88 @@ errorCode logics::runRace(int id) {
 		return error_not_enough_hp;
 	}
 
-	mRaceCurrent.id = id;
+	if (mActor->point < mRace[id].fee)
+		return error_not_enough_point;
 
-	mRaceParticipants.clear();
+	for (int m = 0; m < items.size(); m++) {
+		if (mActor->inventory.race[items[m].itemId] < items[m].val)
+			return error_not_enough_item;
+	}
+	mActor->point -= mRace[id].fee;
+	mRaceCurrent.id = id;
+	mRaceCurrent.prize = 0;
+	mRaceCurrent.rewardItemId = 0;
+
+	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
 	//참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.strength = getRandValue(sum);	
+		p.strength == 0 ? p.strength = 1: p.strength= p.strength;
 		p.intelligence = getRandValue(sum - p.strength);
 		p.appeal = sum - p.strength - p.intelligence;
-		p.current = 0;
+		p.currentLength = 0;
+		p.totalLength = 0;
+		p.rank = 0;
 		for (int m = 0; m < raceItemSlot; m++) {
 			p.items[m] = getRandomRaceItem();
 		}
 		printf("(%d) S: %d, I: %d, A: %d, [%d,%d,%d]\n",n+1,  p.strength, p.intelligence, p.appeal, p.items[0], p.items[1], p.items[2]);
-		mRaceParticipants.push_back(p);
+		mRaceParticipants->push_back(p);
+	}
+	_raceParticipant p;
+	p.strength = mActor->property.strength;
+	p.intelligence = mActor->property.intelligence;
+	p.appeal = mActor->property.appeal;
+	p.currentLength = 0;
+	p.totalLength = 0;
+	p.rank = 0;
+
+	for (int m = 0; m < raceItemSlot; m++) {
+		p.items[m] = 0;
 	}
 	
+	int idx = 0;
+	for (int m = 0; m < items.size(); m++) {
+		for (int k = 0; k < items[k].val; k++) {
+			p.items[idx] = items[k].itemId;
+			idx++;
+		}		
+	}
+	mRaceParticipants->push_back(p);
 
 	return error_success;
 }
+raceParticipants* logics::getNextRaceStatus(bool &ret) {
+	 int lastRank = 0;
+	 int raceLength = mRace[mRaceCurrent.id].length;
+	 for (int n = 0; n < mRaceParticipants->size(); n++) {
+		 if (mRaceParticipants->at(n).rank > 0)
+			 lastRank++;
+	 }
+
+	 for (int n = 0; n < mRaceParticipants->size(); n++) {
+		 if (mRaceParticipants->at(n).rank > 0)
+			 continue;
+		 int length = mRaceParticipants->at(n).strength;
+		 mRaceParticipants->at(n).totalLength += length;
+		 mRaceParticipants->at(n).currentLength = length;
+		 mRaceParticipants->at(n).ratioLength = (((float)mRaceParticipants->at(n).totalLength / (float)raceLength) * 100.0f);
+		 if (mRaceParticipants->at(n).totalLength >= raceLength)
+			 mRaceParticipants->at(n).rank = lastRank + 1;
+	}
+
+	if (lastRank == raceParticipantNum)
+		ret = false;
+	else
+		ret = true;
+
+	return mRaceParticipants;
+}
 
 int logics::getRandomRaceItem() {
-	return 13;
+	int idx = getRandValue(mItemRace.size());
+	return mItemRace[idx];
 }

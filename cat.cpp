@@ -73,6 +73,33 @@ void runThread() {
 			
 	}
 }
+void printRaceRunning(int ratio, int current, int rank) {
+	for (int n = 0; n < ratio; n++) {
+		printf("=");
+	}
+	printf("▶ %d등", rank);
+}
+void runRace() {
+	bool ret = true;
+	while (ret)
+	{
+		raceParticipants* p = logic.getNextRaceStatus(ret);
+		if (!ret)
+			break;
+		cls();
+		for (int n = 0; n < p->size(); n++) {
+			if(n == p->size()-1)
+				printf("[me]");
+			else
+				printf("[%02d]", n + 1);
+			printRaceRunning(p->at(n).ratioLength, p->at(n).totalLength, p->at(n).rank);
+			printf("\n");
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+	//결과처리
+	_raceCurrent* r = logic.getRaceResult();
+}
 
 std::wstring utf8_to_utf16(const std::string& utf8)
 {
@@ -437,14 +464,41 @@ void hp() {
 void race() {
 	logic.print(5);
 
-	int key;
+	int id, key, quantity, sum = 0;
 	printf("ID > ");
-	scanf("%d", &key);
-	if (key == -1)
+	scanf("%d", &id);
+	if (id == -1)
 		return;
 
-	result(logic.getErrorMessage(logic.runRace(key)));
-	logic.print(0);
+	itemsVector v;
+
+	logic.print();
+	for(int n=0; n < raceItemSlot; n ++){
+		printf("경묘에 사용할 ID > ");
+		scanf("%d", &key);
+		if (key == 0)
+			break;
+		printf("수량 > ");
+		scanf("%d", &quantity);
+		sum += quantity;
+		if (sum == 3)
+			break;
+		else if (sum > 3) {
+			result(logic.getErrorMessage(error_invalid_quantity));
+			return;
+		}			
+		else {
+			_itemPair p;
+			p.itemId = key;
+			p.val = quantity;
+			v.push_back(p);
+		}
+	}
+	errorCode err = logic.runRace(id, v);
+	if(err != error_success)
+		result(logic.getErrorMessage(err));
+	else
+		runRace();
 }
 
 bool ask() {
