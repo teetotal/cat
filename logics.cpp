@@ -2,10 +2,6 @@
 #include "logics.h"
 
 bool logics::init() {	
-
-	if (!setTradeMarketPrice())
-		return false;
-
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
 	return true;
@@ -27,7 +23,7 @@ void logics::print(int type) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		printf("[Actor]\n ------------------------------------------------------------------------ \n");
-		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n S: %d, I: %d, A: %d \n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
+		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
@@ -84,8 +80,8 @@ void logics::print(int type) {
 				
 			);
 		}
-	}else if (type == 2) {
-		printf("[Trade]\n ------------------------------------------------------------------------ \n");
+	}else if (type == 2) { //상품 구매
+		printf("[Buy]\n ------------------------------------------------------------------------ \n");
 		for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
 			if (mItems[it->first].type < itemType_max) {
 				wprintf(L" ID: %03d, Price: %d(%d),\t %s \n"
@@ -142,6 +138,50 @@ void logics::print(int type) {
 		}
 		printf("\n");
 	}
+	else if (type == 6) { //아이템 판매
+		printf("[Sell]\n ------------------------------------------------------------------------ \n");
+		wstring szGrowth, szHP, szRace, szAdorn;
+		for (keyQuantity::iterator it = mActor->inventory.growth.begin(); it != mActor->inventory.growth.end(); ++it) {
+			szGrowth += to_wstring(it->first) 
+				+ L". " 
+				+ mItems[it->first].name 
+				+ L"(" + to_wstring(it->second)
+				+ L") "
+				+ to_wstring(getItemPriceSell(it->first))
+				+ L"\n ";
+		}
+		for (keyQuantity::iterator it = mActor->inventory.hp.begin(); it != mActor->inventory.hp.end(); ++it) {
+			szHP += to_wstring(it->first)
+				+ L". "
+				+ mItems[it->first].name
+				+ L"(" + to_wstring(it->second)
+				+ L") "
+				+ to_wstring(getItemPriceSell(it->first))
+				+ L"\n ";
+		}
+		for (keyQuantity::iterator it = mActor->inventory.race.begin(); it != mActor->inventory.race.end(); ++it) {
+			szRace += to_wstring(it->first)
+				+ L". "
+				+ mItems[it->first].name
+				+ L"(" + to_wstring(it->second)
+				+ L") "
+				+ to_wstring(getItemPriceSell(it->first))
+				+ L"\n ";
+		}
+		for (keyQuantity::iterator it = mActor->inventory.adorn.begin(); it != mActor->inventory.adorn.end(); ++it) {
+			szAdorn += to_wstring(it->first)
+				+ L". "
+				+ mItems[it->first].name
+				+ L"(" + to_wstring(it->second)
+				+ L") "
+				+ to_wstring(getItemPriceSell(it->first))
+				+ L"\n ";
+		}
+		wprintf(L"성장 아이템 \n %s \n", szGrowth.c_str());
+		wprintf(L"HP 아이템 \n %s \n", szHP.c_str());
+		wprintf(L"경묘 아이템 \n %s \n", szRace.c_str());
+		wprintf(L"꾸미기 아이템 \n %s \n", szAdorn.c_str());
+	}
 }
 
 bool logics::insertItem(_item item) {
@@ -157,6 +197,12 @@ bool logics::insertTraining(_training traning) {
 }
 
 bool logics::setTradeMarketPrice() {
+	time_t now = time(0);
+	if (now - mLastTradeUpdate < tradeUpdateInterval)
+		return false;
+
+	mLastTradeUpdate = now;
+
 	unsigned int avg = (unsigned int)(maxTradeValue / mItems.size());
 	mTrade.clear();
 	for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
@@ -180,7 +226,7 @@ bool logics::setTradeMarketPrice() {
 		cnt++;
 	}
 
-	printf("sum = %d \n", sum);
+	//printf("sum = %d \n", sum);
 	return true;
 }
 
@@ -582,6 +628,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	mRaceCurrent.id = id;
 	mRaceCurrent.prize = 0;
 	mRaceCurrent.rewardItemId = 0;
+	mRaceCurrent.rewardItemQuantity = 0;
 
 	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
@@ -616,8 +663,8 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	
 	int idx = 0;
 	for (int m = 0; m < items.size(); m++) {
-		for (int k = 0; k < items[k].val; k++) {
-			p.items[idx] = items[k].itemId;
+		for (int k = 0; k < items[m].val; k++) {
+			p.items[idx] = items[m].itemId;
 			idx++;
 		}		
 	}
@@ -625,7 +672,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 
 	return error_success;
 }
-raceParticipants* logics::getNextRaceStatus(bool &ret) {
+raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 int lastRank = 0;
 	 int raceLength = mRace[mRaceCurrent.id].length;
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
@@ -636,7 +683,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret) {
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank > 0)
 			 continue;
-		 int length = mRaceParticipants->at(n).strength;
+		 //기초 체력 + random appeal
+		 int length = mRaceParticipants->at(n).strength + getRandValue(mRaceParticipants->at(n).appeal);
 		 mRaceParticipants->at(n).totalLength += length;
 		 mRaceParticipants->at(n).currentLength = length;
 		 mRaceParticipants->at(n).ratioLength = (((float)mRaceParticipants->at(n).totalLength / (float)raceLength) * 100.0f);
@@ -644,8 +692,30 @@ raceParticipants* logics::getNextRaceStatus(bool &ret) {
 			 mRaceParticipants->at(n).rank = lastRank + 1;
 	}
 
-	if (lastRank == raceParticipantNum)
+	if (lastRank == raceParticipantNum) {
 		ret = false;
+		for (int n = 0; n < mRaceParticipants->size(); n++) {
+			if (mRaceParticipants->at(n).rank == 0)
+				mRaceParticipants->at(n).rank = raceParticipantNum + 1;
+		}
+		//보상 지급
+		mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
+		for (int n = 0; n < mRace[mRaceCurrent.id].rewards.size(); n++) {
+			if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
+				mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
+				int idx = getRandValue(mRace[mRaceCurrent.id].rewards[n].items.size());
+				int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
+				int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
+				addInventory(itemId, val);
+
+				mRaceCurrent.prize = mRace[mRaceCurrent.id].rewards[n].prize;
+				mRaceCurrent.rewardItemId = itemId;
+				mRaceCurrent.rewardItemQuantity = val;
+
+				break;
+			}
+		}
+	}		
 	else
 		ret = true;
 

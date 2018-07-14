@@ -4,14 +4,14 @@
   "id": "cat123",
   "name": "꼼냥이",
   "title": 0,
-  "point": 200,
+  "point": 1200,
   "hp": 4,
   "exp": 0,
   "level": 1,
   "property": {
-    "strength": 9,
-    "intelligence": 1,
-    "appeal": 0
+    "strength": 5,
+    "intelligence": 5,
+    "appeal": 10
   },
   "inventory": {
     "growth": [ ],

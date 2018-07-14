@@ -13,6 +13,8 @@
 using namespace std;
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
+//Trade 시세 변경 간격
+#define tradeUpdateInterval	60 * 5
 //최대 무역 합산 시세
 #define maxTradeValue 100
 //최대 아이템 보상/비용
@@ -185,8 +187,10 @@ typedef vector<_raceParticipant> raceParticipants;
 struct _raceCurrent
 {
 	int id;
+	int rank;			//순위
 	int prize;			//보상 상금
 	int rewardItemId;	//보상 아이템
+	int rewardItemQuantity; //보상 아이템 수량
 };
 
 class logics 
@@ -194,6 +198,7 @@ class logics
 public:
 	logics() {
 		srand((int)time(0));
+		mLastTradeUpdate = 0;
 		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {};
@@ -231,7 +236,7 @@ public:
 	//Race
 	errorCode runRace(int id, itemsVector &items);
 	//race 진행
-	raceParticipants* getNextRaceStatus(bool &ret);
+	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx);
 	//race 결과
 	_raceCurrent* getRaceResult() {
 		return &mRaceCurrent;
@@ -254,10 +259,14 @@ private:
 	typedef map<int, _training> __training; 
 	__training mTraining;//성장
 
+	//Actor
 	_actor* mActor;
 
 	//HP lock
 	mutex lockHP;
+
+	//마지막 TradeUpdate시간
+	time_t mLastTradeUpdate;
 
 	//직업명
 	typedef vector<_jobTitlePrefix> jobTitlePrefixVector;
