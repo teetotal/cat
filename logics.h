@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <map>
+#include <queue>
 #include <string>
 #include <time.h>
 #include <iostream>
@@ -14,7 +15,7 @@ using namespace std;
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
 //Trade 시세 변경 간격
-#define tradeUpdateInterval	60 * 5
+#define tradeUpdateInterval	60 * 12
 //최대 무역 합산 시세
 #define maxTradeValue 100
 //최대 아이템 보상/비용
@@ -27,6 +28,12 @@ using namespace std;
 #define raceParticipantNum 4
 //한번 race에서 사용가능한 아이템 수
 #define raceItemSlot 3
+//speed up 아이템이 증가시키는 거리
+#define raceSpeedUp 15
+//race rand(매력 * x)
+#define raceAppealRatio 2
+//race AI advantage ratio
+#define raceAIAdvantageRatio 0.1
 
 enum errorCode {
 	error_success = 0,
@@ -55,12 +62,19 @@ enum itemType {
 	itemType_hp = 100,
 	itemType_hp_meal,
 	itemType_race = 200, //경묘
-	itemType_race_attact,
+	itemType_race_shield,		//방어 쉴드
+	itemType_race_speedUp,		//속업
+	itemType_race_attactFront,	//전방 공격
+	itemType_race_attactFirst,	//1등 공격
 	itemType_adorn = 300, //치장
 	itemType_adorn_head,
 	itemType_max,
 	itemType_collection = 1000,	//도감용
 };
+
+//HP lock
+static mutex lockHP;
+
 //아이템
 struct _item {
 	int id;
@@ -167,19 +181,29 @@ struct _race {
 	int id;
 	wstring title;
 	int length;
-	int levelMin;
-	int levelMax;
+	int level;
 	int fee;
 	vector<_raceReward> rewards;
 };
 //경묘 참가자
 struct _raceParticipant : _property {
+	int idx;			//경주 번호
 	int items[raceItemSlot];
 	int currentLength;	//현재 이동 거리
 	int totalLength;	//전체 이동 거리
 	float ratioLength;	//전체 거리중 이동한 거리 비율 %
-	int rank;			//현재 등수
-	int itemAttack;		//공격에 사용한 아이템 1. 1등 공격, 2. 내앞에 공격, 3.방어, 4. 다음 턴 이동 거리 증가
+	int rank;			//최종 등수
+	int currentRank;	//현재 등수
+
+	//내가 겪고 있는 아이템 
+	std::queue<itemType> sufferItems;
+	itemType currentSuffer; //현재 겪고 있는 아이템
+
+	//내가 쏜 아이템 
+	int shootItem;
+	bool operator <(const _raceParticipant &a) const {
+		return this->totalLength > a.totalLength;
+	}
 };
 //경묘 대회 참가자 벡터
 typedef vector<_raceParticipant> raceParticipants;
@@ -211,6 +235,9 @@ public:
 	_item getItem(int id) {
 		return mItems[id];
 	};
+	bool isAvailableHP() {
+		return getHP() > 0 ? true : false;
+	}
 	void addErrorMessage(const wstring & sz) {
 		mErrorMessages.push_back(sz);
 	};
@@ -262,9 +289,6 @@ private:
 	//Actor
 	_actor* mActor;
 
-	//HP lock
-	mutex lockHP;
-
 	//마지막 TradeUpdate시간
 	time_t mLastTradeUpdate;
 
@@ -294,6 +318,15 @@ private:
 
 	//race 랜덤 아이템
 	int getRandomRaceItem();
+
+	//race 아이템 발동
+	void invokeRaceItem(int seq, int itemIdx);
+
+	//race AI 아이템 발동
+	void invokeRaceItemAI();
+
+	//race 순위에 아이템 적용
+	void invokeRaceByRank(int rank, itemType type, int quantity);
 
 	//price at buy
 	int getItemPriceBuy(int itemId) {

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
+#include <conio.h>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -19,12 +20,13 @@ using namespace rapidjson;
 logics logic;
 bool isRunThread = false;
 
+const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
 void cls() {
 #ifdef _WIN32
 	system("cls");
 #endif
 }
-/*
+
 void progress() {
 	float progress = 0.0;
 	while (progress < 1.0) {
@@ -42,23 +44,24 @@ void progress() {
 
 		std::cout.flush();
 
-		progress += 0.16; // for demonstration only
-		::_sleep(500);
+		progress += 0.17; // for demonstration only
+		::_sleep(300);
 	}
 	std::cout << std::endl;
 }
-*/
 
-void result(const wchar_t * sz) {
+void result(const wchar_t * sz, errorCode err = error_success) {
+	if(err == error_success)
+		progress();
 	cls();
-	wprintf(L"★     ☆                       ☆        \n");
-	wprintf(L"                                   ☆     \n");
-	wprintf(L"☆                                        \n\n");
-	wprintf(L"\t %s         \n\n", sz);
-	wprintf(L"☆           ☆                    ☆     \n");
-	wprintf(L"                     ★                   \n");
-	wprintf(L"☆    ★       ☆               ★   ☆   \n");
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	wprintf(L"★                      ☆                                    ☆        \n");
+	wprintf(L"                                                                 ☆     \n");
+	wprintf(L"                              ☆                                        \n\n");
+	wprintf(L"%c[1;36m %s %c[0m        \n\n",27, sz, 27);
+	wprintf(L"☆            ☆                                                 ☆     \n");
+	wprintf(L"                                                   ★                   \n");
+	wprintf(L"☆    ★       ☆               ★                                 ☆   \n");
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 	cls();
 }
 
@@ -70,35 +73,91 @@ void runThread() {
 		if (logic.rechargeHP()) {
 			wprintf(L"\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
 		}
-			
+		if(logic.setTradeMarketPrice())
+			wprintf(L"\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
 	}
 }
-void printRaceRunning(int ratio, int current, int rank) {
+void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
+	wstring sz;
+	if(id == raceParticipantNum)
+		printf("┃%c[1;32m %d [me]",27, rank);
+	else
+		printf("┃%c[0m %d [%02d]", 27, rank, id + 1);
+	
 	for (int n = 0; n < ratio; n++) {
-		printf("=");
+		sz += L" ";
 	}
-	printf("▶ %d등", rank);
+	//printf("%s", sz.c_str());
+	sz += raceIcons[id];
+	//sz += L" ";
+	//sz += to_wstring(ratio);
+
+	if (currentItem != itemType_max) {
+		sz += L" ";
+		sz += to_wstring((int)currentItem);
+	}
+		
+	wprintf(L"%s", sz.c_str());
 }
 void runRace() {
 	bool ret = true;
+	_raceCurrent* r = logic.getRaceResult();
+	int key = -1;
 	while (ret)
 	{
-		raceParticipants* p = logic.getNextRaceStatus(ret);
+		raceParticipants* p = logic.getNextRaceStatus(ret, key);
+		key = -1;
+
 		if (!ret)
 			break;
 		cls();
+		printf("%c[0m┏━━━━━━", 27);
+		string sz;
+		for (int n = 0; n < 100; n++)
+			sz += "━";
+		printf("%s┓\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
-			if(n == p->size()-1)
-				printf("[me]");
-			else
-				printf("[%02d]", n + 1);
-			printRaceRunning(p->at(n).ratioLength, p->at(n).totalLength, p->at(n).rank);
+			printRaceRunning(p->at(n).ratioLength
+				, n
+				, p->at(n).currentRank
+				, p->at(n).currentLength
+				, p->at(n).currentSuffer
+			);
 			printf("\n");
 		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		printf("%c[0m┗━━━━━━", 27);
+		sz = "";
+		for (int n = 0; n < 100; n++)
+			sz += "━";
+		printf("%s┛\n", sz.c_str());
+
+		for (int n = 0; n < raceItemSlot; n++) {
+			int itemId = p->at(raceParticipantNum).items[n];
+			if (itemId > 0) {
+				wprintf(L"> %d. %s \n", n, logic.getItem(itemId).name.c_str());
+			}
+		}
+
+		if (kbhit() != 0)
+		{
+			key = getch() - 48;
+			printf("아이템 발동!! %d", key);
+		}
+		
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
 	}
 	//결과처리
-	_raceCurrent* r = logic.getRaceResult();
+	wstring sz;
+	sz += L"순위: ";
+	sz += to_wstring(r->rank);
+	sz += L"\n상금: ";
+	sz += to_wstring(r->prize);
+	sz += L"\n상품: ";
+	sz += logic.getItem(r->rewardItemId).name;
+	sz += L"(";
+	sz += to_wstring(r->rewardItemQuantity);
+	sz += L")";
+	result(sz.c_str());
 }
 
 std::wstring utf8_to_utf16(const std::string& utf8)
@@ -305,8 +364,7 @@ void init() {
 		r.title = utf8_to_utf16(race[i]["title"].GetString());
 		r.fee = race[i]["fee"].GetInt();
 		r.length = race[i]["length"].GetInt();
-		r.levelMin = race[i]["level"]["min"].GetInt();
-		r.levelMax = race[i]["level"]["max"].GetInt();
+		r.level = race[i]["level"].GetInt();
 
 		const Value& rewards = race[i]["rewards"];
 		for (SizeType j = 0; j < rewards.Size(); j++) {
@@ -380,7 +438,6 @@ void init() {
 
 	logic.init();
 	logic.print(3);
-	logic.print();
 } 
 
 void training() {
@@ -393,7 +450,7 @@ void training() {
 
 	errorCode err = logic.isValidTraining(key);
 	if (err != error_success) {
-		wprintf( L"%s \n", logic.getErrorMessage(err));
+		result(logic.getErrorMessage(err), err);
 		return;
 	}
 	vector<_itemPair> rewards;
@@ -401,11 +458,11 @@ void training() {
 	int point;
 
 	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point));
-	sz += L"\n\n";
-	sz += L"[보상 내용]\n Point: " + std::to_wstring(point);
-	sz += L"\n S: " + std::to_wstring(property.strength);
-	sz += L", I: " + std::to_wstring(property.intelligence);
-	sz += L", A: " + std::to_wstring(property.appeal);
+	sz += L"\n- 보상 내용 -\n";
+	sz += L"\n Point: " + std::to_wstring(point);
+	sz += L"\n 체력: " + std::to_wstring(property.strength);
+	sz += L"\n 지력: " + std::to_wstring(property.intelligence);
+	sz += L"\n 매력: " + std::to_wstring(property.appeal);
 	sz += L"\n";
 	for (int n = 0; n < rewards.size(); n++) {
 		sz += logic.getItem(rewards[n].itemId).name + L"(";
@@ -417,7 +474,7 @@ void training() {
 }
 
 void buy() {
-	logic.setTradeMarketPrice();
+	
 	logic.print(2);
 
 	int key, quantity;
@@ -428,15 +485,13 @@ void buy() {
 	printf("Quantity > ");
 	scanf("%d", &quantity);
 	
+	errorCode err = logic.runTrade(true, key, quantity);
 
-	result(logic.getErrorMessage(logic.runTrade(true, key, quantity)));
-	logic.print(0);
+	result(logic.getErrorMessage(err), err);
 }
 
-void sell() {
-	logic.setTradeMarketPrice();	
-	logic.print(0); 
-	logic.print(2);
+void sell() {	
+	logic.print(6);
 
 	int key, quantity;
 	printf("ID > ");
@@ -445,8 +500,8 @@ void sell() {
 		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	result(logic.getErrorMessage(logic.runTrade(false, key, quantity)));
-	logic.print(0);
+	errorCode err = logic.runTrade(false, key, quantity);
+	result(logic.getErrorMessage(err), err);
 }
 
 void hp() {
@@ -457,11 +512,16 @@ void hp() {
 		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
-	result(logic.getErrorMessage(logic.runRecharge(key, quantity)));
-	logic.print(0);
+	errorCode err = logic.runRecharge(key, quantity);
+	result(logic.getErrorMessage(err), err);
 }
 
 void race() {
+	if (!logic.isAvailableHP()) {
+		result(logic.getErrorMessage(error_not_enough_hp), error_not_enough_hp);
+		return;
+	}
+		
 	logic.print(5);
 
 	int id, key, quantity, sum = 0;
@@ -474,6 +534,9 @@ void race() {
 
 	logic.print();
 	for(int n=0; n < raceItemSlot; n ++){
+		if (sum == raceItemSlot)
+			break;
+
 		printf("경묘에 사용할 ID > ");
 		scanf("%d", &key);
 		if (key == 0)
@@ -481,10 +544,8 @@ void race() {
 		printf("수량 > ");
 		scanf("%d", &quantity);
 		sum += quantity;
-		if (sum == 3)
-			break;
-		else if (sum > 3) {
-			result(logic.getErrorMessage(error_invalid_quantity));
+		if (sum > raceItemSlot) {
+			result(logic.getErrorMessage(error_invalid_quantity), error_invalid_quantity);
 			return;
 		}			
 		else {
@@ -495,15 +556,24 @@ void race() {
 		}
 	}
 	errorCode err = logic.runRace(id, v);
-	if(err != error_success)
-		result(logic.getErrorMessage(err));
-	else
+	switch (err) {
+	case error_success:
 		runRace();
+		break;
+	case error_levelup:
+		result(logic.getErrorMessage(err), err);
+		runRace();
+		break;
+	default:
+		result(logic.getErrorMessage(err), err);
+		break;
+	}	
 }
 
 bool ask() {
+	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" 1: 액션 \n 2: 아이템 구매, 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충, 6: 도감 보기 \n 0: Actor Info \n > ");
+	wprintf( L" 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();

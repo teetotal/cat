@@ -23,13 +23,14 @@ void logics::print(int type) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		printf("[Actor]\n ------------------------------------------------------------------------ \n");
+		int hp = getHP();
 		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
 			, mActor->exp
 			, getMaxExp()
-			, getHP()
+			, hp
 			, getMaxHP()
 			, mActor->jobTitle.c_str()
 			, mActor->point
@@ -118,13 +119,12 @@ void logics::print(int type) {
 		wprintf(L"------------- 경묘 대회 목록 -------------\n");
 		for (raceMeta::iterator it = mRace.begin(); it != mRace.end(); ++it) {
 			printf("\n");
-			wprintf(L"[%03d] %s \n▷ 참가비: %d, 경주거리: %d m, level: (lv.%d ~ lv.%d) \n▷ 우승상금 --------\n"
+			wprintf(L"[%03d] %s \n▷ 참가비: %d, 경주거리: %d m, lv.%d  \n▷ 우승상금 --------\n"
 				, it->second.id
 				, it->second.title.c_str()
 				, it->second.fee
 				, it->second.length
-				, it->second.levelMin
-				, it->second.levelMax
+				, it->second.level
 			);
 			
 			for (int m = 0; m < it->second.rewards.size(); m++) {
@@ -378,34 +378,6 @@ errorCode logics::runRecharge(int id, int quantity) {
 
 //add inventory
 bool logics::addInventory(int itemId, int quantity) {
-	/*
-	keyQuantity * p;
-	switch (type)
-	{
-	case inventoryType_growth:
-	p = &mActor->inventory.growth;
-	break;
-	case inventoryType_HP:
-	p = &mActor->inventory.hp;
-	break;
-	case inventoryType_race:
-	p = &mActor->inventory.race;
-	break;
-	case inventoryType_adorn:
-	p = &mActor->inventory.adorn;
-	break;
-	default:
-	return false;
-	}
-	int v = p->find(itemId)->second;
-	if ((quantity < 0 && p->find(itemId) == p->end())
-	|| p->find(itemId)->second + quantity < 0
-	)
-	return false;
-	p->find(itemId)->second += quantity;
-	if (p->find(itemId)->second == 0)
-	p->erase(itemId);
-	*/
 	inventoryType type = getInventoryType(itemId);
 	switch (type)
 	{
@@ -490,8 +462,10 @@ void logics::setMaxHP() {
 bool logics::increaseHP(int val) {
 	int maxHP = getMaxHP();	
 	bool ret = true;
-	lockHP.lock();	
-	
+	lockHP.lock();
+	if (val < 0 && mActor->hp + val < 0)
+		return false;
+
 	if (val > 0 && maxHP == mActor->hp)
 		ret = false;	
 	else if (mActor->hp + val >= maxHP)
@@ -636,10 +610,14 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	//참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
+		p.idx = n;
 		p.strength = getRandValue(sum);	
 		p.strength == 0 ? p.strength = 1: p.strength= p.strength;
 		p.intelligence = getRandValue(sum - p.strength);
 		p.appeal = sum - p.strength - p.intelligence;
+		//AI advantage
+		p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);
+
 		p.currentLength = 0;
 		p.totalLength = 0;
 		p.rank = 0;
@@ -647,15 +625,18 @@ errorCode logics::runRace(int id, itemsVector &items) {
 			p.items[m] = getRandomRaceItem();
 		}
 		printf("(%d) S: %d, I: %d, A: %d, [%d,%d,%d]\n",n+1,  p.strength, p.intelligence, p.appeal, p.items[0], p.items[1], p.items[2]);
+		::_sleep(1000);
 		mRaceParticipants->push_back(p);
 	}
 	_raceParticipant p;
+	p.idx = raceParticipantNum;
 	p.strength = mActor->property.strength;
 	p.intelligence = mActor->property.intelligence;
 	p.appeal = mActor->property.appeal;
 	p.currentLength = 0;
 	p.totalLength = 0;
 	p.rank = 0;
+	p.currentRank = 0;
 
 	for (int m = 0; m < raceItemSlot; m++) {
 		p.items[m] = 0;
@@ -665,34 +646,149 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	for (int m = 0; m < items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
 			p.items[idx] = items[m].itemId;
+			addInventory(items[m].itemId, -1);
 			idx++;
 		}		
 	}
 	mRaceParticipants->push_back(p);
+	if (increaseExp())
+		return error_levelup;
 
 	return error_success;
 }
+
+void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		if (mRaceParticipants->at(n).currentRank == rank) {
+			for(int m=0; m < quantity; m++)
+				mRaceParticipants->at(n).sufferItems.push(type);
+			return;
+		}
+	}
+}
+
+void logics::invokeRaceItem(int seq, int itemIdx) {
+	//아이템 목록에서 제거
+	int itemId = mRaceParticipants->at(seq).items[itemIdx];
+	int currentRank = mRaceParticipants->at(seq).currentRank;
+	int quantity = mItems[itemId].value;
+	mRaceParticipants->at(seq).items[itemIdx] = 0;
+	if (itemId < 1) {
+		return;
+	}
+
+	//아이템 대상에게 적용
+	switch (mItems[itemId].type) {
+	case itemType_race_shield:		//방어 쉴드
+	case itemType_race_speedUp:		//속업
+		for (int n = 0; n < quantity; n++) {
+			mRaceParticipants->at(seq).sufferItems.push(mItems[itemId].type);
+		}			
+		break;
+	case itemType_race_attactFront:	//전방 공격
+		if(currentRank > 1)
+			invokeRaceByRank(currentRank-1, itemType_race_attactFront, quantity);
+		break;
+	case itemType_race_attactFirst:	//1등 공격
+		if(currentRank > 1)
+			invokeRaceByRank(1, itemType_race_attactFirst, quantity);
+		break;
+	}
+}
+
+void logics::invokeRaceItemAI() {
+	for (int i = 0; i < raceParticipantNum; i++) {
+		//내가 20%이상 달리고 나서 부터 아이템 사용
+		if (mRaceParticipants->at(raceParticipantNum).ratioLength < 10)
+			return;
+		//아이템 사용할지 않할지 판단
+		int r = getRandValue(9);
+		if (r != 0)
+			continue;
+		//사용
+		for (int n = raceItemSlot - 1; n >= 0; n--) {
+			if (mRaceParticipants->at(i).items[n] != 0) {
+				invokeRaceItem(i, n);
+				break;
+			}
+		}
+	}
+}
+
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 int lastRank = 0;
 	 int raceLength = mRace[mRaceCurrent.id].length;
+	 //순위 산정용 벡터
+	 vector<_raceParticipant> orderedVector;
+
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
+		 orderedVector.push_back(mRaceParticipants->at(n));
 		 if (mRaceParticipants->at(n).rank > 0)
 			 lastRank++;
 	 }
 
+	 //현재 순위 산정
+	 sort(orderedVector.begin(), orderedVector.end());
+	 for (int n = 0; n < orderedVector.size(); n++) {
+		 if (mRaceParticipants->at(orderedVector[n].idx).rank == 0)
+			 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
+		 else
+			 mRaceParticipants->at(orderedVector[n].idx).currentRank = mRaceParticipants->at(orderedVector[n].idx).rank;
+	 }
+
+	 //내가 사용한 아이템 발동
+	 if (itemIdx > -1) {
+		 invokeRaceItem(raceParticipantNum, itemIdx);
+	 }
+	 //AI가 사용한 아이템 발동
+	 invokeRaceItemAI();
+
+	 //진행 값 설정
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank > 0)
 			 continue;
+
+		 //공격받거나 자신한테 사용한 아이템 꺼내기.
+		 mRaceParticipants->at(n).currentSuffer = itemType_max;
+		 if (mRaceParticipants->at(n).sufferItems.size() > 0) {
+			 mRaceParticipants->at(n).currentSuffer = mRaceParticipants->at(n).sufferItems.front();
+			 mRaceParticipants->at(n).sufferItems.pop();
+		 }
+		 
 		 //기초 체력 + random appeal
-		 int length = mRaceParticipants->at(n).strength + getRandValue(mRaceParticipants->at(n).appeal);
+		 int length = mRaceParticipants->at(n).strength + getRandValue(mRaceParticipants->at(n).appeal * raceAppealRatio);
+		 
+		 switch (mRaceParticipants->at(n).currentSuffer) {
+		 case itemType_race_shield:
+			 if (mRaceParticipants->at(n).sufferItems.size() > 0 ) {
+				 switch (mRaceParticipants->at(n).sufferItems.front()) {
+				 case itemType_race_attactFront:
+				 case itemType_race_attactFirst:
+					 mRaceParticipants->at(n).sufferItems.pop();
+					 break;
+				 }
+			 }
+			 break;
+		 case itemType_race_speedUp:
+			 length += (int)raceSpeedUp;
+			 break;
+		 case itemType_race_attactFront:
+		 case itemType_race_attactFirst:
+			 length = 0;
+			 break;
+		 default:
+			 break;
+		 }
+
 		 mRaceParticipants->at(n).totalLength += length;
 		 mRaceParticipants->at(n).currentLength = length;
 		 mRaceParticipants->at(n).ratioLength = (((float)mRaceParticipants->at(n).totalLength / (float)raceLength) * 100.0f);
 		 if (mRaceParticipants->at(n).totalLength >= raceLength)
 			 mRaceParticipants->at(n).rank = lastRank + 1;
-	}
-
-	if (lastRank == raceParticipantNum) {
+	 }
+	 
+	 // 순위 결정
+	if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { //lastRank == raceParticipantNum
 		ret = false;
 		for (int n = 0; n < mRaceParticipants->size(); n++) {
 			if (mRaceParticipants->at(n).rank == 0)
