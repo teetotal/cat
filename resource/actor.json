@@ -9,8 +9,8 @@
   "exp": 0,
   "level": 1,
   "property": {
-    "strength": 20,
-    "intelligence": 0,
+    "strength": 10,
+    "intelligence": 10,
     "appeal": 10
   },
   "inventory": {

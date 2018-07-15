@@ -29,11 +29,17 @@ using namespace std;
 //한번 race에서 사용가능한 아이템 수
 #define raceItemSlot 3
 //speed up 아이템이 증가시키는 거리
-#define raceSpeedUp 15
+#define raceSpeedUp 50
 //race rand(매력 * x)
 #define raceAppealRatio 2
 //race AI advantage ratio
 #define raceAIAdvantageRatio 0.1
+//race 경묘에서 지력이 차지하는 비율
+#define raceIntelligenceRatio 0.5
+//race level에 따른 아이템 quantity
+#define raceItemQuantityPerLevel 2
+//race 스퍼트 구간
+#define raceSpurt 60 
 
 enum errorCode {
 	error_success = 0,
@@ -199,8 +205,20 @@ struct _raceParticipant : _property {
 	std::queue<itemType> sufferItems;
 	itemType currentSuffer; //현재 겪고 있는 아이템
 
-	//내가 쏜 아이템 
-	int shootItem;
+	//아이템 사용 횟수
+	int shootItemCount;
+
+	_raceParticipant() {
+		this->idx = 0;
+		for (int n = 0; n < raceItemSlot; n++)
+			this->items[n] = 0;
+		this->currentLength = 0;
+		this->totalLength = 0;
+		this->ratioLength = 0;
+		this->rank = 0;			
+		this->currentRank = 0;
+		this->shootItemCount = 0;
+	};
 	bool operator <(const _raceParticipant &a) const {
 		return this->totalLength > a.totalLength;
 	}
@@ -319,14 +337,20 @@ private:
 	//race 랜덤 아이템
 	int getRandomRaceItem();
 
+	//race 아이템 발동 by Actor
+	void invokeRaceItemByIdx(int seq, int itemIdx);
+
 	//race 아이템 발동
-	void invokeRaceItem(int seq, int itemIdx);
+	void invokeRaceItem(int seq, itemType type, int quantity, int currentRank);
 
 	//race AI 아이템 발동
 	void invokeRaceItemAI();
 
 	//race 순위에 아이템 적용
 	void invokeRaceByRank(int rank, itemType type, int quantity);
+
+	//SIA를 고려한 기본 스피드
+	int getBaseSpeed(int s, int i, int a);
 
 	//price at buy
 	int getItemPriceBuy(int itemId) {

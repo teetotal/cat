@@ -19,6 +19,7 @@
 using namespace rapidjson;
 logics logic;
 bool isRunThread = false;
+#define RACE_SLEEP 150
 
 const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
 void cls() {
@@ -45,7 +46,7 @@ void progress() {
 		std::cout.flush();
 
 		progress += 0.17; // for demonstration only
-		::_sleep(300);
+		::_sleep(150);
 	}
 	std::cout << std::endl;
 }
@@ -101,11 +102,14 @@ void printRaceRunning(int ratio, int id, int rank, int length, itemType currentI
 }
 void runRace() {
 	bool ret = true;
+	raceParticipants* p;
 	_raceCurrent* r = logic.getRaceResult();
 	int key = -1;
 	while (ret)
 	{
-		raceParticipants* p = logic.getNextRaceStatus(ret, key);
+		if (key > 0)
+			key--;
+		p = logic.getNextRaceStatus(ret, key);
 		key = -1;
 
 		if (!ret)
@@ -131,21 +135,64 @@ void runRace() {
 			sz += "━";
 		printf("%s┛\n", sz.c_str());
 
+		//당하고 있는 스킬
+		if (p->at(raceParticipantNum).currentSuffer != itemType_max) {
+			bool isSleep = false;
+			switch (p->at(raceParticipantNum).currentSuffer)
+			{
+			case itemType_race_speedUp:
+				wprintf(L"달려라!! 스피드 업!! \n");
+				break;
+			case itemType_race_shield:
+				wprintf(L"모두 없던 일로~ \n");
+				isSleep = true;
+				break;
+			default:
+				isSleep = true;
+				wprintf(L"으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);	
+				break;
+			}
+
+			if (p->at(raceParticipantNum).sufferItems.size() > 0)
+				wprintf(L"예약된 스킬: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
+
+			if(isSleep)
+				::Sleep(500);
+		}	
+		
+		//보유 아이템 목록
 		for (int n = 0; n < raceItemSlot; n++) {
 			int itemId = p->at(raceParticipantNum).items[n];
 			if (itemId > 0) {
-				wprintf(L"> %d. %s \n", n, logic.getItem(itemId).name.c_str());
+				wprintf(L"> %d. %s \n", n +1, logic.getItem(itemId).name.c_str());
 			}
 		}
 
 		if (kbhit() != 0)
 		{
 			key = getch() - 48;
-			printf("아이템 발동!! %d", key);
+			printf("\n★ 아이템 발동!! %d ★", key);
+			::Sleep(1000);
 		}
 		
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
 	}
+	//순위 정보
+	//sort(p->begin(), p->end());
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		wprintf(L"%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+			, p->at(n).rank
+			, p->at(n).idx
+			, 27
+			, p->at(n).strength
+			, p->at(n).intelligence
+			, p->at(n).appeal
+			, 27
+			, p->at(n).shootItemCount
+			);
+		::Sleep(1000);
+	}
+
 	//결과처리
 	wstring sz;
 	sz += L"순위: ";
