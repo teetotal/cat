@@ -690,11 +690,11 @@ void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
 void logics::invokeRaceItemAI() {
 	int level = mRace[mRaceCurrent.id].level;
 	for (int i = 0; i < raceParticipantNum; i++) {
-		//내가 10%이상 달리고 나서 부터 아이템 사용
-		if (mRaceParticipants->at(raceParticipantNum).ratioLength < 10)
+		//내가 raceInvokeThreshold 이상 달리고 나서 부터 아이템 사용
+		if (mRaceParticipants->at(i).ratioLength < raceInvokeThreshold)
 			return;
 		//아이템 사용할지 않할지 판단
-		int r = getRandValue(20);
+		int r = getRandValue(raceAIRandom);
 		if (r != 0)
 			continue;
 		//아이템 사용 횟수 초과시 
@@ -726,9 +726,11 @@ void logics::invokeRaceItemAI() {
 			break;
 		case 4: //4, 5등이면 스피드 업 50% 이상 부터 1등 공격
 		case 5:
+			invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			/*
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
-			invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			*/
 			break;
 		}
 		/*

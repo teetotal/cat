@@ -39,7 +39,11 @@ using namespace std;
 //race level에 따른 아이템 quantity
 #define raceItemQuantityPerLevel 2
 //race 스퍼트 구간
-#define raceSpurt 60 
+#define raceSpurt 70 
+//race 아이템을 처음 사용하기 시작하는 시점
+#define raceInvokeThreshold 50
+//race AI 스킬발동 랜덤 확률 1/raceAIRandom 
+#define raceAIRandom 10
 
 enum errorCode {
 	error_success = 0,

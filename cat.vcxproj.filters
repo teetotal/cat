@@ -73,6 +73,9 @@
     <Text Include="resource\idle-5.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="resource\race-suffer.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

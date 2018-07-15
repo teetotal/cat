@@ -25,6 +25,7 @@ string imgResult;
 string imgTraining[trainingType_max];
 string imgRecharge;
 string imgIdle[IDLE_NUM];
+string raceSuffer;
 
 const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
 void cls() {
@@ -43,8 +44,9 @@ void loadImg(const char* file, string *str) {
 	fileopen.close();
 }
 
-void display(const char* sz, int sleep = 0) {
-	cls();
+void display(const char* sz, int sleep = 0, bool isCls = true) {
+	if(isCls)
+		cls();
 	printf("%s", sz);
 	if(sleep > 0)
 		::Sleep(sleep);
@@ -65,7 +67,8 @@ void intro() {
 		sprintf(sz, "idle-%d", n);
 		loadImg(sz, &imgIdle[n]);
 	}
-	
+	//race suffer
+	loadImg("race-suffer", &raceSuffer);
 	//intro
 	const int num = 6;
 	string szIntro[num];
@@ -198,6 +201,7 @@ void runRace() {
 			default:
 				isSleep = true;
 				wprintf(L"으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);	
+				display(raceSuffer.c_str(), 0, false);
 				break;
 			}
 
@@ -205,7 +209,7 @@ void runRace() {
 				wprintf(L"예약된 스킬: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
 
 			if(isSleep)
-				::Sleep(500);
+				::Sleep(300);
 		}	
 		
 		//보유 아이템 목록
