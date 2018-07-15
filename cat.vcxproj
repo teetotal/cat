@@ -139,6 +139,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="resource\idle-0.txt" />
+    <Text Include="resource\idle-1.txt" />
+    <Text Include="resource\idle-2.txt" />
+    <Text Include="resource\idle-3.txt" />
+    <Text Include="resource\idle-4.txt" />
+    <Text Include="resource\idle-5.txt" />
+    <Text Include="resource\intro-1.txt" />
+    <Text Include="resource\intro-2.txt" />
+    <Text Include="resource\intro-3.txt" />
+    <Text Include="resource\intro-4.txt" />
+    <Text Include="resource\intro-5.txt" />
+    <Text Include="resource\intro-6.txt" />
+    <Text Include="resource\recharge.txt" />
+    <Text Include="resource\result.txt" />
+    <Text Include="resource\training-0.txt" />
+    <Text Include="resource\training-1.txt" />
+    <Text Include="resource\training-2.txt" />
+    <Text Include="resource\training-3.txt" />
+    <Text Include="resource\training-4.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logics.h" />

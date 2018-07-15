@@ -12,5 +12,6 @@
 #include <tchar.h>
 #include <locale.h>
 
+void cls();
 
 // TODO: reference additional headers your program requires here

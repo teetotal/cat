@@ -15,17 +15,70 @@
 #ifdef _WIN32
 	#include <Windows.h>
 #endif // WIN32
-
+#define RACE_SLEEP 150
+#define IDLE_NUM 6
 using namespace rapidjson;
 logics logic;
 bool isRunThread = false;
-#define RACE_SLEEP 150
+
+string imgResult;
+string imgTraining[trainingType_max];
+string imgRecharge;
+string imgIdle[IDLE_NUM];
 
 const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
 void cls() {
 #ifdef _WIN32
 	system("cls");
 #endif
+}
+
+void loadImg(const char* file, string *str) {
+	std::ifstream fileopen;
+	char sz[100] = { 0, };
+	sprintf(sz, "resource/%s.txt", file);
+	fileopen.open(sz, ios::in | ios::binary);
+	str->assign((std::istreambuf_iterator<char>(fileopen)),
+		std::istreambuf_iterator<char>());
+	fileopen.close();
+}
+
+void display(const char* sz, int sleep = 0) {
+	cls();
+	printf("%s", sz);
+	if(sleep > 0)
+		::Sleep(sleep);
+}
+void intro() {
+	char sz[100] = { 0, };
+	//result
+	loadImg("result", &imgResult);
+	//training
+	for (int n = 0; n < trainingType_max; n++) {
+		sprintf(sz, "training-%d", n);
+		loadImg(sz, &imgTraining[n]);
+	}
+	//recharge
+	loadImg("recharge", &imgRecharge);
+	//idle
+	for (int n = 0; n < IDLE_NUM; n++) {
+		sprintf(sz, "idle-%d", n);
+		loadImg(sz, &imgIdle[n]);
+	}
+	
+	//intro
+	const int num = 6;
+	string szIntro[num];
+	for (size_t i = 0; i <  num; i++) {
+		sprintf(sz, "intro-%d", i + 1);
+		loadImg(sz, &szIntro[i]);
+	}
+	
+	for (int i = 0; i < num; i++) {
+		cls();
+		display(szIntro[i].c_str(), 500);
+		//::Sleep(1000 + (50 * i));
+	}	
 }
 
 void progress() {
@@ -45,8 +98,8 @@ void progress() {
 
 		std::cout.flush();
 
-		progress += 0.17; // for demonstration only
-		::_sleep(150);
+		progress += 0.12; // for demonstration only
+		::_sleep(200);
 	}
 	std::cout << std::endl;
 }
@@ -55,13 +108,8 @@ void result(const wchar_t * sz, errorCode err = error_success) {
 	if(err == error_success)
 		progress();
 	cls();
-	wprintf(L"★                      ☆                                    ☆        \n");
-	wprintf(L"                                                                 ☆     \n");
-	wprintf(L"                              ☆                                        \n\n");
-	wprintf(L"%c[1;36m %s %c[0m        \n\n",27, sz, 27);
-	wprintf(L"☆            ☆                                                 ☆     \n");
-	wprintf(L"                                                   ★                   \n");
-	wprintf(L"☆    ★       ☆               ★                                 ☆   \n");
+	display(imgResult.c_str());
+	wprintf(L"%c[1;36m %s %c[0m        \n\n", 27, sz, 27);
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 	cls();
 }
@@ -332,6 +380,7 @@ void init() {
 		p.id = t[i]["id"].GetInt();
 		string sz = t[i]["name"].GetString();
 		p.name = utf8_to_utf16(sz);
+		p.type = (trainingType)t[i]["type"].GetInt();
 		p.level = t[i]["level"].GetInt();
 
 		p.reward.strength = t[i]["reward"]["strength"].GetInt();
@@ -503,8 +552,9 @@ void training() {
 	vector<_itemPair> rewards;
 	_property property;
 	int point;
-
-	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point));
+	trainingType type;
+	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point, type));
+	display(imgTraining[type].c_str());
 	sz += L"\n- 보상 내용 -\n";
 	sz += L"\n Point: " + std::to_wstring(point);
 	sz += L"\n 체력: " + std::to_wstring(property.strength);
@@ -552,6 +602,7 @@ void sell() {
 }
 
 void hp() {
+	logic.print();
 	int key, quantity;
 	printf("HP Item ID > ");
 	scanf("%d", &key);
@@ -559,6 +610,7 @@ void hp() {
 		return;
 	printf("Quantity > ");
 	scanf("%d", &quantity);
+	display(imgRecharge.c_str());
 	errorCode err = logic.runRecharge(key, quantity);
 	result(logic.getErrorMessage(err), err);
 }
@@ -618,6 +670,7 @@ void race() {
 }
 
 bool ask() {
+	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
 	wprintf( L" 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
@@ -648,6 +701,7 @@ bool ask() {
 		break;
 	case 6:
 		logic.print(4);
+		::Sleep(3000);
 		break;
 	default:
 		break;
@@ -657,6 +711,7 @@ bool ask() {
 
 int main()
 {	
+	intro();
 	init();
 	thread p(runThread);
 		

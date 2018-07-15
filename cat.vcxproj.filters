@@ -16,6 +16,63 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="resource\intro-1.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\intro-2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\intro-3.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\intro-4.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\intro-5.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\intro-6.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\result.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\training-0.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\training-1.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\training-2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\training-3.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\training-4.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\recharge.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-0.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-1.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-2.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-3.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-4.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="resource\idle-5.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

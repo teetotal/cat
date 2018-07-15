@@ -22,7 +22,6 @@ void logics::print(int type) {
 		for (keyQuantity::iterator it = mActor->inventory.adorn.begin(); it != mActor->inventory.adorn.end(); ++it) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
-		printf("[Actor]\n ------------------------------------------------------------------------ \n");
 		int hp = getHP();
 		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
@@ -266,7 +265,7 @@ errorCode logics::isValidTraining(int id) {
 	return error_success;
 }
 
-errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point) {
+errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type) {
 	//hp
 	increaseHP(-1);
 	//pay point
@@ -316,6 +315,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 			rewards.push_back(item);
 		}
 	}
+	type = mTraining[id].type;
 	if (increaseExp())
 		return error_levelup;
 	return error_success;

@@ -77,6 +77,15 @@ enum itemType {
 	itemType_max,
 	itemType_collection = 1000,	//도감용
 };
+//training type
+enum trainingType {
+	trainingType_play = 0,		//놀이
+	trainingType_fishing,		//낚시
+	trainingType_entertainment,	//화류계
+	trainingType_improve,		//수련
+	trainingType_study,			//학습
+	trainingType_max,
+};
 
 //HP lock
 static mutex lockHP;
@@ -119,6 +128,7 @@ struct _cost {
 struct _training {
 	int id;
 	wstring name;
+	trainingType type;
 	int level;      //시작 레벨
 	time_t start;	//시작
 	int count;		//등장 횟수
@@ -250,6 +260,9 @@ public:
 	bool insertTraining(_training);
 	bool setActor(_actor*);
 	void print(int type = 0);
+	//get random value
+	int getRandValue(int max);
+
 	_item getItem(int id) {
 		return mItems[id];
 	};
@@ -273,7 +286,7 @@ public:
 
 	//Training 
 	errorCode isValidTraining(int id);
-	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point);
+	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type);
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
@@ -364,8 +377,6 @@ private:
 	bool addInventory(int itemId, int quantity);
 	//increase property
 	void addProperty(int strength, int intelligence, int appeal);
-	//get random value
-	int getRandValue(int max);
 	
 	//increment exp
 	bool increaseExp();
