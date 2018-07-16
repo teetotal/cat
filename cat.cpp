@@ -1,4 +1,4 @@
-// cat.cpp : Defines the entry point for the console application.
+﻿// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -180,6 +180,11 @@ void printRaceRunning(int ratio, int id, int rank, int length, itemType currentI
 	printf("%ls", sz.c_str());
 }
 void runRace() {
+#ifdef _WIN32
+	const int line = 50;
+#else
+	const int line = 103;
+#endif
 	bool ret = true;
 	raceParticipants* p = NULL;
 	_raceCurrent* r = logic.getRaceResult();
@@ -194,9 +199,9 @@ void runRace() {
 		if (!ret)
 			break;
 		cls();
-		printf("%c[0m━━━━━━", 27);
+		printf("%c[0m━━━", 27);
 		string sz;
-		for (int n = 0; n < 100; n++)
+		for (int n = 0; n < line; n++)
 			sz += "━";
 		printf("%s┓\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
@@ -209,9 +214,9 @@ void runRace() {
 			);
 			printf("\n");
 		}
-		printf("%c[0m━━━━━━", 27);
+		printf("%c[0m━━━", 27);
 		sz = "";
-		for (int n = 0; n < 100; n++)
+		for (int n = 0; n < line; n++)
 			sz += "━";
 		printf("%s┛\n", sz.c_str());
 
