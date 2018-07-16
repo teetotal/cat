@@ -157,25 +157,27 @@ void runThread() {
 			printf("\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
 	}
 }
-void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
+void printRaceRunning(int id, _raceParticipant *p) {
 	wstring sz;
 	if(id == raceParticipantNum)
-		printf("%c[1;32m %d [me]",27, rank);
+		printf("%c[1;32m %d [me]",27, p->rank == 0 ? p->currentRank : 0);
 	else
-		printf("%c[0m %d [%02d]", 27, rank, id + 1);
+		printf("%c[0m %d [%02d]", 27, p->rank == 0 ? p->currentRank : 0, id + 1);
 	
-	for (int n = 0; n < ratio; n++) {
+	for (int n = 0; n < p->ratioLength; n++) {
 		sz += L" ";
 	}
-	//printf("%s", sz.c_str());
-	sz += raceIcons[id];
-	//sz += L" ";
-	//sz += to_wstring(ratio);
+	//아이콘 표시
+	sz += raceIcons[id];	
 
-	if (currentItem != itemType_max) {
+	if (p->currentSuffer != itemType_max) {
 		sz += L" ";
-		sz += to_wstring((int)currentItem);
+		sz += to_wstring((int)p->currentSuffer);
 	}
+
+	sz += L" ";
+	if(p->rank > 0)
+		sz += to_wstring(p->rank);
 		
 	printf("%ls", sz.c_str());
 }
@@ -205,13 +207,7 @@ void runRace() {
 			sz += "━";
 		printf("%s┓\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
-			printRaceRunning(
-				(int)p->at(n).ratioLength
-				, n
-				, p->at(n).currentRank
-				, p->at(n).currentLength
-				, p->at(n).currentSuffer
-			);
+			printRaceRunning(n, &p->at(n));
 			printf("\n");
 		}
 		printf("%c[0m━━━", 27);

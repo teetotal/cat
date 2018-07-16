@@ -717,13 +717,13 @@ void logics::invokeRaceItemAI() {
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
 				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
-		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트
-		case 3:
+		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트		
 			invokeRaceItem(i, itemType_race_attactFront, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
 				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
-		case 4: //4, 5등이면 스피드 업 50% 이상 부터 1등 공격
+		case 3: //3, 4, 5등이면 스피드 업 50% 이상 부터 1등 공격
+		case 4: 
 		case 5:
 			invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			/*
@@ -760,18 +760,25 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 vector<_raceParticipant> orderedVector;
 
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
-		 orderedVector.push_back(mRaceParticipants->at(n));
-		 if (mRaceParticipants->at(n).rank > 0)
+		 if (mRaceParticipants->at(n).rank == 0) {
+			 orderedVector.push_back(mRaceParticipants->at(n));
+		 }
+		 else {
+			 mRaceParticipants->at(n).currentRank = 0;
+		 }
+		 if (mRaceParticipants->at(n).rank > 0) {
 			 lastRank++;
+		 }			 
 	 }
 
 	 //현재 순위 산정
 	 sort(orderedVector.begin(), orderedVector.end());
-	 for (int n = 0; n < orderedVector.size(); n++) {
-		 if (mRaceParticipants->at(orderedVector[n].idx).rank == 0)
-			 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
+	 for (int n = 0; n < orderedVector.size(); n++) {		 
+		 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
+		 /*
 		 else
 			 mRaceParticipants->at(orderedVector[n].idx).currentRank = mRaceParticipants->at(orderedVector[n].idx).rank;
+		*/
 	 }
 
 	 //내가 사용한 아이템 발동

@@ -234,7 +234,7 @@ struct _raceParticipant : _property {
 		this->shootItemCount = 0;
 	};
 	bool operator <(const _raceParticipant &a) const {
-		return this->totalLength > a.totalLength;
+		return this->totalLength > a.totalLength;		
 	}
 };
 //경묘 대회 참가자 벡터
