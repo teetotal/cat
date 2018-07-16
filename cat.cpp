@@ -1,4 +1,4 @@
-// cat.cpp : Defines the entry point for the console application.
+Ôªø// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -27,7 +27,8 @@ string imgRecharge;
 string imgIdle[IDLE_NUM];
 string raceSuffer;
 
-const wchar_t raceIcons[] = { L'¢¬', L'°›', L'¢∫', L'°ﬁ', L'¢æ' };
+const wchar_t raceIcons[] = { L'‚óà', L'‚óé', L'‚ñ∂', L'‚óá', L'‚ô•' };
+
 void cls() {
 #ifdef _WIN32
 	system("cls");
@@ -73,7 +74,7 @@ void intro() {
 	const int num = 6;
 	string szIntro[num];
 	for (size_t i = 0; i <  num; i++) {
-		sprintf(sz, "intro-%d", i + 1);
+		sprintf(sz, "intro-%d", (int)i + 1);
 		loadImg(sz, &szIntro[i]);
 	}
 	
@@ -90,7 +91,7 @@ void progress() {
 		int barWidth = 70;
 
 		std::cout << "[";
-		int pos = barWidth * progress;
+		int pos = (int)(barWidth * progress);
 		for (int i = 0; i < barWidth; ++i) {
 			if (i < pos) std::cout << "=";
 			else if (i == pos) std::cout << ">";
@@ -101,7 +102,7 @@ void progress() {
 
 		std::cout.flush();
 
-		progress += 0.12; // for demonstration only
+		progress += (float)0.12; // for demonstration only
 		::_sleep(200);
 	}
 	std::cout << std::endl;
@@ -123,18 +124,18 @@ void runThread() {
 	while (isRunThread) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		if (logic.rechargeHP()) {
-			wprintf(L"\n\n°⁄ æÊ»£ √º∑¬¿Ã ∫∏√Êµ∆æÓø‰~~~!! [HP +1] °Ÿ\n\n > ");
+			wprintf(L"\n\n‚òÖ ÏñèÌò∏ Ï≤¥Î†•Ïù¥ Î≥¥Ï∂©ÎêêÏñ¥Ïöî~~~!! [HP +1] ‚òÜ\n\n > ");
 		}
 		if(logic.setTradeMarketPrice())
-			wprintf(L"\n\n æ∆¿Ã≈€ Ω√ºº∞° ∫Ø∞Ê µ∆æÓø‰~ \n\n > ");
+			wprintf(L"\n\n ÏïÑÏù¥ÌÖú ÏãúÏÑ∏Í∞Ä Î≥ÄÍ≤Ω ÎêêÏñ¥Ïöî~ \n\n > ");
 	}
 }
 void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
 	wstring sz;
 	if(id == raceParticipantNum)
-		printf("¶≠%c[1;32m %d [me]",27, rank);
+		wprintf(L"%c[1;32m %d [me]",27, rank);
 	else
-		printf("¶≠%c[0m %d [%02d]", 27, rank, id + 1);
+		wprintf(L"%c[0m %d [%02d]", 27, rank, id + 1);
 	
 	for (int n = 0; n < ratio; n++) {
 		sz += L" ";
@@ -166,13 +167,14 @@ void runRace() {
 		if (!ret)
 			break;
 		cls();
-		printf("%c[0m¶Æ¶¨¶¨¶¨¶¨¶¨¶¨", 27);
-		string sz;
-		for (int n = 0; n < 100; n++)
-			sz += "¶¨";
-		printf("%s¶Ø\n", sz.c_str());
+		wprintf(L"%c[0m‚îÅ‚îÅ‚îÅ", 27);
+		wstring sz;
+		for (int n = 0; n < 50; n++)
+			sz += L"‚îÅ";
+		wprintf(L"%s‚îì\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
-			printRaceRunning(p->at(n).ratioLength
+			printRaceRunning(
+				(int)p->at(n).ratioLength
 				, n
 				, p->at(n).currentRank
 				, p->at(n).currentLength
@@ -180,39 +182,42 @@ void runRace() {
 			);
 			printf("\n");
 		}
-		printf("%c[0m¶±¶¨¶¨¶¨¶¨¶¨¶¨", 27);
-		sz = "";
-		for (int n = 0; n < 100; n++)
-			sz += "¶¨";
-		printf("%s¶∞\n", sz.c_str());
+		wprintf(L"%c[0m‚îÅ‚îÅ‚îÅ", 27);
+		sz = L"";
+		for (int n = 0; n < 50; n++)
+			sz += L"‚îÅ";
+		wprintf(L"%s‚îõ\n", sz.c_str());
 
-		//¥Á«œ∞Ì ¿÷¥¬ Ω∫≈≥
+		//ÎãπÌïòÍ≥† ÏûàÎäî Ïä§ÌÇ¨
 		if (p->at(raceParticipantNum).currentSuffer != itemType_max) {
 			bool isSleep = false;
 			switch (p->at(raceParticipantNum).currentSuffer)
 			{
 			case itemType_race_speedUp:
-				wprintf(L"¥ﬁ∑¡∂Û!! Ω∫««µÂ æ˜!! \n");
+				wprintf(L"Îã¨Î†§Îùº!! Ïä§ÌîºÎìú ÏóÖ!! \n");
 				break;
 			case itemType_race_shield:
-				wprintf(L"∏µŒ æ¯¥¯ ¿œ∑Œ~ \n");
+				wprintf(L"Î™®Îëê ÏóÜÎçò ÏùºÎ°ú~ \n");
 				isSleep = true;
 				break;
 			default:
 				isSleep = true;
-				wprintf(L"¿∏æ« ∞¯∞› ¥Á«œ∞Ì ¿÷¥ŸøÀ %d\n", p->at(raceParticipantNum).currentSuffer);	
+				wprintf(L"ÏúºÏïÖ Í≥µÍ≤© ÎãπÌïòÍ≥† ÏûàÎã§Ïòπ %d\n", p->at(raceParticipantNum).currentSuffer);	
 				display(raceSuffer.c_str(), 0, false);
 				break;
 			}
 
 			if (p->at(raceParticipantNum).sufferItems.size() > 0)
-				wprintf(L"øπæ‡µ» Ω∫≈≥: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
+				wprintf(L"ÏòàÏïΩÎêú Ïä§ÌÇ¨: %d (+%d) \n"
+					, (int)p->at(raceParticipantNum).sufferItems.front()
+					, (int)p->at(raceParticipantNum).sufferItems.size()
+				);
 
 			if(isSleep)
 				::Sleep(300);
 		}	
 		
-		//∫∏¿Ø æ∆¿Ã≈€ ∏Ò∑œ
+		//Î≥¥Ïú† ÏïÑÏù¥ÌÖú Î™©Î°ù
 		for (int n = 0; n < raceItemSlot; n++) {
 			int itemId = p->at(raceParticipantNum).items[n];
 			if (itemId > 0) {
@@ -220,19 +225,19 @@ void runRace() {
 			}
 		}
 
-		if (kbhit() != 0)
+		if (_kbhit() != 0)
 		{
-			key = getch() - 48;
-			printf("\n°⁄ æ∆¿Ã≈€ πﬂµø!! %d °⁄", key);
+			key = _getch() - 48;
+			printf("\n‚òÖ ÏïÑÏù¥ÌÖú Î∞úÎèô!! %d ‚òÖ", key);
 			::Sleep(1000);
 		}
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
 	}
-	//º¯¿ß ¡§∫∏
+	//ÏàúÏúÑ Ï†ïÎ≥¥
 	//sort(p->begin(), p->end());
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		wprintf(L"%dµÓ idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+		wprintf(L"%dÎì± idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
 			, p->at(n).rank
 			, p->at(n).idx
 			, 27
@@ -245,13 +250,13 @@ void runRace() {
 		::Sleep(1000);
 	}
 
-	//∞·∞˙√≥∏Æ
+	//Í≤∞Í≥ºÏ≤òÎ¶¨
 	wstring sz;
-	sz += L"º¯¿ß: ";
+	sz += L"ÏàúÏúÑ: ";
 	sz += to_wstring(r->rank);
-	sz += L"\nªÛ±›: ";
+	sz += L"\nÏÉÅÍ∏à: ";
 	sz += to_wstring(r->prize);
-	sz += L"\nªÛ«∞: ";
+	sz += L"\nÏÉÅÌíà: ";
 	sz += logic.getItem(r->rewardItemId).name;
 	sz += L"(";
 	sz += to_wstring(r->rewardItemQuantity);
@@ -398,7 +403,7 @@ void init() {
 		p.cost.point = t[i]["cost"]["point"].GetInt();
 		
 		p.start = 0;
-		//  π›¬¶ 
+		//  Î∞òÏßù 
 		if (t[i].HasMember("moment")) {
 			p.start = getTime(
 				t[i]["moment"]["start"]["hour"].GetInt()
@@ -509,7 +514,7 @@ void init() {
 	actor->property.intelligence = d2["property"]["intelligence"].GetInt();
 	actor->property.appeal = d2["property"]["appeal"].GetInt();
 
-	//¿Œ∫•≈‰∏Æ
+	//Ïù∏Î≤§ÌÜ†Î¶¨
 	const Value& growth = d2["inventory"]["growth"];
 	for (SizeType i = 0; i < growth.Size(); i++) {
 		int id = growth[i]["id"].GetInt();
@@ -559,11 +564,11 @@ void training() {
 	trainingType type;
 	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point, type));
 	display(imgTraining[type].c_str());
-	sz += L"\n- ∫∏ªÛ ≥ªøÎ -\n";
+	sz += L"\n- Î≥¥ÏÉÅ ÎÇ¥Ïö© -\n";
 	sz += L"\n Point: " + std::to_wstring(point);
-	sz += L"\n √º∑¬: " + std::to_wstring(property.strength);
-	sz += L"\n ¡ˆ∑¬: " + std::to_wstring(property.intelligence);
-	sz += L"\n ∏≈∑¬: " + std::to_wstring(property.appeal);
+	sz += L"\n Ï≤¥Î†•: " + std::to_wstring(property.strength);
+	sz += L"\n ÏßÄÎ†•: " + std::to_wstring(property.intelligence);
+	sz += L"\n Îß§Î†•: " + std::to_wstring(property.appeal);
 	sz += L"\n";
 	for (int n = 0; n < rewards.size(); n++) {
 		sz += logic.getItem(rewards[n].itemId).name + L"(";
@@ -640,11 +645,11 @@ void race() {
 		if (sum == raceItemSlot)
 			break;
 
-		printf("∞Êπ¶ø° ªÁøÎ«“ ID > ");
+		printf("Í≤ΩÎ¨òÏóê ÏÇ¨Ïö©Ìï† ID > ");
 		scanf("%d", &key);
 		if (key == 0)
 			break;
-		printf("ºˆ∑Æ > ");
+		printf("ÏàòÎüâ > ");
 		scanf("%d", &quantity);
 		sum += quantity;
 		if (sum > raceItemSlot) {
@@ -677,7 +682,7 @@ bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" 1: æ◊º« \n 2: æ∆¿Ã≈€ ±∏∏≈ \n 3. æ∆¿Ã≈€ ∆«∏≈ \n 4: ∞Êπ¶ \n 5: √º∑¬∫∏√Ê \n 6: µµ∞® ∫∏±‚  \n > ");
+	wprintf( L" 1: Ïï°ÏÖò \n 2: ÏïÑÏù¥ÌÖú Íµ¨Îß§ \n 3. ÏïÑÏù¥ÌÖú ÌåêÎß§ \n 4: Í≤ΩÎ¨ò \n 5: Ï≤¥Î†•Î≥¥Ï∂© \n 6: ÎèÑÍ∞ê Î≥¥Í∏∞  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();

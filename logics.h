@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <vector>
 #include <map>
@@ -12,37 +12,37 @@
 #include <mutex>
 
 using namespace std;
-//HP Ãß°¡ °£°İ
+//HP ì¶”ê°€ ê°„ê²©
 #define HPIncreaseInterval	60 * 5
-//Trade ½Ã¼¼ º¯°æ °£°İ
+//Trade ì‹œì„¸ ë³€ê²½ ê°„ê²©
 #define tradeUpdateInterval	60 * 12
-//ÃÖ´ë ¹«¿ª ÇÕ»ê ½Ã¼¼
+//ìµœëŒ€ ë¬´ì—­ í•©ì‚° ì‹œì„¸
 #define maxTradeValue 100
-//ÃÖ´ë ¾ÆÀÌÅÛ º¸»ó/ºñ¿ë
+//ìµœëŒ€ ì•„ì´í…œ ë³´ìƒ/ë¹„ìš©
 #define maxTrainingItems 10
-//±âº» HP
+//ê¸°ë³¸ HP
 #define defaultHP 4
-//µµ°¨¿ë ¾ÆÀÌÅÛ ½ÃÀÛ id
+//ë„ê°ìš© ì•„ì´í…œ ì‹œì‘ id
 #define collectionStartId 1000
-//³ª¸¦ Á¦¿ÜÇÑ °æ¹¦ Âü°¡ÀÚ ¼ö
+//ë‚˜ë¥¼ ì œì™¸í•œ ê²½ë¬˜ ì°¸ê°€ì ìˆ˜
 #define raceParticipantNum 4
-//ÇÑ¹ø race¿¡¼­ »ç¿ë°¡´ÉÇÑ ¾ÆÀÌÅÛ ¼ö
+//í•œë²ˆ raceì—ì„œ ì‚¬ìš©ê°€ëŠ¥í•œ ì•„ì´í…œ ìˆ˜
 #define raceItemSlot 3
-//speed up ¾ÆÀÌÅÛÀÌ Áõ°¡½ÃÅ°´Â °Å¸®
+//speed up ì•„ì´í…œì´ ì¦ê°€ì‹œí‚¤ëŠ” ê±°ë¦¬
 #define raceSpeedUp 50
-//race rand(¸Å·Â * x)
+//race rand(ë§¤ë ¥ * x)
 #define raceAppealRatio 2
 //race AI advantage ratio
 #define raceAIAdvantageRatio 0.1
-//race °æ¹¦¿¡¼­ Áö·ÂÀÌ Â÷ÁöÇÏ´Â ºñÀ²
+//race ê²½ë¬˜ì—ì„œ ì§€ë ¥ì´ ì°¨ì§€í•˜ëŠ” ë¹„ìœ¨
 #define raceIntelligenceRatio 0.5
-//race level¿¡ µû¸¥ ¾ÆÀÌÅÛ quantity
+//race levelì— ë”°ë¥¸ ì•„ì´í…œ quantity
 #define raceItemQuantityPerLevel 2
-//race ½ºÆÛÆ® ±¸°£
+//race ìŠ¤í¼íŠ¸ êµ¬ê°„
 #define raceSpurt 70 
-//race ¾ÆÀÌÅÛÀ» Ã³À½ »ç¿ëÇÏ±â ½ÃÀÛÇÏ´Â ½ÃÁ¡
+//race ì•„ì´í…œì„ ì²˜ìŒ ì‚¬ìš©í•˜ê¸° ì‹œì‘í•˜ëŠ” ì‹œì 
 #define raceInvokeThreshold 50
-//race AI ½ºÅ³¹ßµ¿ ·£´ı È®·ü 1/raceAIRandom 
+//race AI ìŠ¤í‚¬ë°œë™ ëœë¤ í™•ë¥  1/raceAIRandom 
 #define raceAIRandom 10
 
 enum errorCode {
@@ -63,7 +63,7 @@ enum inventoryType {
 	inventoryType_adorn,
 	inventoryType_collection,
 };
-//¾ÆÀÌÅÛ Á¾·ù
+//ì•„ì´í…œ ì¢…ë¥˜
 enum itemType {
 	itemType_training = 0,
 	itemType_training_food,
@@ -71,34 +71,34 @@ enum itemType {
 	itemType_training_etc,
 	itemType_hp = 100,
 	itemType_hp_meal,
-	itemType_race = 200, //°æ¹¦
-	itemType_race_shield,		//¹æ¾î ½¯µå
-	itemType_race_speedUp,		//¼Ó¾÷
-	itemType_race_attactFront,	//Àü¹æ °ø°İ
-	itemType_race_attactFirst,	//1µî °ø°İ
-	itemType_adorn = 300, //Ä¡Àå
+	itemType_race = 200, //ê²½ë¬˜
+	itemType_race_shield,		//ë°©ì–´ ì‰´ë“œ
+	itemType_race_speedUp,		//ì†ì—…
+	itemType_race_attactFront,	//ì „ë°© ê³µê²©
+	itemType_race_attactFirst,	//1ë“± ê³µê²©
+	itemType_adorn = 300, //ì¹˜ì¥
 	itemType_adorn_head,
 	itemType_max,
-	itemType_collection = 1000,	//µµ°¨¿ë
+	itemType_collection = 1000,	//ë„ê°ìš©
 };
 //training type
 enum trainingType {
-	trainingType_play = 0,		//³îÀÌ
-	trainingType_fishing,		//³¬½Ã
-	trainingType_entertainment,	//È­·ù°è
-	trainingType_improve,		//¼ö·Ã
-	trainingType_study,			//ÇĞ½À
+	trainingType_play = 0,		//ë†€ì´
+	trainingType_fishing,		//ë‚šì‹œ
+	trainingType_entertainment,	//í™”ë¥˜ê³„
+	trainingType_improve,		//ìˆ˜ë ¨
+	trainingType_study,			//í•™ìŠµ
 	trainingType_max,
 };
 
 //HP lock
 static mutex lockHP;
 
-//¾ÆÀÌÅÛ
+//ì•„ì´í…œ
 struct _item {
 	int id;
 	wstring name;
-	itemType type; //±âº», °ø°İ, ¼öºñ
+	itemType type; //ê¸°ë³¸, ê³µê²©, ìˆ˜ë¹„
 	int grade;
 	int value;
 };
@@ -110,7 +110,7 @@ struct _itemPair {
 };
 typedef vector<_itemPair> itemsVector;
 
-//¼ºÀå º¸»ó
+//ì„±ì¥ ë³´ìƒ
 struct _reward {
 	int strength;
 	int intelligence;
@@ -119,7 +119,7 @@ struct _reward {
 	_itemPair* items[maxTrainingItems];
 };
 
-//¼ºÀå ºñ¿ë
+//ì„±ì¥ ë¹„ìš©
 struct _cost {
 	int strength;
 	int intelligence;	
@@ -128,62 +128,62 @@ struct _cost {
 	_itemPair* items[maxTrainingItems];	
 };
 
-//¼ºÀå
+//ì„±ì¥
 struct _training {
 	int id;
 	wstring name;
 	trainingType type;
-	int level;      //½ÃÀÛ ·¹º§
-	time_t start;	//½ÃÀÛ
-	int count;		//µîÀå È½¼ö
-	int keep;		//À¯Áö
-	int interval;	//»ç¶óÁö´Â ½Ã°£
+	int level;      //ì‹œì‘ ë ˆë²¨
+	time_t start;	//ì‹œì‘
+	int count;		//ë“±ì¥ íšŸìˆ˜
+	int keep;		//ìœ ì§€
+	int interval;	//ì‚¬ë¼ì§€ëŠ” ì‹œê°„
 	_reward reward;
 	_cost cost;
 };
 
-//¼Ó¼º
+//ì†ì„±
 struct _property {
-	int strength;			//Ã¼·Â
-	int intelligence;		//ÃÑ¸íÇÔ
-	int appeal;				//¸Å·Â
+	int strength;			//ì²´ë ¥
+	int intelligence;		//ì´ëª…í•¨
+	int appeal;				//ë§¤ë ¥
 };
 
 typedef map<int, int> keyQuantity;
-//ÀÎº¥Åä¸®
+//ì¸ë²¤í† ë¦¬
 struct _inventory {
-	keyQuantity growth;	//¼ºÀå¿ë ¾ÆÀÌÅÛ
-	keyQuantity hp;		//HPÃæÀü ¾ÆÀÌÅÛ
-	keyQuantity race;	//°æ¹¦¿ë ¾ÆÀÌÅÛ
-	keyQuantity adorn;	//Ä¡Àå¿ë ¾ÆÀÌÅÛ
+	keyQuantity growth;	//ì„±ì¥ìš© ì•„ì´í…œ
+	keyQuantity hp;		//HPì¶©ì „ ì•„ì´í…œ
+	keyQuantity race;	//ê²½ë¬˜ìš© ì•„ì´í…œ
+	keyQuantity adorn;	//ì¹˜ì¥ìš© ì•„ì´í…œ
 };
 typedef map<int, bool> keyBoolMap;
-//Ä³¸¯ÅÍ
+//ìºë¦­í„°
 struct _actor {
-	string userId;		//»ç¿ëÀÚID
-	wstring userName;	//»ç¿ëÀÚ¸í
-	string id;			//°í¾çÀÌID
-	wstring name;		//°í¾çÀÌ ÀÌ¸§
-	wstring jobTitle;		//Å¸ÀÌÆ². ¼Ó¼º ÇÕ»êÀÌ 0 ÀÌÇÏ¸é ÀÌ¹ø»ıÀº ¸ÁÇß¾î¹¦
-	int point;			//º¸À¯Ä³½Ã
-	int hp;				//ÇÇ·Îµµ
-	int exp;			//°æÇèÄ¡
-	int level;			//·¹º§
-	_property property;		//¼Ó¼º
-	_inventory inventory;	//ÀÎº¥Åä¸®
-	keyBoolMap collection;	//µµ°¨
+	string userId;		//ì‚¬ìš©ìID
+	wstring userName;	//ì‚¬ìš©ìëª…
+	string id;			//ê³ ì–‘ì´ID
+	wstring name;		//ê³ ì–‘ì´ ì´ë¦„
+	wstring jobTitle;		//íƒ€ì´í‹€. ì†ì„± í•©ì‚°ì´ 0 ì´í•˜ë©´ ì´ë²ˆìƒì€ ë§í–ˆì–´ë¬˜
+	int point;			//ë³´ìœ ìºì‹œ
+	int hp;				//í”¼ë¡œë„
+	int exp;			//ê²½í—˜ì¹˜
+	int level;			//ë ˆë²¨
+	_property property;		//ì†ì„±
+	_inventory inventory;	//ì¸ë²¤í† ë¦¬
+	keyBoolMap collection;	//ë„ê°
 
-	time_t loginTime;	//½ÃÀÛ½Ã°£
-	time_t lastUpdateTime; //Áö³­ HP ¾÷µ¥ÀÌÆ® ½Ã°£
+	time_t loginTime;	//ì‹œì‘ì‹œê°„
+	time_t lastUpdateTime; //ì§€ë‚œ HP ì—…ë°ì´íŠ¸ ì‹œê°„
 };
 
-//Á÷¾÷¸í prefix
+//ì§ì—…ëª… prefix
 struct _jobTitlePrefix {
 	int level;
 	wstring title;
 };
 
-//Á÷¾÷¸í body
+//ì§ì—…ëª… body
 struct _jobTitleBody {
 	int S;
 	int I;
@@ -191,7 +191,7 @@ struct _jobTitleBody {
 	wstring title;
 };
 
-//race »ó±İ + ºÎ»ó
+//race ìƒê¸ˆ + ë¶€ìƒ
 struct _raceReward {
 	int prize;
 	itemsVector items;
@@ -205,21 +205,21 @@ struct _race {
 	int fee;
 	vector<_raceReward> rewards;
 };
-//°æ¹¦ Âü°¡ÀÚ
+//ê²½ë¬˜ ì°¸ê°€ì
 struct _raceParticipant : _property {
-	int idx;			//°æÁÖ ¹øÈ£
+	int idx;			//ê²½ì£¼ ë²ˆí˜¸
 	int items[raceItemSlot];
-	int currentLength;	//ÇöÀç ÀÌµ¿ °Å¸®
-	int totalLength;	//ÀüÃ¼ ÀÌµ¿ °Å¸®
-	float ratioLength;	//ÀüÃ¼ °Å¸®Áß ÀÌµ¿ÇÑ °Å¸® ºñÀ² %
-	int rank;			//ÃÖÁ¾ µî¼ö
-	int currentRank;	//ÇöÀç µî¼ö
+	int currentLength;	//í˜„ì¬ ì´ë™ ê±°ë¦¬
+	int totalLength;	//ì „ì²´ ì´ë™ ê±°ë¦¬
+	float ratioLength;	//ì „ì²´ ê±°ë¦¬ì¤‘ ì´ë™í•œ ê±°ë¦¬ ë¹„ìœ¨ %
+	int rank;			//ìµœì¢… ë“±ìˆ˜
+	int currentRank;	//í˜„ì¬ ë“±ìˆ˜
 
-	//³»°¡ °Ş°í ÀÖ´Â ¾ÆÀÌÅÛ 
+	//ë‚´ê°€ ê²ªê³  ìˆëŠ” ì•„ì´í…œ 
 	std::queue<itemType> sufferItems;
-	itemType currentSuffer; //ÇöÀç °Ş°í ÀÖ´Â ¾ÆÀÌÅÛ
+	itemType currentSuffer; //í˜„ì¬ ê²ªê³  ìˆëŠ” ì•„ì´í…œ
 
-	//¾ÆÀÌÅÛ »ç¿ë È½¼ö
+	//ì•„ì´í…œ ì‚¬ìš© íšŸìˆ˜
 	int shootItemCount;
 
 	_raceParticipant() {
@@ -237,16 +237,16 @@ struct _raceParticipant : _property {
 		return this->totalLength > a.totalLength;
 	}
 };
-//°æ¹¦ ´ëÈ¸ Âü°¡ÀÚ º¤ÅÍ
+//ê²½ë¬˜ ëŒ€íšŒ ì°¸ê°€ì ë²¡í„°
 typedef vector<_raceParticipant> raceParticipants;
-//°æ¹¦ ÁøÇà Á¤º¸
+//ê²½ë¬˜ ì§„í–‰ ì •ë³´
 struct _raceCurrent
 {
 	int id;
-	int rank;			//¼øÀ§
-	int prize;			//º¸»ó »ó±İ
-	int rewardItemId;	//º¸»ó ¾ÆÀÌÅÛ
-	int rewardItemQuantity; //º¸»ó ¾ÆÀÌÅÛ ¼ö·®
+	int rank;			//ìˆœìœ„
+	int prize;			//ë³´ìƒ ìƒê¸ˆ
+	int rewardItemId;	//ë³´ìƒ ì•„ì´í…œ
+	int rewardItemQuantity; //ë³´ìƒ ì•„ì´í…œ ìˆ˜ëŸ‰
 };
 
 class logics 
@@ -285,7 +285,7 @@ public:
 	void addJobTitlePrefix(_jobTitlePrefix&);
 	void addJobTitleBody(_jobTitleBody&);
 
-	//°æ¹¦ ¸ŞÅ¸ Á¤º¸
+	//ê²½ë¬˜ ë©”íƒ€ ì •ë³´
 	void addRaceMeta(_race & race);
 
 	//Training 
@@ -297,9 +297,9 @@ public:
 
 	//Race
 	errorCode runRace(int id, itemsVector &items);
-	//race ÁøÇà
+	//race ì§„í–‰
 	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx);
-	//race °á°ú
+	//race ê²°ê³¼
 	_raceCurrent* getRaceResult() {
 		return &mRaceCurrent;
 	}
@@ -307,7 +307,7 @@ public:
 	errorCode runRecharge(int id, int quantity);	
 
 	//auto recharge HP
-	//ÃæÀüÀÌ µÇ¸é true, ÀÌ¹Ì ¸¸¶¥ÀÌ°Å³ª ½Ã°£ÀÌ ¾Æ´Ï¸é false
+	//ì¶©ì „ì´ ë˜ë©´ true, ì´ë¯¸ ë§Œë•…ì´ê±°ë‚˜ ì‹œê°„ì´ ì•„ë‹ˆë©´ false
 	bool rechargeHP();
 private:
 	//error messages
@@ -317,17 +317,17 @@ private:
 	typedef map<int, _item> __items; 
 	__items mItems;		//items
 	typedef map<int, int> __keyValInt; 
-	__keyValInt mTrade;	//¹«¿ª ½Ã¼¼
+	__keyValInt mTrade;	//ë¬´ì—­ ì‹œì„¸
 	typedef map<int, _training> __training; 
-	__training mTraining;//¼ºÀå
+	__training mTraining;//ì„±ì¥
 
 	//Actor
 	_actor* mActor;
 
-	//¸¶Áö¸· TradeUpdate½Ã°£
+	//ë§ˆì§€ë§‰ TradeUpdateì‹œê°„
 	time_t mLastTradeUpdate;
 
-	//Á÷¾÷¸í
+	//ì§ì—…ëª…
 	typedef vector<_jobTitlePrefix> jobTitlePrefixVector;
 	typedef vector<_jobTitleBody> jobTitleBodyVector;
 
@@ -338,7 +338,7 @@ private:
 	};
 	jobTitle mJobTitle;
 
-	//°æ¹¦
+	//ê²½ë¬˜
 	raceParticipants* mRaceParticipants;
 
 	typedef map<int, _race> raceMeta;
@@ -347,26 +347,26 @@ private:
 	
 	_raceCurrent mRaceCurrent;
 	
-	//°æ¹¦¿ë ¾ÆÀÌÅÛ¸¸ µû·Î ¸ğ¾Æ³í º¤ÅÍ
+	//ê²½ë¬˜ìš© ì•„ì´í…œë§Œ ë”°ë¡œ ëª¨ì•„ë…¼ ë²¡í„°
 	typedef vector<int> intVector;
 	intVector mItemRace;
 
-	//race ·£´ı ¾ÆÀÌÅÛ
+	//race ëœë¤ ì•„ì´í…œ
 	int getRandomRaceItem();
 
-	//race ¾ÆÀÌÅÛ ¹ßµ¿ by Actor
+	//race ì•„ì´í…œ ë°œë™ by Actor
 	void invokeRaceItemByIdx(int seq, int itemIdx);
 
-	//race ¾ÆÀÌÅÛ ¹ßµ¿
+	//race ì•„ì´í…œ ë°œë™
 	void invokeRaceItem(int seq, itemType type, int quantity, int currentRank);
 
-	//race AI ¾ÆÀÌÅÛ ¹ßµ¿
+	//race AI ì•„ì´í…œ ë°œë™
 	void invokeRaceItemAI();
 
-	//race ¼øÀ§¿¡ ¾ÆÀÌÅÛ Àû¿ë
+	//race ìˆœìœ„ì— ì•„ì´í…œ ì ìš©
 	void invokeRaceByRank(int rank, itemType type, int quantity);
 
-	//SIA¸¦ °í·ÁÇÑ ±âº» ½ºÇÇµå
+	//SIAë¥¼ ê³ ë ¤í•œ ê¸°ë³¸ ìŠ¤í”¼ë“œ
 	int getBaseSpeed(int s, int i, int a);
 
 	//price at buy

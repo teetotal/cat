@@ -1,4 +1,4 @@
-#include "stdafx.h"
+ï»¿#include "stdafx.h"
 #include "logics.h"
 
 bool logics::init() {	
@@ -23,7 +23,7 @@ void logics::print(int type) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		int hp = getHP();
-		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n Ã¼·Â: %d, Áö·Â: %d, ¸Å·Â: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
+		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n ì²´ë ¥: %d, ì§€ë ¥: %d, ë§¤ë ¥: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
@@ -80,7 +80,7 @@ void logics::print(int type) {
 				
 			);
 		}
-	}else if (type == 2) { //»óÇ° ±¸¸Å
+	}else if (type == 2) { //ìƒí’ˆ êµ¬ë§¤
 		printf("[Buy]\n ------------------------------------------------------------------------ \n");
 		for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
 			if (mItems[it->first].type < itemType_max) {
@@ -99,13 +99,13 @@ void logics::print(int type) {
 			}
 		}
 	}
-	else if (type == 3) // »óÇ°º¸±â
+	else if (type == 3) // ìƒí’ˆë³´ê¸°
 	{
 		for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
 			wprintf(L"[Items] ID: %d,\t Type: %d,\t %s \n", it->first, it->second.type, it->second.name.c_str());
 		}
 	}
-	else if (type == 4) { //µµ°¨ º¸±â
+	else if (type == 4) { //ë„ê° ë³´ê¸°
 		for (__items::iterator it = mItems.find(collectionStartId); it != mItems.end(); ++it) {
 			if (it->second.type == itemType_collection) {
 				bool has = false;
@@ -120,11 +120,11 @@ void logics::print(int type) {
 			}	
 		}
 	}
-	else if (type == 5) { //°æ¹¦ ¸ñ·Ï
-		wprintf(L"------------- °æ¹¦ ´ëÈ¸ ¸ñ·Ï -------------\n");
+	else if (type == 5) { //ê²½ë¬˜ ëª©ë¡
+		wprintf(L"------------- ê²½ë¬˜ ëŒ€íšŒ ëª©ë¡ -------------\n");
 		for (raceMeta::iterator it = mRace.begin(); it != mRace.end(); ++it) {
 			printf("\n");
-			wprintf(L"[%03d] %s \n¢¹ Âü°¡ºñ: %d, °æÁÖ°Å¸®: %d m, lv.%d  \n¢¹ ¿ì½Â»ó±İ --------\n"
+			wprintf(L"[%03d] %s \nâ–· ì°¸ê°€ë¹„: %d, ê²½ì£¼ê±°ë¦¬: %d m, lv.%d  \nâ–· ìš°ìŠ¹ìƒê¸ˆ --------\n"
 				, it->second.id
 				, it->second.title.c_str()
 				, it->second.fee
@@ -133,7 +133,7 @@ void logics::print(int type) {
 			);
 			
 			for (int m = 0; m < it->second.rewards.size(); m++) {
-				wprintf(L"%dµî »ó±İ: %d (%s ¿Ü %d)\n"
+				wprintf(L"%dë“± ìƒê¸ˆ: %d (%s ì™¸ %d)\n"
 					, m+1 
 					, it->second.rewards[m].prize
 					, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
@@ -143,7 +143,7 @@ void logics::print(int type) {
 		}
 		printf("\n");
 	}
-	else if (type == 6) { //¾ÆÀÌÅÛ ÆÇ¸Å
+	else if (type == 6) { //ì•„ì´í…œ íŒë§¤
 		printf("[Sell]\n ------------------------------------------------------------------------ \n");
 		wstring szGrowth, szHP, szRace, szAdorn;
 		for (keyQuantity::iterator it = mActor->inventory.growth.begin(); it != mActor->inventory.growth.end(); ++it) {
@@ -182,10 +182,10 @@ void logics::print(int type) {
 				+ to_wstring(getItemPriceSell(it->first))
 				+ L"\n ";
 		}
-		wprintf(L"¼ºÀå ¾ÆÀÌÅÛ \n %s \n", szGrowth.c_str());
-		wprintf(L"HP ¾ÆÀÌÅÛ \n %s \n", szHP.c_str());
-		wprintf(L"°æ¹¦ ¾ÆÀÌÅÛ \n %s \n", szRace.c_str());
-		wprintf(L"²Ù¹Ì±â ¾ÆÀÌÅÛ \n %s \n", szAdorn.c_str());
+		wprintf(L"ì„±ì¥ ì•„ì´í…œ \n %s \n", szGrowth.c_str());
+		wprintf(L"HP ì•„ì´í…œ \n %s \n", szHP.c_str());
+		wprintf(L"ê²½ë¬˜ ì•„ì´í…œ \n %s \n", szRace.c_str());
+		wprintf(L"ê¾¸ë¯¸ê¸° ì•„ì´í…œ \n %s \n", szAdorn.c_str());
 	}
 }
 
@@ -310,7 +310,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 		item.val = (rand() % p->val);
 		if (item.val > 0) {			
 			if (!addInventory(item.itemId, item.val))
-				return error_not_enough_item; //¾îÂ÷ÇÇ Ãß°¡¶ó ÀÌºÎºĞÀº ÇÊ¿ä ¾øÁö¸¸ °Á ³Ö¾îµÒ
+				return error_not_enough_item; //ì–´ì°¨í”¼ ì¶”ê°€ë¼ ì´ë¶€ë¶„ì€ í•„ìš” ì—†ì§€ë§Œ ê± ë„£ì–´ë‘ 
 
 			rewards.push_back(item);
 		}
@@ -422,7 +422,7 @@ int logics::getRandValue(int max) {
 		return 0;
 	return rand() % max;
 }
-//°æÇèÄ¡ Áõ°¡
+//ê²½í—˜ì¹˜ ì¦ê°€
 bool logics::increaseExp() {
 	mActor->exp++;
 	int maxExp = getMaxExp();
@@ -594,9 +594,9 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	mRaceCurrent.rewardItemQuantity = 0;
 
 	mRaceParticipants->clear();
-	//³» ´É·ÂÄ¡¶û ºñ½ÁÇÏ°Ô ±¸¼º
+	//ë‚´ ëŠ¥ë ¥ì¹˜ë‘ ë¹„ìŠ·í•˜ê²Œ êµ¬ì„±
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
-	//Âü°¡ÀÚ ¸ñ·Ï
+	//ì°¸ê°€ì ëª©ë¡
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
@@ -610,8 +610,8 @@ errorCode logics::runRace(int id, itemsVector &items) {
 		for (int m = 0; m < raceItemSlot; m++) {
 			p.items[m] = getRandomRaceItem();
 		}*/
-		printf("(%d) S: %d, I: %d, A: %d, [%d,%d,%d]\n",n+1,  p.strength, p.intelligence, p.appeal, p.items[0], p.items[1], p.items[2]);
-		::_sleep(500);
+		//printf("(%d) S: %d, I: %d, A: %d\n",n+1,  p.strength, p.intelligence, p.appeal);
+		//_sleep(100);
 		mRaceParticipants->push_back(p);
 	}
 	_raceParticipant p;
@@ -648,25 +648,25 @@ void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
 void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRank) {
 	if (mRaceParticipants->at(seq).shootItemCount >= raceItemSlot)
 		return;
-	//¾ÆÀÌÅÛ ´ë»ó¿¡°Ô Àû¿ë
+	//ì•„ì´í…œ ëŒ€ìƒì—ê²Œ ì ìš©
 	switch (type) {
-	case itemType_race_shield:		//¹æ¾î ½¯µå
+	case itemType_race_shield:		//ë°©ì–´ ì‰´ë“œ
 		while (!mRaceParticipants->at(seq).sufferItems.empty())
 		{
 			mRaceParticipants->at(seq).sufferItems.pop();
 		}
 		mRaceParticipants->at(seq).sufferItems.push(itemType_race_shield);
 		break;
-	case itemType_race_speedUp:		//¼Ó¾÷
+	case itemType_race_speedUp:		//ì†ì—…
 		for (int n = 0; n < quantity; n++) {
 			mRaceParticipants->at(seq).sufferItems.push(type);
 		}
 		break;
-	case itemType_race_attactFront:	//Àü¹æ °ø°İ
+	case itemType_race_attactFront:	//ì „ë°© ê³µê²©
 		if (currentRank > 1)
 			invokeRaceByRank(currentRank - 1, itemType_race_attactFront, quantity);
 		break;
-	case itemType_race_attactFirst:	//1µî °ø°İ
+	case itemType_race_attactFirst:	//1ë“± ê³µê²©
 		if (currentRank > 1)
 			invokeRaceByRank(1, itemType_race_attactFirst, quantity);
 		break;
@@ -675,7 +675,7 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 }
 
 void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
-	//¾ÆÀÌÅÛ ¸ñ·Ï¿¡¼­ Á¦°Å
+	//ì•„ì´í…œ ëª©ë¡ì—ì„œ ì œê±°
 	int itemId = mRaceParticipants->at(seq).items[itemIdx];
 	int currentRank = mRaceParticipants->at(seq).currentRank;
 	int quantity = mItems[itemId].value;
@@ -690,19 +690,19 @@ void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
 void logics::invokeRaceItemAI() {
 	int level = mRace[mRaceCurrent.id].level;
 	for (int i = 0; i < raceParticipantNum; i++) {
-		//³»°¡ raceInvokeThreshold ÀÌ»ó ´Ş¸®°í ³ª¼­ ºÎÅÍ ¾ÆÀÌÅÛ »ç¿ë
+		//ë‚´ê°€ raceInvokeThreshold ì´ìƒ ë‹¬ë¦¬ê³  ë‚˜ì„œ ë¶€í„° ì•„ì´í…œ ì‚¬ìš©
 		if (mRaceParticipants->at(i).ratioLength < raceInvokeThreshold)
 			return;
-		//¾ÆÀÌÅÛ »ç¿ëÇÒÁö ¾ÊÇÒÁö ÆÇ´Ü
+		//ì•„ì´í…œ ì‚¬ìš©í• ì§€ ì•Ší• ì§€ íŒë‹¨
 		int r = getRandValue(raceAIRandom);
 		if (r != 0)
 			continue;
-		//¾ÆÀÌÅÛ »ç¿ë È½¼ö ÃÊ°ú½Ã 
+		//ì•„ì´í…œ ì‚¬ìš© íšŸìˆ˜ ì´ˆê³¼ì‹œ 
 		if (mRaceParticipants->at(i).shootItemCount >= raceItemSlot) {
 			continue;
 		}
-		//»ç¿ë
-		//1. ¾ÕÀ¸·Î ´çÇÒ°Ô ÀÖÀ¸¸é ºÎÀû »ç¿ë
+		//ì‚¬ìš©
+		//1. ì•ìœ¼ë¡œ ë‹¹í• ê²Œ ìˆìœ¼ë©´ ë¶€ì  ì‚¬ìš©
 		if (mRaceParticipants->at(i).sufferItems.size() > 0) {
 			switch (mRaceParticipants->at(i).sufferItems.front()) {
 			case itemType_race_shield:
@@ -714,17 +714,17 @@ void logics::invokeRaceItemAI() {
 			}
 		}
 		switch (mRaceParticipants->at(i).currentRank) {
-		case 1: // 1µîÀÌ¸é 50%ÀÌ»ó ¿ÔÀ»¶§ ½ºÇÇµå ¾÷
+		case 1: // 1ë“±ì´ë©´ 50%ì´ìƒ ì™”ì„ë•Œ ìŠ¤í”¼ë“œ ì—…
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
 				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
-		case 2: //2, 3µîÀÌ¸é ¾Õ °í³ÉÀÌ °ø°İ. 50%ÀÌ»ó ¿ÔÀ»‹š ºÎÅÍ ½ºÆÛÆ®
+		case 2: //2, 3ë“±ì´ë©´ ì• ê³ ëƒ¥ì´ ê³µê²©. 50%ì´ìƒ ì™”ì„Â‹Âš ë¶€í„° ìŠ¤í¼íŠ¸
 		case 3:
 			invokeRaceItem(i, itemType_race_attactFront, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
 				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
-		case 4: //4, 5µîÀÌ¸é ½ºÇÇµå ¾÷ 50% ÀÌ»ó ºÎÅÍ 1µî °ø°İ
+		case 4: //4, 5ë“±ì´ë©´ ìŠ¤í”¼ë“œ ì—… 50% ì´ìƒ ë¶€í„° 1ë“± ê³µê²©
 		case 5:
 			invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			/*
@@ -746,9 +746,9 @@ void logics::invokeRaceItemAI() {
 
 int logics::getBaseSpeed(int s, int i, int a) {
 	float ratioI = ((float)i / (float)(s + i + a));
-	float s1 = s * (1.0f - raceIntelligenceRatio);
-	float i1 = i * raceIntelligenceRatio;
-	float a1 = getRandValue(a * raceAppealRatio);
+	float s1 = (float)(s * (1.0f - raceIntelligenceRatio));
+	float i1 = (float)(i * raceIntelligenceRatio);
+	float a1 = (float)getRandValue(a * raceAppealRatio);
 	int length = (int)(s1 + i1 + a1);
 
 	return length;
@@ -757,7 +757,7 @@ int logics::getBaseSpeed(int s, int i, int a) {
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 int lastRank = 0;
 	 int raceLength = mRace[mRaceCurrent.id].length;
-	 //¼øÀ§ »êÁ¤¿ë º¤ÅÍ
+	 //ìˆœìœ„ ì‚°ì •ìš© ë²¡í„°
 	 vector<_raceParticipant> orderedVector;
 
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
@@ -766,7 +766,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 lastRank++;
 	 }
 
-	 //ÇöÀç ¼øÀ§ »êÁ¤
+	 //í˜„ì¬ ìˆœìœ„ ì‚°ì •
 	 sort(orderedVector.begin(), orderedVector.end());
 	 for (int n = 0; n < orderedVector.size(); n++) {
 		 if (mRaceParticipants->at(orderedVector[n].idx).rank == 0)
@@ -775,26 +775,26 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 mRaceParticipants->at(orderedVector[n].idx).currentRank = mRaceParticipants->at(orderedVector[n].idx).rank;
 	 }
 
-	 //³»°¡ »ç¿ëÇÑ ¾ÆÀÌÅÛ ¹ßµ¿
+	 //ë‚´ê°€ ì‚¬ìš©í•œ ì•„ì´í…œ ë°œë™
 	 if (itemIdx > -1) {
 		 invokeRaceItemByIdx(raceParticipantNum, itemIdx);
 	 }
-	 //AI°¡ »ç¿ëÇÑ ¾ÆÀÌÅÛ ¹ßµ¿
+	 //AIê°€ ì‚¬ìš©í•œ ì•„ì´í…œ ë°œë™
 	 invokeRaceItemAI();
 
-	 //ÁøÇà °ª ¼³Á¤
+	 //ì§„í–‰ ê°’ ì„¤ì •
 	 for (int n = 0; n < mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank > 0)
 			 continue;
 
-		 //°ø°İ¹Ş°Å³ª ÀÚ½ÅÇÑÅ× »ç¿ëÇÑ ¾ÆÀÌÅÛ ²¨³»±â.
+		 //ê³µê²©ë°›ê±°ë‚˜ ìì‹ í•œí…Œ ì‚¬ìš©í•œ ì•„ì´í…œ êº¼ë‚´ê¸°.
 		 mRaceParticipants->at(n).currentSuffer = itemType_max;
 		 if (mRaceParticipants->at(n).sufferItems.size() > 0) {
 			 mRaceParticipants->at(n).currentSuffer = mRaceParticipants->at(n).sufferItems.front();
 			 mRaceParticipants->at(n).sufferItems.pop();
 		 }
 		 
-		 //±âÃÊ Ã¼·Â + random appeal
+		 //ê¸°ì´ˆ ì²´ë ¥ + random appeal
 		 //int length = mRaceParticipants->at(n).strength + getRandValue(mRaceParticipants->at(n).appeal * raceAppealRatio);
 		 int length = getBaseSpeed(
 			 mRaceParticipants->at(n).strength
@@ -831,7 +831,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 mRaceParticipants->at(n).rank = lastRank + 1;
 	 }
 	 
-	 // ¼øÀ§ °áÁ¤
+	 // ìˆœìœ„ ê²°ì •
 	if(lastRank >= raceParticipantNum) {
 	//if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { 
 		ret = false;
@@ -839,12 +839,12 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			if (mRaceParticipants->at(n).rank == 0)
 				mRaceParticipants->at(n).rank = raceParticipantNum + 1;
 		}
-		//º¸»ó Áö±Ş
+		//ë³´ìƒ ì§€ê¸‰
 		mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
 		for (int n = 0; n < mRace[mRaceCurrent.id].rewards.size(); n++) {
 			if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
 				mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
-				int idx = getRandValue(mRace[mRaceCurrent.id].rewards[n].items.size());
+				int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
 				int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
 				int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
 				addInventory(itemId, val);
@@ -864,6 +864,6 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 }
 
 int logics::getRandomRaceItem() {
-	int idx = getRandValue(mItemRace.size());
+	int idx = getRandValue((int)mItemRace.size());
 	return mItemRace[idx];
 }
