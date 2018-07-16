@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "logics.h"
 
 bool logics::init() {	
@@ -23,7 +23,7 @@ void logics::print(int type) {
 			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
 		}
 		int hp = getHP();
-		wprintf(L" %s(%s) lv.%d(exp.%d / %d) hp: (%d / %d)\n %s\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %s \n HP\t %s \n RACE\t %s \n ADORN\t %s \n"
+		printf(" %ls(%ls) lv.%d(exp.%d / %d) hp: (%d / %d)\n %ls\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %ls \n HP\t %ls \n RACE\t %ls \n ADORN\t %ls \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
@@ -63,7 +63,7 @@ void logics::print(int type) {
 					costItems += to_wstring(p->val) + L") ";
 				}
 			}			
-			wprintf(L" ID: %d,\t %s ($%d) [%s] S(%d) I(%d) A(%d) \n \t Reward $%d  [%s] S(%d) I(%d) A(%d) \n\n"
+			printf(" ID: %d,\t %ls ($%d) [%ls] S(%d) I(%d) A(%d) \n \t Reward $%d  [%ls] S(%d) I(%d) A(%d) \n\n"
 				, it->first
 				, it->second.name.c_str()
 				, it->second.cost.point
@@ -88,7 +88,7 @@ void logics::print(int type) {
 				if (mItems[it->first].type > itemType_race && mItems[it->first].type < itemType_adorn)
 					szColor = L"[1;32m";
 
-				wprintf(L"%c%s ID: %03d, %d /%d \t %s \n"
+				printf("%c%ls ID: %03d, %d /%d \t %ls \n"
 					, 27
 					, szColor.c_str()
 					, it->first
@@ -102,7 +102,7 @@ void logics::print(int type) {
 	else if (type == 3) // 상품보기
 	{
 		for (__items::iterator it = mItems.begin(); it != mItems.end(); ++it) {
-			wprintf(L"[Items] ID: %d,\t Type: %d,\t %s \n", it->first, it->second.type, it->second.name.c_str());
+			printf("[Items] ID: %d,\t Type: %d,\t %ls \n", it->first, it->second.type, it->second.name.c_str());
 		}
 	}
 	else if (type == 4) { //도감 보기
@@ -111,7 +111,7 @@ void logics::print(int type) {
 				bool has = false;
 				if (mActor->collection.find(it->first) != mActor->collection.end())
 					has = true;
-				wprintf(L" [%s] %s(%d) lv.%d \n"
+				printf(" [%ls] %ls(%d) lv.%d \n"
 					, has ? L"O" : L" "
 					, it->second.name.c_str()
 					, it->first
@@ -121,10 +121,10 @@ void logics::print(int type) {
 		}
 	}
 	else if (type == 5) { //경묘 목록
-		wprintf(L"------------- 경묘 대회 목록 -------------\n");
+		printf("------------- 경묘 대회 목록 -------------\n");
 		for (raceMeta::iterator it = mRace.begin(); it != mRace.end(); ++it) {
 			printf("\n");
-			wprintf(L"[%03d] %s \n▷ 참가비: %d, 경주거리: %d m, lv.%d  \n▷ 우승상금 --------\n"
+			printf("[%03d] %ls \n▷ 참가비: %d, 경주거리: %d m, lv.%d  \n▷ 우승상금 --------\n"
 				, it->second.id
 				, it->second.title.c_str()
 				, it->second.fee
@@ -133,7 +133,7 @@ void logics::print(int type) {
 			);
 			
 			for (int m = 0; m < it->second.rewards.size(); m++) {
-				wprintf(L"%d등 상금: %d (%s 외 %d)\n"
+				printf("%d등 상금: %d (%ls 외 %d)\n"
 					, m+1 
 					, it->second.rewards[m].prize
 					, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
@@ -182,10 +182,10 @@ void logics::print(int type) {
 				+ to_wstring(getItemPriceSell(it->first))
 				+ L"\n ";
 		}
-		wprintf(L"성장 아이템 \n %s \n", szGrowth.c_str());
-		wprintf(L"HP 아이템 \n %s \n", szHP.c_str());
-		wprintf(L"경묘 아이템 \n %s \n", szRace.c_str());
-		wprintf(L"꾸미기 아이템 \n %s \n", szAdorn.c_str());
+		printf("성장 아이템 \n %ls \n", szGrowth.c_str());
+		printf("HP 아이템 \n %ls \n", szHP.c_str());
+		printf("경묘 아이템 \n %ls \n", szRace.c_str());
+		printf("꾸미기 아이템 \n %ls \n", szAdorn.c_str());
 	}
 }
 
@@ -217,7 +217,7 @@ bool logics::setTradeMarketPrice() {
 	int sum = 0;
 	size_t cnt = 0;
 	for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
-		int id = it->first;
+		//int id = it->first;
 		int r = (rand() % it->second);
 		int val = r - (it->second / 2);
 
@@ -342,7 +342,6 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	}	
 	//give items
 	_item item = mItems[id];
-	bool ret = false;
 
 	if (!addInventory(item.id, quantity))
 		return error_not_enough_item;
@@ -511,7 +510,7 @@ bool logics::isValidTraningTime(int id) {
 }
 
 void logics::setDefaultJobTitle(wstring sz) {
-	mJobTitle.default = sz;
+	mJobTitle._default = sz;
 }
 void logics::addJobTitlePrefix(_jobTitlePrefix& prefix) {
 	mJobTitle.prefix.push_back(prefix);
@@ -522,7 +521,7 @@ void logics::addJobTitleBody(_jobTitleBody& body) {
 
 void logics::setJobTitle() {
 	wstring szPrefix;
-	wstring szBody = mJobTitle.default;
+	wstring szBody = mJobTitle._default;
 	
 	for (int n = 0; n < mJobTitle.prefix.size(); n++) {
 		if (mActor->level <= mJobTitle.prefix[0].level) {
@@ -745,7 +744,7 @@ void logics::invokeRaceItemAI() {
 }
 
 int logics::getBaseSpeed(int s, int i, int a) {
-	float ratioI = ((float)i / (float)(s + i + a));
+	//float ratioI = ((float)i / (float)(s + i + a));
 	float s1 = (float)(s * (1.0f - raceIntelligenceRatio));
 	float i1 = (float)(i * raceIntelligenceRatio);
 	float a1 = (float)getRandValue(a * raceAppealRatio);

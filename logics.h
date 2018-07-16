@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <map>
@@ -332,7 +332,7 @@ private:
 	typedef vector<_jobTitleBody> jobTitleBodyVector;
 
 	struct jobTitle {
-		wstring default;
+        std::wstring _default;
 		jobTitlePrefixVector prefix;
 		jobTitleBodyVector body;
 	};

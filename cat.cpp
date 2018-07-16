@@ -1,4 +1,4 @@
-﻿// cat.cpp : Defines the entry point for the console application.
+// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -6,8 +6,35 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
-#include <conio.h>
+#ifdef _WIN32
+    #include <conio.h>
+#else
+#include <sys/ioctl.h>
+#include <termios.h>
+void enable_raw_mode()
+{
+    termios term;
+    tcgetattr(0, &term);
+    term.c_lflag &= ~(ICANON | ECHO); // Disable echo as well
+    tcsetattr(0, TCSANOW, &term);
+}
 
+void disable_raw_mode()
+{
+    termios term;
+    tcgetattr(0, &term);
+    term.c_lflag |= ICANON | ECHO;
+    tcsetattr(0, TCSANOW, &term);
+}
+
+bool _kbhit()
+{
+    int byteswaiting;
+    ioctl(0, FIONREAD, &byteswaiting);
+    return byteswaiting > 0;
+}
+
+#endif
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -32,6 +59,8 @@ const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
 void cls() {
 #ifdef _WIN32
 	system("cls");
+#else
+    system("clear");
 #endif
 }
 
@@ -50,7 +79,7 @@ void display(const char* sz, int sleep = 0, bool isCls = true) {
 		cls();
 	printf("%s", sz);
 	if(sleep > 0)
-		::Sleep(sleep);
+        std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
 }
 void intro() {
 	char sz[100] = { 0, };
@@ -79,9 +108,7 @@ void intro() {
 	}
 	
 	for (int i = 0; i < num; i++) {
-		cls();
-		display(szIntro[i].c_str(), 500);
-		//::Sleep(1000 + (50 * i));
+		display(szIntro[i].c_str(), 1000);
 	}	
 }
 
@@ -103,7 +130,7 @@ void progress() {
 		std::cout.flush();
 
 		progress += (float)0.12; // for demonstration only
-		::_sleep(200);
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	}
 	std::cout << std::endl;
 }
@@ -113,7 +140,7 @@ void result(const wchar_t * sz, errorCode err = error_success) {
 		progress();
 	cls();
 	display(imgResult.c_str());
-	wprintf(L"%c[1;36m %s %c[0m        \n\n", 27, sz, 27);
+	printf("%c[1;36m %ls %c[0m        \n\n", 27, sz, 27);
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 	cls();
 }
@@ -124,18 +151,18 @@ void runThread() {
 	while (isRunThread) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		if (logic.rechargeHP()) {
-			wprintf(L"\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
+			printf("\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
 		}
 		if(logic.setTradeMarketPrice())
-			wprintf(L"\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
+			printf("\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
 	}
 }
 void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
 	wstring sz;
 	if(id == raceParticipantNum)
-		wprintf(L"%c[1;32m %d [me]",27, rank);
+		printf("%c[1;32m %d [me]",27, rank);
 	else
-		wprintf(L"%c[0m %d [%02d]", 27, rank, id + 1);
+		printf("%c[0m %d [%02d]", 27, rank, id + 1);
 	
 	for (int n = 0; n < ratio; n++) {
 		sz += L" ";
@@ -150,11 +177,11 @@ void printRaceRunning(int ratio, int id, int rank, int length, itemType currentI
 		sz += to_wstring((int)currentItem);
 	}
 		
-	wprintf(L"%s", sz.c_str());
+	printf("%ls", sz.c_str());
 }
 void runRace() {
 	bool ret = true;
-	raceParticipants* p;
+	raceParticipants* p = NULL;
 	_raceCurrent* r = logic.getRaceResult();
 	int key = -1;
 	while (ret)
@@ -167,11 +194,11 @@ void runRace() {
 		if (!ret)
 			break;
 		cls();
-		wprintf(L"%c[0m━━━", 27);
-		wstring sz;
-		for (int n = 0; n < 50; n++)
-			sz += L"━";
-		wprintf(L"%s┓\n", sz.c_str());
+		printf("%c[0m━━━━━━", 27);
+		string sz;
+		for (int n = 0; n < 100; n++)
+			sz += "━";
+		printf("%s┓\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
 			printRaceRunning(
 				(int)p->at(n).ratioLength
@@ -182,11 +209,11 @@ void runRace() {
 			);
 			printf("\n");
 		}
-		wprintf(L"%c[0m━━━", 27);
-		sz = L"";
-		for (int n = 0; n < 50; n++)
-			sz += L"━";
-		wprintf(L"%s┛\n", sz.c_str());
+		printf("%c[0m━━━━━━", 27);
+		sz = "";
+		for (int n = 0; n < 100; n++)
+			sz += "━";
+		printf("%s┛\n", sz.c_str());
 
 		//당하고 있는 스킬
 		if (p->at(raceParticipantNum).currentSuffer != itemType_max) {
@@ -194,50 +221,59 @@ void runRace() {
 			switch (p->at(raceParticipantNum).currentSuffer)
 			{
 			case itemType_race_speedUp:
-				wprintf(L"달려라!! 스피드 업!! \n");
+				printf("달려라!! 스피드 업!! \n");
 				break;
 			case itemType_race_shield:
-				wprintf(L"모두 없던 일로~ \n");
+				printf("모두 없던 일로~ \n");
 				isSleep = true;
 				break;
 			default:
 				isSleep = true;
-				wprintf(L"으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);	
+				printf("으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);
 				display(raceSuffer.c_str(), 0, false);
 				break;
 			}
 
 			if (p->at(raceParticipantNum).sufferItems.size() > 0)
-				wprintf(L"예약된 스킬: %d (+%d) \n"
+				printf("예약된 스킬: %d (+%d) \n"
 					, (int)p->at(raceParticipantNum).sufferItems.front()
 					, (int)p->at(raceParticipantNum).sufferItems.size()
 				);
 
 			if(isSleep)
-				::Sleep(300);
+				std::this_thread::sleep_for(std::chrono::milliseconds(300));
 		}	
 		
 		//보유 아이템 목록
 		for (int n = 0; n < raceItemSlot; n++) {
 			int itemId = p->at(raceParticipantNum).items[n];
 			if (itemId > 0) {
-				wprintf(L"> %d. %s \n", n +1, logic.getItem(itemId).name.c_str());
+				printf("> %d. %ls \n", n +1, logic.getItem(itemId).name.c_str());
 			}
 		}
-
+#ifdef _WIN32
 		if (_kbhit() != 0)
 		{
 			key = _getch() - 48;
-			printf("\n★ 아이템 발동!! %d ★", key);
-			::Sleep(1000);
+			printf("\n★ 아이템 발동!! %d ★ \n", key);
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
-		
+#else
+        enable_raw_mode();
+        if (_kbhit()) {
+            key = getchar() - 48;
+            printf("\n★ 아이템 발동!! %d ★ \n", key);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        }
+        disable_raw_mode();
+        tcflush(0, TCIFLUSH); // Clear stdin to prevent characters appearing on prompt
+#endif
 		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
 	}
 	//순위 정보
 	//sort(p->begin(), p->end());
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		wprintf(L"%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+		printf("%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
 			, p->at(n).rank
 			, p->at(n).idx
 			, 27
@@ -247,7 +283,7 @@ void runRace() {
 			, 27
 			, p->at(n).shootItemCount
 			);
-		::Sleep(1000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 
 	//결과처리
@@ -272,7 +308,7 @@ std::wstring utf8_to_utf16(const std::string& utf8)
 	{
 		unsigned long uni;
 		size_t todo;
-		bool error = false;
+		//bool error = false;
 		unsigned char ch = utf8[i++];
 		if (ch <= 0x7F)
 		{
@@ -348,8 +384,12 @@ time_t getTime(int hour, int min, int sec) {
 void init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
+#ifdef _WIN32
 	_wsetlocale(LC_ALL, L"korean");
-	
+#else
+    setlocale( LC_ALL, "" );
+    fwide( stdout, -1 );
+#endif
 
 	std::ifstream fileopen;
 	fileopen.open("resource/meta.json", ios::in | ios::binary);
@@ -682,7 +722,7 @@ bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
+	printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();
@@ -710,7 +750,7 @@ bool ask() {
 		break;
 	case 6:
 		logic.print(4);
-		::Sleep(3000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 		break;
 	default:
 		break;
