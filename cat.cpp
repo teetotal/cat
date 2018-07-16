@@ -27,7 +27,7 @@ string imgRecharge;
 string imgIdle[IDLE_NUM];
 string raceSuffer;
 
-const wchar_t raceIcons[] = { L'â—ˆ', L'â—', L'â–¶', L'â—‡', L'â™¥' };
+const wchar_t raceIcons[] = { L'¢Â', L'¡İ', L'¢º', L'¡Ş', L'¢¾' };
 void cls() {
 #ifdef _WIN32
 	system("cls");
@@ -123,18 +123,18 @@ void runThread() {
 	while (isRunThread) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		if (logic.rechargeHP()) {
-			wprintf(L"\n\nâ˜… ì–í˜¸ ì²´ë ¥ì´ ë³´ì¶©ëì–´ìš”~~~!! [HP +1] â˜†\n\n > ");
+			wprintf(L"\n\n¡Ú ¾æÈ£ Ã¼·ÂÀÌ º¸ÃæµÆ¾î¿ä~~~!! [HP +1] ¡Ù\n\n > ");
 		}
 		if(logic.setTradeMarketPrice())
-			wprintf(L"\n\n ì•„ì´í…œ ì‹œì„¸ê°€ ë³€ê²½ ëì–´ìš”~ \n\n > ");
+			wprintf(L"\n\n ¾ÆÀÌÅÛ ½Ã¼¼°¡ º¯°æ µÆ¾î¿ä~ \n\n > ");
 	}
 }
 void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
 	wstring sz;
 	if(id == raceParticipantNum)
-		printf("â”ƒ%c[1;32m %d [me]",27, rank);
+		printf("¦­%c[1;32m %d [me]",27, rank);
 	else
-		printf("â”ƒ%c[0m %d [%02d]", 27, rank, id + 1);
+		printf("¦­%c[0m %d [%02d]", 27, rank, id + 1);
 	
 	for (int n = 0; n < ratio; n++) {
 		sz += L" ";
@@ -166,11 +166,11 @@ void runRace() {
 		if (!ret)
 			break;
 		cls();
-		printf("%c[0mâ”â”â”â”â”â”â”", 27);
+		printf("%c[0m¦®¦¬¦¬¦¬¦¬¦¬¦¬", 27);
 		string sz;
 		for (int n = 0; n < 100; n++)
-			sz += "â”";
-		printf("%sâ”“\n", sz.c_str());
+			sz += "¦¬";
+		printf("%s¦¯\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
 			printRaceRunning(p->at(n).ratioLength
 				, n
@@ -180,39 +180,39 @@ void runRace() {
 			);
 			printf("\n");
 		}
-		printf("%c[0mâ”—â”â”â”â”â”â”", 27);
+		printf("%c[0m¦±¦¬¦¬¦¬¦¬¦¬¦¬", 27);
 		sz = "";
 		for (int n = 0; n < 100; n++)
-			sz += "â”";
-		printf("%sâ”›\n", sz.c_str());
+			sz += "¦¬";
+		printf("%s¦°\n", sz.c_str());
 
-		//ë‹¹í•˜ê³  ìˆëŠ” ìŠ¤í‚¬
+		//´çÇÏ°í ÀÖ´Â ½ºÅ³
 		if (p->at(raceParticipantNum).currentSuffer != itemType_max) {
 			bool isSleep = false;
 			switch (p->at(raceParticipantNum).currentSuffer)
 			{
 			case itemType_race_speedUp:
-				wprintf(L"ë‹¬ë ¤ë¼!! ìŠ¤í”¼ë“œ ì—…!! \n");
+				wprintf(L"´Ş·Á¶ó!! ½ºÇÇµå ¾÷!! \n");
 				break;
 			case itemType_race_shield:
-				wprintf(L"ëª¨ë‘ ì—†ë˜ ì¼ë¡œ~ \n");
+				wprintf(L"¸ğµÎ ¾ø´ø ÀÏ·Î~ \n");
 				isSleep = true;
 				break;
 			default:
 				isSleep = true;
-				wprintf(L"ìœ¼ì•… ê³µê²© ë‹¹í•˜ê³  ìˆë‹¤ì˜¹ %d\n", p->at(raceParticipantNum).currentSuffer);	
+				wprintf(L"À¸¾Ç °ø°İ ´çÇÏ°í ÀÖ´Ù¿Ë %d\n", p->at(raceParticipantNum).currentSuffer);	
 				display(raceSuffer.c_str(), 0, false);
 				break;
 			}
 
 			if (p->at(raceParticipantNum).sufferItems.size() > 0)
-				wprintf(L"ì˜ˆì•½ëœ ìŠ¤í‚¬: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
+				wprintf(L"¿¹¾àµÈ ½ºÅ³: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
 
 			if(isSleep)
 				::Sleep(300);
 		}	
 		
-		//ë³´ìœ  ì•„ì´í…œ ëª©ë¡
+		//º¸À¯ ¾ÆÀÌÅÛ ¸ñ·Ï
 		for (int n = 0; n < raceItemSlot; n++) {
 			int itemId = p->at(raceParticipantNum).items[n];
 			if (itemId > 0) {
@@ -223,16 +223,16 @@ void runRace() {
 		if (kbhit() != 0)
 		{
 			key = getch() - 48;
-			printf("\nâ˜… ì•„ì´í…œ ë°œë™!! %d â˜…", key);
+			printf("\n¡Ú ¾ÆÀÌÅÛ ¹ßµ¿!! %d ¡Ú", key);
 			::Sleep(1000);
 		}
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
 	}
-	//ìˆœìœ„ ì •ë³´
+	//¼øÀ§ Á¤º¸
 	//sort(p->begin(), p->end());
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		wprintf(L"%dë“± idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+		wprintf(L"%dµî idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
 			, p->at(n).rank
 			, p->at(n).idx
 			, 27
@@ -245,13 +245,13 @@ void runRace() {
 		::Sleep(1000);
 	}
 
-	//ê²°ê³¼ì²˜ë¦¬
+	//°á°úÃ³¸®
 	wstring sz;
-	sz += L"ìˆœìœ„: ";
+	sz += L"¼øÀ§: ";
 	sz += to_wstring(r->rank);
-	sz += L"\nìƒê¸ˆ: ";
+	sz += L"\n»ó±İ: ";
 	sz += to_wstring(r->prize);
-	sz += L"\nìƒí’ˆ: ";
+	sz += L"\n»óÇ°: ";
 	sz += logic.getItem(r->rewardItemId).name;
 	sz += L"(";
 	sz += to_wstring(r->rewardItemQuantity);
@@ -398,7 +398,7 @@ void init() {
 		p.cost.point = t[i]["cost"]["point"].GetInt();
 		
 		p.start = 0;
-		//  ë°˜ì§ 
+		//  ¹İÂ¦ 
 		if (t[i].HasMember("moment")) {
 			p.start = getTime(
 				t[i]["moment"]["start"]["hour"].GetInt()
@@ -509,7 +509,7 @@ void init() {
 	actor->property.intelligence = d2["property"]["intelligence"].GetInt();
 	actor->property.appeal = d2["property"]["appeal"].GetInt();
 
-	//ì¸ë²¤í† ë¦¬
+	//ÀÎº¥Åä¸®
 	const Value& growth = d2["inventory"]["growth"];
 	for (SizeType i = 0; i < growth.Size(); i++) {
 		int id = growth[i]["id"].GetInt();
@@ -559,11 +559,11 @@ void training() {
 	trainingType type;
 	wstring sz = logic.getErrorMessage(logic.runTraining(key, rewards, &property, point, type));
 	display(imgTraining[type].c_str());
-	sz += L"\n- ë³´ìƒ ë‚´ìš© -\n";
+	sz += L"\n- º¸»ó ³»¿ë -\n";
 	sz += L"\n Point: " + std::to_wstring(point);
-	sz += L"\n ì²´ë ¥: " + std::to_wstring(property.strength);
-	sz += L"\n ì§€ë ¥: " + std::to_wstring(property.intelligence);
-	sz += L"\n ë§¤ë ¥: " + std::to_wstring(property.appeal);
+	sz += L"\n Ã¼·Â: " + std::to_wstring(property.strength);
+	sz += L"\n Áö·Â: " + std::to_wstring(property.intelligence);
+	sz += L"\n ¸Å·Â: " + std::to_wstring(property.appeal);
 	sz += L"\n";
 	for (int n = 0; n < rewards.size(); n++) {
 		sz += logic.getItem(rewards[n].itemId).name + L"(";
@@ -640,11 +640,11 @@ void race() {
 		if (sum == raceItemSlot)
 			break;
 
-		printf("ê²½ë¬˜ì— ì‚¬ìš©í•  ID > ");
+		printf("°æ¹¦¿¡ »ç¿ëÇÒ ID > ");
 		scanf("%d", &key);
 		if (key == 0)
 			break;
-		printf("ìˆ˜ëŸ‰ > ");
+		printf("¼ö·® > ");
 		scanf("%d", &quantity);
 		sum += quantity;
 		if (sum > raceItemSlot) {
@@ -677,7 +677,7 @@ bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-	wprintf( L" 1: ì•¡ì…˜ \n 2: ì•„ì´í…œ êµ¬ë§¤ \n 3. ì•„ì´í…œ íŒë§¤ \n 4: ê²½ë¬˜ \n 5: ì²´ë ¥ë³´ì¶© \n 6: ë„ê° ë³´ê¸°  \n > ");
+	wprintf( L" 1: ¾×¼Ç \n 2: ¾ÆÀÌÅÛ ±¸¸Å \n 3. ¾ÆÀÌÅÛ ÆÇ¸Å \n 4: °æ¹¦ \n 5: Ã¼·Âº¸Ãæ \n 6: µµ°¨ º¸±â  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();
