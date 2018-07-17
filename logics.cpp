@@ -2,6 +2,11 @@
 #include "logics.h"
 
 bool logics::init() {	
+	farming farm;
+	farm.addField(0, 0);
+	farm.addField(1, 0);
+	farming::fields f = farm.getFields();
+
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
 	return true;

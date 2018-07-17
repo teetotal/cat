@@ -11,9 +11,7 @@
 #endif
 
 #include <stdio.h>
-//#include <tchar.h>
 #include <locale.h>
+#include "./library/pch.h"
 
 void cls();
-
-// TODO: reference additional headers your program requires here

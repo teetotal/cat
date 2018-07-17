@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="library">
+      <UniqueIdentifier>{375262a6-5649-4ee1-b5a3-fb76c0353841}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -87,6 +90,15 @@
     <ClInclude Include="rapidjson\writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="library\farming.h">
+      <Filter>library</Filter>
+    </ClInclude>
+    <ClInclude Include="library\pch.h">
+      <Filter>library</Filter>
+    </ClInclude>
+    <ClInclude Include="library\util.h">
+      <Filter>library</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -97,6 +109,12 @@
     </ClCompile>
     <ClCompile Include="logics.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="library\farming.cpp">
+      <Filter>library</Filter>
+    </ClCompile>
+    <ClCompile Include="library\util.cpp">
+      <Filter>library</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

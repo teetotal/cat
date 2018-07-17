@@ -95,7 +95,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -161,12 +161,17 @@
     <Text Include="resource\training-4.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="library\farming.h" />
+    <ClInclude Include="library\pch.h" />
+    <ClInclude Include="library\util.h" />
     <ClInclude Include="logics.h" />
     <ClInclude Include="rapidjson\writer.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cat.cpp" />
+    <ClCompile Include="library\farming.cpp" />
+    <ClCompile Include="library\util.cpp" />
     <ClCompile Include="logics.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
