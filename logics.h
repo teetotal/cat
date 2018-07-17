@@ -1,9 +1,11 @@
 ﻿#pragma once
 #include "stdafx.h"
 #include "library/farming.h"
-
+#include "library/inventory.h"
+/*
 #include <vector>
 #include <map>
+*/
 #include <queue>
 #include <string>
 #include <time.h>
@@ -22,6 +24,8 @@ using namespace std;
 #define maxTradeValue 100
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
+//판매 마진
+#define tradeMargin 0.2
 //기본 HP
 #define defaultHP 4
 //도감용 아이템 시작 id
@@ -64,6 +68,7 @@ enum inventoryType {
 	inventoryType_HP,
 	inventoryType_race,
 	inventoryType_adorn,
+	inventoryType_farming,
 	inventoryType_collection,
 };
 //아이템 종류
@@ -152,7 +157,7 @@ struct _property {
 	int intelligence;		//총명함
 	int appeal;				//매력
 };
-
+/*
 typedef map<int, int> keyQuantity;
 //인벤토리
 struct _inventory {
@@ -161,6 +166,7 @@ struct _inventory {
 	keyQuantity race;	//경묘용 아이템
 	keyQuantity adorn;	//치장용 아이템
 };
+*/
 typedef map<int, bool> keyBoolMap;
 //캐릭터
 struct _actor {
@@ -174,7 +180,8 @@ struct _actor {
 	int exp;			//경험치
 	int level;			//레벨
 	_property property;		//속성
-	_inventory inventory;	//인벤토리
+	//_inventory inventory;	//인벤토리
+	inventory inven;
 	keyBoolMap collection;	//도감
 
 	time_t loginTime;	//시작시간
@@ -262,7 +269,7 @@ public:
 		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {};
-	bool init();
+	bool init(farmingFinshedNotiCallback fn);
 	void finalize();
 	bool insertItem(_item);
 	bool setTradeMarketPrice();
@@ -297,13 +304,16 @@ public:
     void addSeed(farming::seed * p){
         mFarming.addSeed(p);
     };
-	errorCode farmingPlant(int idx, int seedId) {
-		return mFarming.plant(idx, seedId) ? error_success : error_farming_failure;
-	};
+	errorCode farmingPlant(int idx, int seedId);
 	errorCode farmingHarvest(int idx, int &earning);
 	errorCode farmingCare(int idx) {
 		return mFarming.care(idx) ? error_success : error_farming_failure;
 	};
+	//돈 차감이랑 최대 밭 개수 지정
+	errorCode farmingExtend() {
+		mFarming.addField(mFarming.countField(), 0);
+		return error_success;
+	}
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -392,7 +402,7 @@ private:
 	};
 	//price at sell
 	int getItemPriceSell(int itemId) {
-		return (int)(getItemPriceBuy(itemId) * 0.9);
+		return (int)(getItemPriceBuy(itemId) * (1-tradeMargin));
 	};
 	//add inventory
 	bool addInventory(int itemId, int quantity);
@@ -421,17 +431,20 @@ private:
 	inventoryType getInventoryType(int itemId) {
 		_item item = mItems[itemId];
 		inventoryType t;
-		if (item.type > itemType_training && item.type < itemType_hp) {
+		if (item.type >= itemType_training && item.type < itemType_hp) {
 			t = inventoryType_growth;
 		}
-		else if (item.type > itemType_hp && item.type < itemType_race) {
+		else if (item.type >= itemType_hp && item.type < itemType_race) {
 			t = inventoryType_HP;
 		}
-		else if (item.type > itemType_race && item.type < itemType_adorn) {
+		else if (item.type >= itemType_race && item.type < itemType_adorn) {
 			t = inventoryType_race;
 		}
-		else if (item.type > itemType_adorn && item.type < itemType_max) {
+		else if (item.type >= itemType_adorn && item.type < itemType_farming) {
 			t = inventoryType_adorn;
+		}
+		else if (item.type >= itemType_farming && item.type < itemType_max) {
+			t = inventoryType_farming;
 		}
 		else {
 			t = inventoryType_collection;
@@ -439,6 +452,8 @@ private:
 
 		return t;
 	};
+
+	void printInven(inventoryType type, wstring &sz);
     
     //farming
     farming mFarming;

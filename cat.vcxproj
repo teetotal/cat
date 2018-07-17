@@ -83,7 +83,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -162,6 +162,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="library\farming.h" />
+    <ClInclude Include="library\inventory.h" />
     <ClInclude Include="library\pch.h" />
     <ClInclude Include="library\util.h" />
     <ClInclude Include="logics.h" />
@@ -170,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="cat.cpp" />
     <ClCompile Include="library\farming.cpp" />
+    <ClCompile Include="library\inventory.cpp" />
     <ClCompile Include="library\util.cpp" />
     <ClCompile Include="logics.cpp" />
   </ItemGroup>

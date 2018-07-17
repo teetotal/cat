@@ -1,7 +1,7 @@
 ﻿#include "logics.h"
 
-bool logics::init() {		
-	mFarming.init();
+bool logics::init(farmingFinshedNotiCallback fn) {		
+	mFarming.init(fn);
 	mFarming.addField(0, 0);
 	
 	mActor->loginTime = time(0);
@@ -12,24 +12,29 @@ bool logics::init() {
 void logics::finalize() {
 	mFarming.finalize();
 }
-
+void logics::printInven(inventoryType type, wstring &sz) {
+	vector<intPair> vec;
+	mActor->inven.getWarehouse(vec, type);
+	for (int n = 0; n < vec.size(); n++) {
+		sz += to_wstring(vec[n].key)
+			+ L". "
+			+ mItems[vec[n].key].name
+			+ L"(" + to_wstring(vec[n].val)
+			+ L"개) "
+			+ to_wstring(getItemPriceSell(vec[n].key))
+			+ L"\n ";
+	}
+}
 void logics::print(int type) {
 	if (type == 0) {
-		wstring szGrowth, szHP, szRace, szAdorn;
-		for (keyQuantity::iterator it = mActor->inventory.growth.begin(); it != mActor->inventory.growth.end(); ++it) {
-			szGrowth += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.hp.begin(); it != mActor->inventory.hp.end(); ++it) {
-			szHP += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.race.begin(); it != mActor->inventory.race.end(); ++it) {
-			szRace += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.adorn.begin(); it != mActor->inventory.adorn.end(); ++it) {
-			szAdorn += to_wstring(it->first) + L"-" + mItems[it->first].name + L"(" + to_wstring(it->second) + L"), ";
+		wstring sz, szGrowth, szHP, szRace, szAdorn;
+		vector<intPair> vec;
+		mActor->inven.getWarehouse(vec);
+		for (int n = 0; n < vec.size(); n++) {
+			sz += to_wstring(vec[n].key) + L"-" + mItems[vec[n].key].name + L"(" + to_wstring(vec[n].val) + L")\n ";
 		}
 		int hp = getHP();
-		printf(" %ls(%ls) lv.%d(exp.%d / %d) hp: (%d / %d)\n %ls\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n GROWTH\t %ls \n HP\t %ls \n RACE\t %ls \n ADORN\t %ls \n"
+		printf(" %ls(%ls) lv.%d(exp.%d / %d) hp: (%d / %d)\n %ls\n Point:%d \n 체력: %d, 지력: %d, 매력: %d \n\n 고양이 가방 --- \n %ls \n"
 			, mActor->name.c_str()
 			, mActor->userName.c_str()
 			, mActor->level
@@ -42,11 +47,9 @@ void logics::print(int type) {
 			, mActor->property.strength
 			, mActor->property.intelligence
 			, mActor->property.appeal
-			, szGrowth.c_str()
-			, szHP.c_str()
-			, szRace.c_str()
-			, szAdorn.c_str()
+			, sz.c_str()
 		);
+
 	}else if (type == 1) {
 		printf("[Training]\n ------------------------------------------------------------------------ \n");
 
@@ -151,47 +154,18 @@ void logics::print(int type) {
 	}
 	else if (type == 6) { //아이템 판매
 		printf("[Sell]\n ------------------------------------------------------------------------ \n");
-		wstring szGrowth, szHP, szRace, szAdorn;
-		for (keyQuantity::iterator it = mActor->inventory.growth.begin(); it != mActor->inventory.growth.end(); ++it) {
-			szGrowth += to_wstring(it->first) 
-				+ L". " 
-				+ mItems[it->first].name 
-				+ L"(" + to_wstring(it->second)
-				+ L") "
-				+ to_wstring(getItemPriceSell(it->first))
-				+ L"\n ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.hp.begin(); it != mActor->inventory.hp.end(); ++it) {
-			szHP += to_wstring(it->first)
-				+ L". "
-				+ mItems[it->first].name
-				+ L"(" + to_wstring(it->second)
-				+ L") "
-				+ to_wstring(getItemPriceSell(it->first))
-				+ L"\n ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.race.begin(); it != mActor->inventory.race.end(); ++it) {
-			szRace += to_wstring(it->first)
-				+ L". "
-				+ mItems[it->first].name
-				+ L"(" + to_wstring(it->second)
-				+ L") "
-				+ to_wstring(getItemPriceSell(it->first))
-				+ L"\n ";
-		}
-		for (keyQuantity::iterator it = mActor->inventory.adorn.begin(); it != mActor->inventory.adorn.end(); ++it) {
-			szAdorn += to_wstring(it->first)
-				+ L". "
-				+ mItems[it->first].name
-				+ L"(" + to_wstring(it->second)
-				+ L") "
-				+ to_wstring(getItemPriceSell(it->first))
-				+ L"\n ";
-		}
-		printf("성장 아이템 \n %ls \n", szGrowth.c_str());
-		printf("HP 아이템 \n %ls \n", szHP.c_str());
-		printf("경묘 아이템 \n %ls \n", szRace.c_str());
-		printf("꾸미기 아이템 \n %ls \n", szAdorn.c_str());
+		wstring szGrowth, szHP, szRace, szAdorn, szFarm;
+		printInven(inventoryType_growth, szGrowth);
+		printInven(inventoryType_HP, szHP);
+		printInven(inventoryType_race, szRace);
+		printInven(inventoryType_adorn, szAdorn);
+		printInven(inventoryType_farming, szFarm);
+
+		printf("성장 아이템 ----\n %ls \n", szGrowth.c_str());
+		printf("HP 아이템 ----\n %ls \n", szHP.c_str());
+		printf("경묘 아이템 ----\n %ls \n", szRace.c_str());
+		printf("농사 아이템 ----\n %ls \n", szFarm.c_str());
+		printf("꾸미기 아이템 ----\n %ls \n", szAdorn.c_str());
     } else if(type == 7){ //farming
 		wchar_t * szStatus[] = {
 			L"새싹"
@@ -288,9 +262,14 @@ errorCode logics::isValidTraining(int id) {
 		_itemPair * p = mTraining[id].cost.items[n];
 		if (p == NULL)
 			break;
+
+		if(!mActor->inven.checkItemQuantity(inventoryType_growth, p->itemId, p->val))
+			return error_not_enough_item;
+			/*
 		if (mActor->inventory.growth.find(p->itemId) == mActor->inventory.growth.end()
 			|| mActor->inventory.growth[p->itemId] < p->val)
 			return error_not_enough_item;
+			*/
 	}
 
 	return error_success;
@@ -398,46 +377,17 @@ errorCode logics::runRecharge(int id, int quantity) {
 //add inventory
 bool logics::addInventory(int itemId, int quantity) {
 	inventoryType type = getInventoryType(itemId);
-	switch (type)
-	{
-	case inventoryType_growth:
-		if ((quantity < 0 && mActor->inventory.growth.find(itemId) == mActor->inventory.growth.end())
-			|| mActor->inventory.growth[itemId] + quantity < 0)
-			return false;
-		mActor->inventory.growth[itemId] += quantity;
-		if (mActor->inventory.growth[itemId] == 0)
-			mActor->inventory.growth.erase(itemId);
-		break;
-	case inventoryType_HP:
-		if ((quantity < 0 && mActor->inventory.hp.find(itemId) == mActor->inventory.hp.end())
-			|| mActor->inventory.hp[itemId] + quantity < 0)
-			return false;
-		mActor->inventory.hp[itemId] += quantity;
-		if (mActor->inventory.hp[itemId] == 0)
-			mActor->inventory.hp.erase(itemId);
-		break;
-	case inventoryType_race:
-		if ((quantity < 0 && mActor->inventory.race.find(itemId) == mActor->inventory.race.end())
-			|| mActor->inventory.race[itemId] + quantity < 0)
-			return false;
-		mActor->inventory.race[itemId] += quantity;
-		if (mActor->inventory.race[itemId] == 0)
-			mActor->inventory.race.erase(itemId);
-		break;
-	case inventoryType_adorn:
-		if ((quantity < 0 && mActor->inventory.adorn.find(itemId) == mActor->inventory.adorn.end())
-			|| mActor->inventory.adorn[itemId] + quantity < 0)
-			return false;
-		mActor->inventory.adorn[itemId] += quantity;
-		if (mActor->inventory.adorn[itemId] == 0)
-			mActor->inventory.adorn.erase(itemId);
-		break;
-	case inventoryType_collection:
+	if (type == inventoryType_collection)
 		mActor->collection[itemId] = true;
-		break;
-	default:
-		return false;
+	else {
+		if(quantity > 0)
+			mActor->inven.pushItem(type, itemId, quantity);
+		else {
+			if (!mActor->inven.popItem(type, itemId, quantity * -1))
+				return false;
+		}
 	}
+
 	return true;
 }
 //increase property
@@ -508,7 +458,6 @@ bool logics::rechargeHP() {
 	if (now - mActor->lastUpdateTime >= HPIncreaseInterval) {
 		mActor->lastUpdateTime = now;
 		return increaseHP(1);
-
 	}
 	return false;
 }
@@ -614,7 +563,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 		return error_not_enough_point;
 
 	for (int m = 0; m < items.size(); m++) {
-		if (mActor->inventory.race[items[m].itemId] < items[m].val)
+		if(!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
 			return error_not_enough_item;
 	}
 	mActor->point -= mRace[id].fee;
@@ -757,20 +706,8 @@ void logics::invokeRaceItemAI() {
 		case 4: 
 		case 5:
 			invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
-			/*
-			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
-			*/
 			break;
 		}
-		/*
-		for (int n = raceItemSlot - 1; n >= 0; n--) {
-			if (mRaceParticipants->at(i).items[n] != 0) {
-				invokeRaceItem(i, n);
-				break;
-			}
-		}
-		*/
 	}
 }
 
@@ -806,10 +743,6 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 sort(orderedVector.begin(), orderedVector.end());
 	 for (int n = 0; n < orderedVector.size(); n++) {		 
 		 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
-		 /*
-		 else
-			 mRaceParticipants->at(orderedVector[n].idx).currentRank = mRaceParticipants->at(orderedVector[n].idx).rank;
-		*/
 	 }
 
 	 //내가 사용한 아이템 발동
@@ -911,5 +844,14 @@ errorCode logics::farmingHarvest(int idx, int &earning) {
 		return error_invalid_id;
 
 	mActor->point += earning;
+	return error_success;
+};
+
+errorCode logics::farmingPlant(int idx, int seedId) {
+	if (!mFarming.plant(idx, seedId))
+		return error_farming_failure;
+	if (!mActor->inven.popItem(inventoryType_farming, seedId, 1))
+		return error_not_enough_item;
+
 	return error_success;
 };

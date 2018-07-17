@@ -6,6 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
+#include "library\util.h"
+
 #ifdef _WIN32
     #include <conio.h>
 #else
@@ -301,77 +303,7 @@ void runRace() {
 	result(sz.c_str());
 }
 
-std::wstring utf8_to_utf16(const std::string& utf8)
-{
-	std::vector<unsigned long> unicode;
-	size_t i = 0;
-	while (i < utf8.size())
-	{
-		unsigned long uni;
-		size_t todo;
-		//bool error = false;
-		unsigned char ch = utf8[i++];
-		if (ch <= 0x7F)
-		{
-			uni = ch;
-			todo = 0;
-		}
-		else if (ch <= 0xBF)
-		{
-			throw std::logic_error("not a UTF-8 string");
-		}
-		else if (ch <= 0xDF)
-		{
-			uni = ch & 0x1F;
-			todo = 1;
-		}
-		else if (ch <= 0xEF)
-		{
-			uni = ch & 0x0F;
-			todo = 2;
-		}
-		else if (ch <= 0xF7)
-		{
-			uni = ch & 0x07;
-			todo = 3;
-		}
-		else
-		{
-			throw std::logic_error("not a UTF-8 string");
-		}
-		for (size_t j = 0; j < todo; ++j)
-		{
-			if (i == utf8.size())
-				throw std::logic_error("not a UTF-8 string");
-			unsigned char ch = utf8[i++];
-			if (ch < 0x80 || ch > 0xBF)
-				throw std::logic_error("not a UTF-8 string");
-			uni <<= 6;
-			uni += ch & 0x3F;
-		}
-		if (uni >= 0xD800 && uni <= 0xDFFF)
-			throw std::logic_error("not a UTF-8 string");
-		if (uni > 0x10FFFF)
-			throw std::logic_error("not a UTF-8 string");
-		unicode.push_back(uni);
-	}
-	std::wstring utf16;
-	for (size_t i = 0; i < unicode.size(); ++i)
-	{
-		unsigned long uni = unicode[i];
-		if (uni <= 0xFFFF)
-		{
-			utf16 += (wchar_t)uni;
-		}
-		else
-		{
-			uni -= 0x10000;
-			utf16 += (wchar_t)((uni >> 10) + 0xD800);
-			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
-		}
-	}
-	return utf16;
-}
+
 time_t getTime(int hour, int min, int sec) {
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
@@ -382,6 +314,11 @@ time_t getTime(int hour, int min, int sec) {
 	return mktime(ltm);
 
 }
+
+void farmNotice(int fieldId) {
+	printf("%d 농작물을 수확하세요 늦으면 썩어버립니다. \n", fieldId);
+}
+
 void init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
@@ -573,19 +510,29 @@ void init() {
 	for (SizeType i = 0; i < growth.Size(); i++) {
 		int id = growth[i]["id"].GetInt();
 		int quantity = growth[i]["quantity"].GetInt();
-		actor->inventory.growth[id] = quantity;
+		actor->inven.pushItem(inventoryType_growth, id, quantity);
+		//actor->inventory.growth[id] = quantity;
+	}
+	const Value& hp = d2["inventory"]["HP"];
+	for (SizeType i = 0; i < hp.Size(); i++) {
+		int id = growth[i]["id"].GetInt();
+		int quantity = growth[i]["quantity"].GetInt();
+		actor->inven.pushItem(inventoryType_HP, id, quantity);
+		//actor->inventory.growth[id] = quantity;
 	}
 	const Value& raceItem = d2["inventory"]["race"];
 	for (SizeType i = 0; i < raceItem.Size(); i++) {
 		int id = raceItem[i]["id"].GetInt();
 		int quantity = raceItem[i]["quantity"].GetInt();
-		actor->inventory.race[id] = quantity;
+		actor->inven.pushItem(inventoryType_race, id, quantity);
+		//actor->inventory.race[id] = quantity;
 	}
 	const Value& adorn = d2["inventory"]["adorn"];
 	for (SizeType i = 0; i < adorn.Size(); i++) {
 		int id = adorn[i]["id"].GetInt();
 		int quantity = adorn[i]["quantity"].GetInt();
-		actor->inventory.adorn[id] = quantity;
+		actor->inven.pushItem(inventoryType_adorn, id, quantity);
+		//actor->inventory.adorn[id] = quantity;
 	}
 	const Value& collection = d2["collection"];
 	for (SizeType i = 0; i < collection.Size(); i++) {
@@ -595,7 +542,7 @@ void init() {
 
 	logic.setActor(actor);
 
-	logic.init();
+	logic.init(farmNotice);
 	logic.print(3);
 } 
 
@@ -765,9 +712,14 @@ void farm_care() {
 	result(logic.getErrorMessage(err), err);
 }
 
+void farm_extend() {
+	errorCode err = logic.farmingExtend();
+	result(logic.getErrorMessage(err), err);
+}
+
 void farm() {
 	logic.print(7);
-	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 0: 상태 보기 \n > ");
+	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 4, 밭 추가, 0: 상태 보기 \n > ");
 	int type;
 	scanf("%d", &type);
 	switch (type)
@@ -783,6 +735,9 @@ void farm() {
 		break;
 	case 3:
 		farm_harvest();
+		break;
+	case 4:
+		farm_extend();
 		break;
 	default:
 		break;

@@ -1,6 +1,7 @@
 ﻿#include "farming.h"
 
-bool farming::init() {
+bool farming::init(farmingFinshedNotiCallback fn) {
+	mNoticeFn = fn;
 	mThread = new thread(threadRun, this);
 	return true;
 }
@@ -35,14 +36,25 @@ void farming::setStatus(int fieldIdx) {
 
 	time_t finishedTime = mFields[fieldIdx]->timePlant + mSeed[seedId]->timeGrow;
 
-	if (finishedTime + mSeed[seedId]->maxOvertime < now)
-		mFields[fieldIdx]->status = farming_status_decay;
-	else if (finishedTime <= now)
-		mFields[fieldIdx]->status = farming_status_grown;
-	else if (mSeed[seedId]->cares - mFields[fieldIdx]->cntCare > 0)
-		mFields[fieldIdx]->status = farming_status_week;
-	else
-		mFields[fieldIdx]->status = farming_status_good;
+	if (finishedTime + mSeed[seedId]->maxOvertime < now) {
+		if(mFields[fieldIdx]->status != farming_status_decay)
+			mFields[fieldIdx]->status = farming_status_decay;
+	}		
+	else if (finishedTime <= now) {
+		if (mFields[fieldIdx]->status != farming_status_grown) {
+			mFields[fieldIdx]->status = farming_status_grown;
+			mNoticeFn(fieldIdx);
+		}		
+	}		
+	else if (mSeed[seedId]->cares - mFields[fieldIdx]->cntCare > 0) {
+		if(mFields[fieldIdx]->status != farming_status_week)
+			mFields[fieldIdx]->status = farming_status_week;
+	}		
+	else {
+		if(mFields[fieldIdx]->status != farming_status_good)
+			mFields[fieldIdx]->status = farming_status_good;
+	}
+		
 	mLock.unlock();
 }
 
@@ -61,10 +73,9 @@ int farming::harvest(int fieldIdx) {
 	if (f->status == farming_status_grown || f->status == farming_status_decay){
 		int sum = 0;
 		if(f->status == farming_status_grown)
-			sum = (s->outputMax + f->boost) * (f->cntCare / s->cares);
+			sum = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
 		//제거
-		mFields[fieldIdx] = NULL;
-		delete f;
+		mFields[fieldIdx]->init();
 		mLock.unlock();
         return sum;
 	}

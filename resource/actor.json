@@ -16,7 +16,8 @@
   "inventory": {
     "growth": [ ],
     "race": [ ],
-    "adorn": [ ]
+    "adorn": [ ],
+    "HP": [ ]
   },
   "collection": []
 }

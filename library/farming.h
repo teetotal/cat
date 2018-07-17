@@ -37,14 +37,17 @@ public:
 		int boost;		// 추가 output
 
 		crop() {
+			init();
+		};
+		void init() {
 			seedId = 0;
 			status = farming_status_max;	//상태				
 			timePlant = 0;	 //심은 시간
 			cntCare = 0;	//돌본 횟수
 			timeLastGrow = 0; //지난 돌봄 시간
 			boost = 0;		// 추가 output
-		};
 
+		}
 		void plant(int seedId) {
 			this->seedId = seedId;
 			status = farming_status_sprout;			
@@ -70,12 +73,15 @@ public:
 	/*
 	functions
 	*/
-	bool init();
+	bool init(farmingFinshedNotiCallback fn);
 	void finalize();
 	void addField(int x, int y);	//밭 늘리기	
 	fields* getFields() {			//밭 목록
 		return &mFields;
-	};									
+	};			
+	int countField() {
+		return mFields.size();
+	};
 	void setStatus();				//농작물 상태 설정	
 	void setStatus(int fieldIdx);	
 	int harvest(int fieldIdx);		//수확	
@@ -90,6 +96,7 @@ private:
 	map<int, seed*> mSeed;
 	thread * mThread;
 	mutex mLock;
+	farmingFinshedNotiCallback mNoticeFn;
 
 	static void threadRun(farming * inst) {
 		while (inst->mIsThreadRun)
