@@ -1,11 +1,14 @@
-#pragma once
+﻿#pragma once
 #include "pch.h"
 
 class farming
 {
 public:
-	farming() {};
-	virtual ~farming() {};
+	farming() {
+		mIsThreadRun = true;
+	};
+	virtual ~farming() {
+	};
 
 	enum farming_status {
 		farming_status_sprout = 0, //새싹
@@ -46,7 +49,8 @@ public:
 			this->seedId = seedId;
 			status = farming_status_sprout;			
 			timePlant = getNow();
-			timeLastGrow++; //처음 심을때 한번은 돌본 걸로 설정
+			timeLastGrow = timePlant; //처음 심을때 한번은 돌본 걸로 설정
+			cntCare++;
 		}
 	};	
 
@@ -62,32 +66,37 @@ public:
 	};
 	//소유중인 밭
 	typedef vector<field*> fields;
-
+	bool mIsThreadRun;
 	/*
 	functions
 	*/
-		
-	void addField(int x, int y);	//밭 늘리기
-	
-	fields getFields() {			//밭 목록
-		return mFields;
-	};	
-								
-	void setStatus();				//농작물 상태 설정
-	
-	void setStatus(int fieldIdx);
-	
-	int harvest(int fieldIdx);		//수확
-	
-	bool plant(int fieldIdx, int seedId);	//심기
-		
+	bool init();
+	void finalize();
+	void addField(int x, int y);	//밭 늘리기	
+	fields* getFields() {			//밭 목록
+		return &mFields;
+	};									
+	void setStatus();				//농작물 상태 설정	
+	void setStatus(int fieldIdx);	
+	int harvest(int fieldIdx);		//수확	
+	bool plant(int fieldIdx, int seedId);	//심기		
+	bool care(int fieldIdx); //가꾸기
 	void addSeed(seed *s) {	//씨앗 등록
         if(s)
             mSeed[s->id] = s;
 	};
 private:	
 	fields mFields;	
-
 	map<int, seed*> mSeed;
+	thread * mThread;
+	mutex mLock;
+
+	static void threadRun(farming * inst) {
+		while (inst->mIsThreadRun)
+		{
+			sleepThisThread(1000);
+			inst->setStatus();
+		}		
+	}
 };
 

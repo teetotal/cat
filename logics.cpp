@@ -1,12 +1,16 @@
-#include "logics.h"
+﻿#include "logics.h"
 
-bool logics::init() {	
-	farming farm;
-	farm.addField(0, 0);
+bool logics::init() {		
+	mFarming.init();
+	mFarming.addField(0, 0);
 	
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
 	return true;
+}
+
+void logics::finalize() {
+	mFarming.finalize();
 }
 
 void logics::print(int type) {
@@ -189,10 +193,29 @@ void logics::print(int type) {
 		printf("경묘 아이템 \n %ls \n", szRace.c_str());
 		printf("꾸미기 아이템 \n %ls \n", szAdorn.c_str());
     } else if(type == 7){ //farming
-        farming::fields f = mFarming.getFields();
-        for(int n = 0; n < f.size(); n++){
-            printf("%d. %d \n", n, f[n]->status);
+		wchar_t * szStatus[] = {
+			L"새싹"
+			, L"돌봄 필요"
+			, L"건강"
+			, L"썩음"
+			, L"다 자람"
+			, L" "
+		};
+        farming::fields* f = mFarming.getFields();
+		printf("--------------------------- Farming\n");
+        for(int n = 0; n < f->size(); n++){
+			if (f->at(n) == NULL)
+				continue;
+
+            printf("%d. [%ls] seed id: %d, 가꿈 횟수: %d, 자란 시간: %I64d sec\n"
+				, n
+				, szStatus[(int)f->at(n)->status]
+				, f->at(n)->seedId
+				, f->at(n)->cntCare				
+				, f->at(n)->timePlant == 0 ? 0: getNow() - f->at(n)->timePlant
+			);
         }
+		printf("-----------------------------------\n");
     }
 }
 
@@ -881,3 +904,12 @@ int logics::getRandomRaceItem() {
 	int idx = getRandValue((int)mItemRace.size());
 	return mItemRace[idx];
 }
+
+errorCode logics::farmingHarvest(int idx, int &earning) {
+	earning = mFarming.harvest(idx);
+	if (earning < 0)
+		return error_invalid_id;
+
+	mActor->point += earning;
+	return error_success;
+};

@@ -112,28 +112,27 @@
       "value": 10,
       "grade": 2
     },
-            {
-            "id": 400,
-            "name": "[씨앗] 캣닢씨앗 lv.1",
-            "type": 400,
-            "value": 1,
-            "grade": 1
-            }
-            ,
-            {
-            "id": 401,
-            "name": "[씨앗] 캣닢씨앗 lv.2",
-            "type": 400,
-            "value": 1,
-            "grade": 2
-            },
-            {
-            "id": 402,
-            "name": "[씨앗] 캣닢씨앗 lv.3",
-            "type": 400,
-            "value": 1,
-            "grade": 3
-            },
+    {
+      "id": 400,
+      "name": "[씨앗] 캣닢씨앗 lv.1",
+      "type": 400,
+      "value": 1,
+      "grade": 1
+    },
+    {
+      "id": 401,
+      "name": "[씨앗] 캣닢씨앗 lv.2",
+      "type": 400,
+      "value": 1,
+      "grade": 2
+    },
+    {
+      "id": 402,
+      "name": "[씨앗] 캣닢씨앗 lv.3",
+      "type": 400,
+      "value": 1,
+      "grade": 3
+    },
     {
       "id": 1000,
       "name": "[도감] 나뭇가지",
@@ -191,32 +190,32 @@
       "grade": 3
     }
   ],
-    "seed":[
-        {
-            "id": 400,
-            "name": "캣닢 씨앗 lv.1",
-            "outputMax": 10,
-            "timeGrow": 3,
-            "cares": 1,
-            "maxOvertime": 10
-        },
-        {
-        "id": 401,
-        "name": "캣닢 씨앗 lv.2",
-        "outputMax": 20,
-        "timeGrow": 30,
-        "cares": 2,
-        "maxOvertime": 30
-        },
-        {
-        "id": 402,
-        "name": "캣닢 씨앗 lv.3",
-        "outputMax": 30,
-        "timeGrow": 60,
-        "cares": 3,
-        "maxOvertime": 60
-        }
-    ],
+  "seed": [
+    {
+      "id": 400,
+      "name": "캣닢 씨앗 lv.1",
+      "outputMax": 10,
+      "timeGrow": 15,
+      "cares": 1,
+      "maxOvertime": 10
+    },
+    {
+      "id": 401,
+      "name": "캣닢 씨앗 lv.2",
+      "outputMax": 20,
+      "timeGrow": 30,
+      "cares": 2,
+      "maxOvertime": 30
+    },
+    {
+      "id": 402,
+      "name": "캣닢 씨앗 lv.3",
+      "outputMax": 30,
+      "timeGrow": 60,
+      "cares": 3,
+      "maxOvertime": 60
+    }
+  ],
   "race": [
     {
       "id": 1,
@@ -286,7 +285,7 @@
             }
           ]
         }
-      ]      
+      ]
     }
   ],
   "training": [
@@ -478,9 +477,10 @@
     "고냥이 캐시가 부족해요. 고양이 시장에서 아이템을 팔면 고냥이 캐시를 벌 수 있어요",
     "아이템이 부족해요. 고양이 시장에서 필요한 아이템을 사세요",
     "피곤해요~ HP를 올리세요",
-    "체력이 부족해요"
+    "체력이 부족해요",
+    "씨앗 심기 실패"
   ],
-  "jobTitle": { 
+  "jobTitle": {
     "default": "이번생은 망했어묘",
     "prefix": [
       {

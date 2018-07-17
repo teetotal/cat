@@ -1,4 +1,4 @@
-// cat.cpp : Defines the entry point for the console application.
+﻿// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -108,7 +108,7 @@ void intro() {
 	}
 	
 	for (int i = 0; i < num; i++) {
-		display(szIntro[i].c_str(), 1000);
+		display(szIntro[i].c_str(), 500);
 	}	
 }
 
@@ -732,6 +732,63 @@ void race() {
 	}	
 }
 
+void farm_plant() {
+	logic.print();	
+	int idx;
+	printf("심을 밭 > ");
+	scanf("%d", &idx);
+	int seedId;
+	printf("심을 씨앗 > ");
+	scanf("%d", &seedId);
+	errorCode err = logic.farmingPlant(idx, seedId);
+	result(logic.getErrorMessage(err), err);	
+}
+
+void farm_harvest() {		
+	int idx;
+	printf("수확할 밭 > ");
+	scanf("%d", &idx);	
+	int point;
+	errorCode err = logic.farmingHarvest(idx, point);
+	wstring sz = logic.getErrorMessage(err);
+	sz += L"\n 소득: ";
+	sz += to_wstring(point);
+
+	result(sz.c_str(), err);
+}
+
+void farm_care() {		
+	int idx;
+	printf("가꿀 밭 > ");
+	scanf("%d", &idx);
+	errorCode err = logic.farmingCare(idx);
+	result(logic.getErrorMessage(err), err);
+}
+
+void farm() {
+	logic.print(7);
+	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 0: 상태 보기 \n > ");
+	int type;
+	scanf("%d", &type);
+	switch (type)
+	{
+	case 0:
+		farm();
+		break;
+	case 1:
+		farm_plant();
+		break;
+	case 2:
+		farm_care();
+		break;
+	case 3:
+		farm_harvest();
+		break;
+	default:
+		break;
+	}
+}
+
 bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
@@ -760,8 +817,7 @@ bool ask() {
 		race();		
 		break;
 	case 5:
-        logic.print(7);
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+		farm();
         break;
     case 6:
 		hp();

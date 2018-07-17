@@ -87,9 +87,6 @@
     <ClInclude Include="logics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rapidjson\writer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="library\farming.h">
       <Filter>library</Filter>
     </ClInclude>
@@ -101,9 +98,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="cat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

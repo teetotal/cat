@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "stdafx.h"
 #include "library/farming.h"
 
@@ -57,6 +57,7 @@ enum errorCode {
 	error_not_enough_item,
 	error_not_enough_hp,
 	error_not_enough_strength,
+	error_farming_failure,
 };
 enum inventoryType {
 	inventoryType_growth=0,
@@ -262,6 +263,7 @@ public:
 	};
 	~logics() {};
 	bool init();
+	void finalize();
 	bool insertItem(_item);
 	bool setTradeMarketPrice();
 	bool insertTraining(_training);
@@ -295,6 +297,13 @@ public:
     void addSeed(farming::seed * p){
         mFarming.addSeed(p);
     };
+	errorCode farmingPlant(int idx, int seedId) {
+		return mFarming.plant(idx, seedId) ? error_success : error_farming_failure;
+	};
+	errorCode farmingHarvest(int idx, int &earning);
+	errorCode farmingCare(int idx) {
+		return mFarming.care(idx) ? error_success : error_farming_failure;
+	};
 
 	//Training 
 	errorCode isValidTraining(int id);
