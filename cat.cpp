@@ -1,4 +1,4 @@
-﻿// cat.cpp : Defines the entry point for the console application.
+// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -419,6 +419,19 @@ void init() {
 		p.name = utf8_to_utf16(sz);
 		logic.insertItem(p);
 	}
+    //Add seed
+    const Value& seeds = d["seed"];
+    for (SizeType i = 0; i < seeds.Size(); i++)
+    {
+        farming::seed * p = new farming::seed();
+        p->id = seeds[i]["id"].GetInt();
+        p->name = utf8_to_utf16(seeds[i]["name"].GetString());
+        p->outputMax = seeds[i]["outputMax"].GetInt();
+        p->timeGrow = seeds[i]["timeGrow"].GetInt();
+        p->cares = seeds[i]["cares"].GetInt();
+        p->maxOvertime = seeds[i]["maxOvertime"].GetInt();
+        logic.addSeed(p);
+    }
 
 	const  Value& t = d["training"];
 	for (SizeType i = 0; i < t.Size(); i++) {
@@ -723,7 +736,7 @@ bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-	printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
+    printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 농사 \n 6: 체력보충 \n 7: 도감 보기  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();
@@ -747,9 +760,13 @@ bool ask() {
 		race();		
 		break;
 	case 5:
+        logic.print(7);
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        break;
+    case 6:
 		hp();
 		break;
-	case 6:
+	case 7:
 		logic.print(4);
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 		break;

@@ -1,4 +1,6 @@
-﻿#pragma once
+#pragma once
+#include "stdafx.h"
+#include "library/farming.h"
 
 #include <vector>
 #include <map>
@@ -78,6 +80,7 @@ enum itemType {
 	itemType_race_attactFirst,	//1등 공격
 	itemType_adorn = 300, //치장
 	itemType_adorn_head,
+    itemType_farming = 400, //농사
 	itemType_max,
 	itemType_collection = 1000,	//도감용
 };
@@ -287,6 +290,11 @@ public:
 
 	//경묘 메타 정보
 	void addRaceMeta(_race & race);
+    
+    //farming
+    void addSeed(farming::seed * p){
+        mFarming.addSeed(p);
+    };
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -422,5 +430,8 @@ private:
 
 		return t;
 	};
+    
+    //farming
+    farming mFarming;
 };
 

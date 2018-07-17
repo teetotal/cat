@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "farming.h"
 
 void farming::addField(int x, int y) {
 	field* f = new field(x, y);
@@ -49,6 +49,7 @@ int farming::harvest(int fieldIdx) {
 		//제거
 		mFields[fieldIdx] = NULL;
 		delete f;
+        return sum;
 	}		
 
 	return 0;

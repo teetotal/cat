@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "pch.h"
 
 class farming
@@ -81,8 +81,9 @@ public:
 	
 	bool plant(int fieldIdx, int seedId);	//심기
 		
-	void addSeed(int id, seed *s) {	//씨앗 등록
-		mSeed[id] = s;
+	void addSeed(seed *s) {	//씨앗 등록
+        if(s)
+            mSeed[s->id] = s;
 	};
 private:	
 	fields mFields;	

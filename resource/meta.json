@@ -112,6 +112,28 @@
       "value": 10,
       "grade": 2
     },
+            {
+            "id": 400,
+            "name": "[씨앗] 캣닢씨앗 lv.1",
+            "type": 400,
+            "value": 1,
+            "grade": 1
+            }
+            ,
+            {
+            "id": 401,
+            "name": "[씨앗] 캣닢씨앗 lv.2",
+            "type": 400,
+            "value": 1,
+            "grade": 2
+            },
+            {
+            "id": 402,
+            "name": "[씨앗] 캣닢씨앗 lv.3",
+            "type": 400,
+            "value": 1,
+            "grade": 3
+            },
     {
       "id": 1000,
       "name": "[도감] 나뭇가지",
@@ -169,6 +191,32 @@
       "grade": 3
     }
   ],
+    "seed":[
+        {
+            "id": 400,
+            "name": "캣닢 씨앗 lv.1",
+            "outputMax": 10,
+            "timeGrow": 3,
+            "cares": 1,
+            "maxOvertime": 10
+        },
+        {
+        "id": 401,
+        "name": "캣닢 씨앗 lv.2",
+        "outputMax": 20,
+        "timeGrow": 30,
+        "cares": 2,
+        "maxOvertime": 30
+        },
+        {
+        "id": 402,
+        "name": "캣닢 씨앗 lv.3",
+        "outputMax": 30,
+        "timeGrow": 60,
+        "cares": 3,
+        "maxOvertime": 60
+        }
+    ],
   "race": [
     {
       "id": 1,

@@ -1,12 +1,9 @@
-﻿#include "stdafx.h"
 #include "logics.h"
 
 bool logics::init() {	
 	farming farm;
 	farm.addField(0, 0);
-	farm.addField(1, 0);
-	farming::fields f = farm.getFields();
-
+	
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
 	return true;
@@ -191,13 +188,19 @@ void logics::print(int type) {
 		printf("HP 아이템 \n %ls \n", szHP.c_str());
 		printf("경묘 아이템 \n %ls \n", szRace.c_str());
 		printf("꾸미기 아이템 \n %ls \n", szAdorn.c_str());
-	}
+    } else if(type == 7){ //farming
+        farming::fields f = mFarming.getFields();
+        for(int n = 0; n < f.size(); n++){
+            printf("%d. %d \n", n, f[n]->status);
+        }
+    }
 }
 
 bool logics::insertItem(_item item) {
 	mItems[item.id] = item;
 	if (getInventoryType(item.id) == inventoryType_race)
 		mItemRace.push_back(item.id);
+    
 	return true;
 }
 
