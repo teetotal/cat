@@ -760,7 +760,7 @@ void farm() {
 }
 
 bool ask() {
-	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
+	display(imgIdle[getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
     printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 농사 \n 6: 체력보충 \n 7: 도감 보기  \n > ");

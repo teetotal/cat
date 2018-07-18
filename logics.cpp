@@ -409,11 +409,6 @@ void logics::addProperty(int strength, int intelligence, int appeal) {
 	mActor->property.appeal += appeal;
 }
 
-int logics::getRandValue(int max) {
-	if (max == 0)
-		return 0;
-	return rand() % max;
-}
 //경험치 증가
 bool logics::increaseExp() {
 	mActor->exp++;

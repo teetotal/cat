@@ -254,8 +254,7 @@ class logics
 {
 public:
 	logics() {
-		srand((int)time(0));
-		mLastTradeUpdate = 0;
+		srand((int)time(0));		
 		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {};
@@ -266,14 +265,11 @@ public:
 		, int trade_weight
 	);
 	void finalize();
-	bool insertItem(_item);
-	//bool setTradeMarketPrice();
+	bool insertItem(_item);	
 	bool insertTraining(_training);
 	bool setActor(_actor*);
 	void print(int type = 0);
-	//get random value
-	int getRandValue(int max);
-
+	
 	_item getItem(int id) {
 		return mItems[id];
 	};
@@ -337,15 +333,11 @@ private:
 	typedef map<int, _item> __items; 
 	__items mItems;		//items
 	
-
 	typedef map<int, _training> __training; 
 	__training mTraining;//성장
 
 	//Actor
 	_actor* mActor;
-
-	//마지막 TradeUpdate시간
-	time_t mLastTradeUpdate;
 
 	//직업명
 	typedef vector<_jobTitlePrefix> jobTitlePrefixVector;
@@ -363,8 +355,7 @@ private:
 
 	typedef map<int, _race> raceMeta;
 	raceMeta mRace;
-
-	
+		
 	_raceCurrent mRaceCurrent;
 	
 	//경묘용 아이템만 따로 모아논 벡터
