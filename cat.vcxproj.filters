@@ -102,6 +102,9 @@
     <ClInclude Include="library\trade.h">
       <Filter>library</Filter>
     </ClInclude>
+    <ClInclude Include="library\achievement.h">
+      <Filter>library</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cat.cpp">
@@ -120,6 +123,9 @@
       <Filter>library</Filter>
     </ClCompile>
     <ClCompile Include="library\trade.cpp">
+      <Filter>library</Filter>
+    </ClCompile>
+    <ClCompile Include="library\achievement.cpp">
       <Filter>library</Filter>
     </ClCompile>
   </ItemGroup>

@@ -812,6 +812,7 @@ int main()
 		if (!ask())
 			break;		
 	}
+	logic.finalize();
 	isRunThread = false;
 	p.join();	
     return 0;

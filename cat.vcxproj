@@ -161,6 +161,7 @@
     <Text Include="resource\training-4.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="library\achievement.h" />
     <ClInclude Include="library\farming.h" />
     <ClInclude Include="library\inventory.h" />
     <ClInclude Include="library\pch.h" />
@@ -171,6 +172,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cat.cpp" />
+    <ClCompile Include="library\achievement.cpp" />
     <ClCompile Include="library\farming.cpp" />
     <ClCompile Include="library\inventory.cpp" />
     <ClCompile Include="library\trade.cpp" />

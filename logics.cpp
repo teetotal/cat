@@ -17,6 +17,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 
 void logics::finalize() {
 	mFarming.finalize();
+	mTrade.finalize();
 }
 void logics::printInven(inventoryType type, wstring &sz) {
 	vector<intPair> vec;
