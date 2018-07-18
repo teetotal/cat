@@ -164,6 +164,7 @@
     <ClInclude Include="library\farming.h" />
     <ClInclude Include="library\inventory.h" />
     <ClInclude Include="library\pch.h" />
+    <ClInclude Include="library\trade.h" />
     <ClInclude Include="library\util.h" />
     <ClInclude Include="logics.h" />
     <ClInclude Include="stdafx.h" />
@@ -172,6 +173,7 @@
     <ClCompile Include="cat.cpp" />
     <ClCompile Include="library\farming.cpp" />
     <ClCompile Include="library\inventory.cpp" />
+    <ClCompile Include="library\trade.cpp" />
     <ClCompile Include="library\util.cpp" />
     <ClCompile Include="logics.cpp" />
   </ItemGroup>

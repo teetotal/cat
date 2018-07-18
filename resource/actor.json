@@ -10,7 +10,7 @@
   "level": 1,
   "property": {
     "strength": 10,
-    "intelligence": 10,
+    "intelligence": 1,
     "appeal": 10
   },
   "inventory": {

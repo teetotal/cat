@@ -59,11 +59,11 @@ void farming::setStatus(int fieldIdx) {
 }
 
 //수확
-int farming::harvest(int fieldIdx) {
+bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	mLock.lock();
 	if (mFields[fieldIdx] == NULL) {
 		mLock.unlock();
-		return -1;
+		return false;
 	}
 	field * f = mFields[fieldIdx];
 	seed * s = mSeed[f->seedId];
@@ -72,15 +72,18 @@ int farming::harvest(int fieldIdx) {
 	//if (f->timePlant + s->timeGrow >= now) {
 	if (f->status == farming_status_grown || f->status == farming_status_decay){
 		int sum = 0;
-		if(f->status == farming_status_grown)
-			sum = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
+		if (f->status == farming_status_grown) {
+			output = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
+			farmProductId = s->farmProductId;
+		}
+			
 		//제거
 		mFields[fieldIdx]->init();
 		mLock.unlock();
-        return sum;
+        return true;
 	}
 	mLock.unlock();
-	return -1;
+	return false;
 }
 
 //심기
@@ -96,7 +99,7 @@ bool farming::plant(int fieldIdx, int seedId) {
 	mFields[fieldIdx]->plant(seedId);
 	return true;
 }
-bool farming::care(int fieldIdx) {
+bool farming::care(int fieldIdx, int boost) {
 	if (fieldIdx  < 0
 		|| mFields.size() <= fieldIdx
 		|| mFields[fieldIdx] == NULL
@@ -104,5 +107,8 @@ bool farming::care(int fieldIdx) {
 		return false;
 	}
 	mFields[fieldIdx]->cntCare++;
+	if (boost != 0)
+		mFields[fieldIdx]->boost += boost;
+
 	return true;
 }

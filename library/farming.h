@@ -22,6 +22,7 @@ public:
 	struct seed { //씨앗
 		int id;
 		wstring name;	//이름		
+		int farmProductId; //수확장물
 		int outputMax;	//개당 최대 아웃풋		
 		int timeGrow;	//성장에 필요한 시간 (초)		
 		int cares;		//필요한 돌봄 회수
@@ -80,13 +81,13 @@ public:
 		return &mFields;
 	};			
 	int countField() {
-		return mFields.size();
+		return (int)mFields.size();
 	};
 	void setStatus();				//농작물 상태 설정	
 	void setStatus(int fieldIdx);	
-	int harvest(int fieldIdx);		//수확	
+	bool harvest(int fieldIdx, int &farmProductId, int &output); //수확
 	bool plant(int fieldIdx, int seedId);	//심기		
-	bool care(int fieldIdx); //가꾸기
+	bool care(int fieldIdx, int boost = 0); //가꾸기
 	void addSeed(seed *s) {	//씨앗 등록
         if(s)
             mSeed[s->id] = s;

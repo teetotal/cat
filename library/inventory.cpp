@@ -4,7 +4,7 @@ void inventory::pushItem(int category, int itemId, int quantity) {
 	if (mCategory.find(category) == mCategory.end()) {
 		intMap w;
 		mWarehouses.push_back(w);
-		mCategory[category] = mWarehouses.size() - 1;
+		mCategory[category] = (int)mWarehouses.size() - 1;
 	}
 
 	if (mWarehouses[mCategory[category]].find(itemId) == mWarehouses[mCategory[category]].end()) {

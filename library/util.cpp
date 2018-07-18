@@ -8,6 +8,16 @@ void sleepThisThread(size_t msec) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(msec));
 }
 
+int getRandValue(int max) {
+	if (max == 0)
+		return 0;
+	return rand() % max;
+}
+
+int rounding(float f) {
+	return (int)round(f);
+}
+
 wstring utf8_to_utf16(const string& utf8)
 {
 	std::vector<unsigned long> unicode;

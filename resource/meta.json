@@ -1,4 +1,9 @@
 {
+  "trade": {
+    "margin": 0.25,
+    "updateInterval": 300,
+    "levelWeight": 15
+  },
   "items": [
     {
       "id": 1,
@@ -194,6 +199,7 @@
     {
       "id": 400,
       "name": "캣닢 씨앗 lv.1",
+      "farmProductId": 101,
       "outputMax": 10,
       "timeGrow": 15,
       "cares": 1,
@@ -202,6 +208,7 @@
     {
       "id": 401,
       "name": "캣닢 씨앗 lv.2",
+      "farmProductId": 101,
       "outputMax": 20,
       "timeGrow": 30,
       "cares": 2,
@@ -210,6 +217,7 @@
     {
       "id": 402,
       "name": "캣닢 씨앗 lv.3",
+      "farmProductId": 101,
       "outputMax": 30,
       "timeGrow": 60,
       "cares": 3,
@@ -478,7 +486,8 @@
     "아이템이 부족해요. 고양이 시장에서 필요한 아이템을 사세요",
     "피곤해요~ HP를 올리세요",
     "체력이 부족해요",
-    "씨앗 심기 실패"
+    "씨앗 심기 실패",
+    "결국 참지 못하고 농작물 몇 개를 훔쳐 먹었어요 ㅜ.ㅜ"
   ],
   "jobTitle": {
     "default": "이번생은 망했어묘",

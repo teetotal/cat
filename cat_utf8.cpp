@@ -1,4 +1,4 @@
-﻿// cat.cpp : Defines the entry point for the console application.
+// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -6,37 +6,8 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
-#include "library\util.h"
+#include <conio.h>
 
-#ifdef _WIN32
-    #include <conio.h>
-#else
-#include <sys/ioctl.h>
-#include <termios.h>
-void enable_raw_mode()
-{
-    termios term;
-    tcgetattr(0, &term);
-    term.c_lflag &= ~(ICANON | ECHO); // Disable echo as well
-    tcsetattr(0, TCSANOW, &term);
-}
-
-void disable_raw_mode()
-{
-    termios term;
-    tcgetattr(0, &term);
-    term.c_lflag |= ICANON | ECHO;
-    tcsetattr(0, TCSANOW, &term);
-}
-
-bool _kbhit()
-{
-    int byteswaiting;
-    ioctl(0, FIONREAD, &byteswaiting);
-    return byteswaiting > 0;
-}
-
-#endif
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -57,12 +28,9 @@ string imgIdle[IDLE_NUM];
 string raceSuffer;
 
 const wchar_t raceIcons[] = { L'◈', L'◎', L'▶', L'◇', L'♥' };
-
 void cls() {
 #ifdef _WIN32
 	system("cls");
-#else
-    system("clear");
 #endif
 }
 
@@ -81,7 +49,7 @@ void display(const char* sz, int sleep = 0, bool isCls = true) {
 		cls();
 	printf("%s", sz);
 	if(sleep > 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
+		::Sleep(sleep);
 }
 void intro() {
 	char sz[100] = { 0, };
@@ -105,12 +73,14 @@ void intro() {
 	const int num = 6;
 	string szIntro[num];
 	for (size_t i = 0; i <  num; i++) {
-		sprintf(sz, "intro-%d", (int)i + 1);
+		sprintf(sz, "intro-%d", i + 1);
 		loadImg(sz, &szIntro[i]);
 	}
 	
 	for (int i = 0; i < num; i++) {
+		cls();
 		display(szIntro[i].c_str(), 500);
+		//::Sleep(1000 + (50 * i));
 	}	
 }
 
@@ -120,7 +90,7 @@ void progress() {
 		int barWidth = 70;
 
 		std::cout << "[";
-		int pos = (int)(barWidth * progress);
+		int pos = barWidth * progress;
 		for (int i = 0; i < barWidth; ++i) {
 			if (i < pos) std::cout << "=";
 			else if (i == pos) std::cout << ">";
@@ -131,8 +101,8 @@ void progress() {
 
 		std::cout.flush();
 
-		progress += (float)0.12; // for demonstration only
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		progress += 0.12; // for demonstration only
+		::_sleep(200);
 	}
 	std::cout << std::endl;
 }
@@ -142,7 +112,7 @@ void result(const wchar_t * sz, errorCode err = error_success) {
 		progress();
 	cls();
 	display(imgResult.c_str());
-	printf("%c[1;36m %ls %c[0m        \n\n", 27, sz, 27);
+	wprintf(L"%c[1;36m %s %c[0m        \n\n", 27, sz, 27);
 	std::this_thread::sleep_for(std::chrono::seconds(2));
 	cls();
 }
@@ -153,46 +123,37 @@ void runThread() {
 	while (isRunThread) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 		if (logic.rechargeHP()) {
-			printf("\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
+			wprintf(L"\n\n★ 얏호 체력이 보충됐어요~~~!! [HP +1] ☆\n\n > ");
 		}
-		/*
 		if(logic.setTradeMarketPrice())
-			printf("\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
-		*/
+			wprintf(L"\n\n 아이템 시세가 변경 됐어요~ \n\n > ");
 	}
 }
-void printRaceRunning(int id, _raceParticipant *p) {
+void printRaceRunning(int ratio, int id, int rank, int length, itemType currentItem) {
 	wstring sz;
 	if(id == raceParticipantNum)
-		printf("%c[1;32m %d [me]",27, p->rank == 0 ? p->currentRank : 0);
+		printf("┃%c[1;32m %d [me]",27, rank);
 	else
-		printf("%c[0m %d [%02d]", 27, p->rank == 0 ? p->currentRank : 0, id + 1);
+		printf("┃%c[0m %d [%02d]", 27, rank, id + 1);
 	
-	for (int n = 0; n < p->ratioLength; n++) {
+	for (int n = 0; n < ratio; n++) {
 		sz += L" ";
 	}
-	//아이콘 표시
-	sz += raceIcons[id];	
+	//printf("%s", sz.c_str());
+	sz += raceIcons[id];
+	//sz += L" ";
+	//sz += to_wstring(ratio);
 
-	if (p->currentSuffer != itemType_max) {
+	if (currentItem != itemType_max) {
 		sz += L" ";
-		sz += to_wstring((int)p->currentSuffer);
+		sz += to_wstring((int)currentItem);
 	}
-
-	sz += L" ";
-	if(p->rank > 0)
-		sz += to_wstring(p->rank);
 		
-	printf("%ls", sz.c_str());
+	wprintf(L"%s", sz.c_str());
 }
 void runRace() {
-#ifdef _WIN32
-	const int line = 50;
-#else
-	const int line = 103;
-#endif
 	bool ret = true;
-	raceParticipants* p = NULL;
+	raceParticipants* p;
 	_raceCurrent* r = logic.getRaceResult();
 	int key = -1;
 	while (ret)
@@ -205,18 +166,23 @@ void runRace() {
 		if (!ret)
 			break;
 		cls();
-		printf("%c[0m━━━", 27);
+		printf("%c[0m┏━━━━━━", 27);
 		string sz;
-		for (int n = 0; n < line; n++)
+		for (int n = 0; n < 100; n++)
 			sz += "━";
 		printf("%s┓\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
-			printRaceRunning(n, &p->at(n));
+			printRaceRunning(p->at(n).ratioLength
+				, n
+				, p->at(n).currentRank
+				, p->at(n).currentLength
+				, p->at(n).currentSuffer
+			);
 			printf("\n");
 		}
-		printf("%c[0m━━━", 27);
+		printf("%c[0m┗━━━━━━", 27);
 		sz = "";
-		for (int n = 0; n < line; n++)
+		for (int n = 0; n < 100; n++)
 			sz += "━";
 		printf("%s┛\n", sz.c_str());
 
@@ -226,59 +192,47 @@ void runRace() {
 			switch (p->at(raceParticipantNum).currentSuffer)
 			{
 			case itemType_race_speedUp:
-				printf("달려라!! 스피드 업!! \n");
+				wprintf(L"달려라!! 스피드 업!! \n");
 				break;
 			case itemType_race_shield:
-				printf("모두 없던 일로~ \n");
+				wprintf(L"모두 없던 일로~ \n");
 				isSleep = true;
 				break;
 			default:
 				isSleep = true;
-				printf("으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);
+				wprintf(L"으악 공격 당하고 있다옹 %d\n", p->at(raceParticipantNum).currentSuffer);	
 				display(raceSuffer.c_str(), 0, false);
 				break;
 			}
 
 			if (p->at(raceParticipantNum).sufferItems.size() > 0)
-				printf("예약된 스킬: %d (+%d) \n"
-					, (int)p->at(raceParticipantNum).sufferItems.front()
-					, (int)p->at(raceParticipantNum).sufferItems.size()
-				);
+				wprintf(L"예약된 스킬: %d (+%d) \n", p->at(raceParticipantNum).sufferItems.front(), p->at(raceParticipantNum).sufferItems.size());
 
 			if(isSleep)
-				std::this_thread::sleep_for(std::chrono::milliseconds(300));
+				::Sleep(300);
 		}	
 		
 		//보유 아이템 목록
 		for (int n = 0; n < raceItemSlot; n++) {
 			int itemId = p->at(raceParticipantNum).items[n];
 			if (itemId > 0) {
-				printf("> %d. %ls \n", n +1, logic.getItem(itemId).name.c_str());
+				wprintf(L"> %d. %s \n", n +1, logic.getItem(itemId).name.c_str());
 			}
 		}
-#ifdef _WIN32
-		if (_kbhit() != 0)
+
+		if (kbhit() != 0)
 		{
-			key = _getch() - 48;
-			printf("\n★ 아이템 발동!! %d ★ \n", key);
-			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+			key = getch() - 48;
+			printf("\n★ 아이템 발동!! %d ★", key);
+			::Sleep(1000);
 		}
-#else
-        enable_raw_mode();
-        if (_kbhit()) {
-            key = getchar() - 48;
-            printf("\n★ 아이템 발동!! %d ★ \n", key);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        }
-        disable_raw_mode();
-        tcflush(0, TCIFLUSH); // Clear stdin to prevent characters appearing on prompt
-#endif
+		
 		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
 	}
 	//순위 정보
 	//sort(p->begin(), p->end());
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		printf("%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+		wprintf(L"%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
 			, p->at(n).rank
 			, p->at(n).idx
 			, 27
@@ -288,7 +242,7 @@ void runRace() {
 			, 27
 			, p->at(n).shootItemCount
 			);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		::Sleep(1000);
 	}
 
 	//결과처리
@@ -305,7 +259,77 @@ void runRace() {
 	result(sz.c_str());
 }
 
-
+std::wstring utf8_to_utf16(const std::string& utf8)
+{
+	std::vector<unsigned long> unicode;
+	size_t i = 0;
+	while (i < utf8.size())
+	{
+		unsigned long uni;
+		size_t todo;
+		bool error = false;
+		unsigned char ch = utf8[i++];
+		if (ch <= 0x7F)
+		{
+			uni = ch;
+			todo = 0;
+		}
+		else if (ch <= 0xBF)
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		else if (ch <= 0xDF)
+		{
+			uni = ch & 0x1F;
+			todo = 1;
+		}
+		else if (ch <= 0xEF)
+		{
+			uni = ch & 0x0F;
+			todo = 2;
+		}
+		else if (ch <= 0xF7)
+		{
+			uni = ch & 0x07;
+			todo = 3;
+		}
+		else
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		for (size_t j = 0; j < todo; ++j)
+		{
+			if (i == utf8.size())
+				throw std::logic_error("not a UTF-8 string");
+			unsigned char ch = utf8[i++];
+			if (ch < 0x80 || ch > 0xBF)
+				throw std::logic_error("not a UTF-8 string");
+			uni <<= 6;
+			uni += ch & 0x3F;
+		}
+		if (uni >= 0xD800 && uni <= 0xDFFF)
+			throw std::logic_error("not a UTF-8 string");
+		if (uni > 0x10FFFF)
+			throw std::logic_error("not a UTF-8 string");
+		unicode.push_back(uni);
+	}
+	std::wstring utf16;
+	for (size_t i = 0; i < unicode.size(); ++i)
+	{
+		unsigned long uni = unicode[i];
+		if (uni <= 0xFFFF)
+		{
+			utf16 += (wchar_t)uni;
+		}
+		else
+		{
+			uni -= 0x10000;
+			utf16 += (wchar_t)((uni >> 10) + 0xD800);
+			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
+		}
+	}
+	return utf16;
+}
 time_t getTime(int hour, int min, int sec) {
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
@@ -316,24 +340,11 @@ time_t getTime(int hour, int min, int sec) {
 	return mktime(ltm);
 
 }
-
-void farmNotice(int fieldId) {
-	printf("%d 농작물을 수확하세요 늦으면 썩어버립니다. \n", fieldId);
-}
-
-void tradeNotice(time_t updated) {
-	printf("%I64d Trade 시세가 변경되었습니다. \n", updated);
-}
-
 void init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
-#ifdef _WIN32
 	_wsetlocale(LC_ALL, L"korean");
-#else
-    setlocale( LC_ALL, "" );
-    fwide( stdout, -1 );
-#endif
+	
 
 	std::ifstream fileopen;
 	fileopen.open("resource/meta.json", ios::in | ios::binary);
@@ -349,11 +360,6 @@ void init() {
 	{
 		logic.addErrorMessage(utf8_to_utf16(valueErr[i].GetString()));
 	}
-	//trade
-	float trade_margin = d["trade"]["margin"].GetFloat();
-	int trade_interval = d["trade"]["updateInterval"].GetInt();
-	int trade_weight = d["trade"]["levelWeight"].GetInt();
-
 	//Add Items
 	const Value& valueInfo = d["items"];
 	for (SizeType i = 0; i < valueInfo.Size(); i++)
@@ -367,20 +373,6 @@ void init() {
 		p.name = utf8_to_utf16(sz);
 		logic.insertItem(p);
 	}
-    //Add seed
-    const Value& seeds = d["seed"];
-    for (SizeType i = 0; i < seeds.Size(); i++)
-    {
-        farming::seed * p = new farming::seed();
-        p->id = seeds[i]["id"].GetInt();
-        p->name = utf8_to_utf16(seeds[i]["name"].GetString());
-		p->farmProductId = seeds[i]["farmProductId"].GetInt();
-        p->outputMax = seeds[i]["outputMax"].GetInt();
-        p->timeGrow = seeds[i]["timeGrow"].GetInt();
-        p->cares = seeds[i]["cares"].GetInt();
-        p->maxOvertime = seeds[i]["maxOvertime"].GetInt();
-        logic.addSeed(p);
-    }
 
 	const  Value& t = d["training"];
 	for (SizeType i = 0; i < t.Size(); i++) {
@@ -522,29 +514,19 @@ void init() {
 	for (SizeType i = 0; i < growth.Size(); i++) {
 		int id = growth[i]["id"].GetInt();
 		int quantity = growth[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_growth, id, quantity);
-		//actor->inventory.growth[id] = quantity;
-	}
-	const Value& hp = d2["inventory"]["HP"];
-	for (SizeType i = 0; i < hp.Size(); i++) {
-		int id = growth[i]["id"].GetInt();
-		int quantity = growth[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_HP, id, quantity);
-		//actor->inventory.growth[id] = quantity;
+		actor->inventory.growth[id] = quantity;
 	}
 	const Value& raceItem = d2["inventory"]["race"];
 	for (SizeType i = 0; i < raceItem.Size(); i++) {
 		int id = raceItem[i]["id"].GetInt();
 		int quantity = raceItem[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_race, id, quantity);
-		//actor->inventory.race[id] = quantity;
+		actor->inventory.race[id] = quantity;
 	}
 	const Value& adorn = d2["inventory"]["adorn"];
 	for (SizeType i = 0; i < adorn.Size(); i++) {
 		int id = adorn[i]["id"].GetInt();
 		int quantity = adorn[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_adorn, id, quantity);
-		//actor->inventory.adorn[id] = quantity;
+		actor->inventory.adorn[id] = quantity;
 	}
 	const Value& collection = d2["collection"];
 	for (SizeType i = 0; i < collection.Size(); i++) {
@@ -554,7 +536,7 @@ void init() {
 
 	logic.setActor(actor);
 
-	logic.init(farmNotice, tradeNotice, trade_margin, trade_interval, trade_weight);
+	logic.init();
 	logic.print(3);
 } 
 
@@ -691,79 +673,11 @@ void race() {
 	}	
 }
 
-void farm_plant() {
-	logic.print();	
-	int idx;
-	printf("심을 밭 > ");
-	scanf("%d", &idx);
-	int seedId;
-	printf("심을 씨앗 > ");
-	scanf("%d", &seedId);
-	errorCode err = logic.farmingPlant(idx, seedId);
-	result(logic.getErrorMessage(err), err);	
-}
-
-void farm_harvest() {		
-	int idx;
-	printf("수확할 밭 > ");
-	scanf("%d", &idx);
-	int productId;
-	int point;
-	errorCode err = logic.farmingHarvest(idx, productId, point);
-	wstring sz = logic.getErrorMessage(err);
-	sz += L"\n 소득 ----\n ";
-	sz += logic.getItem(productId).name;
-	sz += L" - 수량: ";
-	sz += to_wstring(point);
-
-	result(sz.c_str(), err);
-}
-
-void farm_care() {		
-	int idx;
-	printf("가꿀 밭 > ");
-	scanf("%d", &idx);
-	errorCode err = logic.farmingCare(idx);
-	result(logic.getErrorMessage(err), err);
-}
-
-void farm_extend() {
-	errorCode err = logic.farmingExtend();
-	result(logic.getErrorMessage(err), err);
-}
-
-void farm() {
-	logic.print(7);
-	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 4, 밭 추가, 0: 상태 보기 \n > ");
-	int type;
-	scanf("%d", &type);
-	switch (type)
-	{
-	case 0:
-		farm();
-		break;
-	case 1:
-		farm_plant();
-		break;
-	case 2:
-		farm_care();
-		break;
-	case 3:
-		farm_harvest();
-		break;
-	case 4:
-		farm_extend();
-		break;
-	default:
-		break;
-	}
-}
-
 bool ask() {
 	display(imgIdle[logic.getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-    printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 농사 \n 6: 체력보충 \n 7: 도감 보기  \n > ");
+	wprintf( L" 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 체력보충 \n 6: 도감 보기  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();
@@ -787,14 +701,11 @@ bool ask() {
 		race();		
 		break;
 	case 5:
-		farm();
-        break;
-    case 6:
 		hp();
 		break;
-	case 7:
+	case 6:
 		logic.print(4);
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+		::Sleep(3000);
 		break;
 	default:
 		break;

@@ -1,8 +1,14 @@
 ﻿#include "logics.h"
 
-bool logics::init(farmingFinshedNotiCallback fn) {		
-	mFarming.init(fn);
+bool logics::init(farmingFinshedNotiCallback farmCB
+	, tradeUpdatedCallback tradeCB
+	, float trade_margin
+	, int trade_updateInterval
+	, int trade_weight) {
+	mFarming.init(farmCB);
 	mFarming.addField(0, 0);
+
+	mTrade.init(trade_margin, trade_updateInterval, trade_weight, tradeCB);
 	
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
@@ -21,7 +27,7 @@ void logics::printInven(inventoryType type, wstring &sz) {
 			+ mItems[vec[n].key].name
 			+ L"(" + to_wstring(vec[n].val)
 			+ L"개) "
-			+ to_wstring(getItemPriceSell(vec[n].key))
+			+ to_wstring(mTrade.getPriceSell(vec[n].key))
 			+ L"\n ";
 	}
 }
@@ -91,7 +97,8 @@ void logics::print(int type) {
 		}
 	}else if (type == 2) { //상품 구매
 		printf("[Buy]\n ------------------------------------------------------------------------ \n");
-		for (__keyValInt::iterator it = mTrade.begin(); it != mTrade.end(); ++it) {
+		trade::tradeMap * m = mTrade.get();
+		for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
 			if (mItems[it->first].type < itemType_max) {
 				wstring szColor = L"[0m";
 				if (mItems[it->first].type > itemType_race && mItems[it->first].type < itemType_adorn)
@@ -101,8 +108,8 @@ void logics::print(int type) {
 					, 27
 					, szColor.c_str()
 					, it->first
-					, getItemPriceBuy(it->first)
-					, getItemPriceSell(it->first)
+					, mTrade.getPriceBuy(it->first)
+					, mTrade.getPriceSell(it->first)
 					, mItems[it->first].name.c_str()
 				);
 			}
@@ -197,7 +204,12 @@ bool logics::insertItem(_item item) {
 	mItems[item.id] = item;
 	if (getInventoryType(item.id) == inventoryType_race)
 		mItemRace.push_back(item.id);
-    
+    //trade 정보 
+	trade::tradeProduct * p = new trade::tradeProduct;
+	p->itemId = item.id;
+	p->level = item.grade;
+	p->price = 0;
+	mTrade.add(p);
 	return true;
 }
 
@@ -205,7 +217,7 @@ bool logics::insertTraining(_training traning) {
 		mTraining[traning.id] = traning;
 	return true;
 }
-
+/*
 bool logics::setTradeMarketPrice() {
 	time_t now = time(0);
 	if (now - mLastTradeUpdate < tradeUpdateInterval)
@@ -239,7 +251,7 @@ bool logics::setTradeMarketPrice() {
 	//printf("sum = %d \n", sum);
 	return true;
 }
-
+*/
 bool logics::setActor(_actor* actor) {
 	mActor = actor;
 	return true;
@@ -332,7 +344,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 }
 
 errorCode logics::runTrade(bool isBuy, int id, int quantity) {
-	if (mTrade.find(id) == mTrade.end()) {
+	if (!mTrade.exist(id)) {
 		return error_invalid_id;
 	}
 	if (mItems[id].type >= itemType_max) {
@@ -340,14 +352,14 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	}
 	int amount;
 	if (isBuy) {
-		amount = getItemPriceBuy(id) * quantity;
+		amount = mTrade.getPriceBuy(id) * quantity;
 		if (mActor->point < amount) 
 			return error_not_enough_point;		
 		//substract point
 		amount = amount * -1;
 	}		
 	else {
-		amount = getItemPriceSell(id) * quantity;				
+		amount = mTrade.getPriceSell(id) * quantity;
 		quantity = quantity * -1;
 	}	
 	//give items
@@ -837,13 +849,15 @@ int logics::getRandomRaceItem() {
 	int idx = getRandValue((int)mItemRace.size());
 	return mItemRace[idx];
 }
-
-errorCode logics::farmingHarvest(int idx, int &earning) {
-	earning = mFarming.harvest(idx);
-	if (earning < 0)
+/* --------------
+	farming
+	-------------- */
+errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {	
+	if(!mFarming.harvest(idx, productId, earning))	
 		return error_invalid_id;
-
-	mActor->point += earning;
+	
+	mActor->inven.pushItem(getInventoryType(productId), productId, earning);
+	increaseExp();
 	return error_success;
 };
 
@@ -854,4 +868,19 @@ errorCode logics::farmingPlant(int idx, int seedId) {
 		return error_not_enough_item;
 
 	return error_success;
+};
+errorCode logics::farmingCare(int idx) {
+	int boost = 0;
+	//지능이 farmGluttonyIntelThreshold 이하면 농작물 훔쳐먹음
+	float ratio = ((float)mActor->property.intelligence / (float)mActor->property.total()) * 100;
+	if (ratio < farmGluttonyIntelThreshold) {
+		boost = farmGluttony * -1;
+	}
+	if (mFarming.care(idx, boost)) {
+		if (boost == 0)
+			return error_success;
+		else
+			return error_farming_gluttony;
+	}
+	return error_farming_failure;
 };

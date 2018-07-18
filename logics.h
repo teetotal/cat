@@ -2,30 +2,22 @@
 #include "stdafx.h"
 #include "library/farming.h"
 #include "library/inventory.h"
-/*
-#include <vector>
-#include <map>
-*/
-#include <queue>
-#include <string>
-#include <time.h>
-#include <iostream>
+#include "library/trade.h"
+
 #include <locale>
 #include <codecvt>
 #include <algorithm>
-#include <mutex>
 
-using namespace std;
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
 //Trade 시세 변경 간격
-#define tradeUpdateInterval	60 * 12
+//#define tradeUpdateInterval	60
 //최대 무역 합산 시세
-#define maxTradeValue 100
+//#define maxTradeValue 100
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
 //판매 마진
-#define tradeMargin 0.2
+//#define tradeMargin 0.2f
 //기본 HP
 #define defaultHP 4
 //도감용 아이템 시작 id
@@ -50,6 +42,10 @@ using namespace std;
 #define raceInvokeThreshold 50
 //race AI 스킬발동 랜덤 확률 1/raceAIRandom 
 #define raceAIRandom 10
+//farming 식탐 방지 지능 threshold
+#define farmGluttonyIntelThreshold 30
+//farming 식탐
+#define farmGluttony 2
 
 enum errorCode {
 	error_success = 0,
@@ -62,6 +58,7 @@ enum errorCode {
 	error_not_enough_hp,
 	error_not_enough_strength,
 	error_farming_failure,
+	error_farming_gluttony
 };
 enum inventoryType {
 	inventoryType_growth=0,
@@ -156,17 +153,11 @@ struct _property {
 	int strength;			//체력
 	int intelligence;		//총명함
 	int appeal;				//매력
+
+	int total() {
+		return strength + intelligence + appeal;
+	};
 };
-/*
-typedef map<int, int> keyQuantity;
-//인벤토리
-struct _inventory {
-	keyQuantity growth;	//성장용 아이템
-	keyQuantity hp;		//HP충전 아이템
-	keyQuantity race;	//경묘용 아이템
-	keyQuantity adorn;	//치장용 아이템
-};
-*/
 typedef map<int, bool> keyBoolMap;
 //캐릭터
 struct _actor {
@@ -179,8 +170,7 @@ struct _actor {
 	int hp;				//피로도
 	int exp;			//경험치
 	int level;			//레벨
-	_property property;		//속성
-	//_inventory inventory;	//인벤토리
+	_property property;		//속성	
 	inventory inven;
 	keyBoolMap collection;	//도감
 
@@ -269,10 +259,15 @@ public:
 		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {};
-	bool init(farmingFinshedNotiCallback fn);
+	bool init(farmingFinshedNotiCallback
+		, tradeUpdatedCallback
+		, float trade_margin
+		, int trade_updateInterval
+		, int trade_weight
+	);
 	void finalize();
 	bool insertItem(_item);
-	bool setTradeMarketPrice();
+	//bool setTradeMarketPrice();
 	bool insertTraining(_training);
 	bool setActor(_actor*);
 	void print(int type = 0);
@@ -305,10 +300,8 @@ public:
         mFarming.addSeed(p);
     };
 	errorCode farmingPlant(int idx, int seedId);
-	errorCode farmingHarvest(int idx, int &earning);
-	errorCode farmingCare(int idx) {
-		return mFarming.care(idx) ? error_success : error_farming_failure;
-	};
+	errorCode farmingHarvest(int idx, int &productId, int &earning);
+	errorCode farmingCare(int idx);
 	//돈 차감이랑 최대 밭 개수 지정
 	errorCode farmingExtend() {
 		mFarming.addField(mFarming.countField(), 0);
@@ -343,8 +336,8 @@ private:
 	
 	typedef map<int, _item> __items; 
 	__items mItems;		//items
-	typedef map<int, int> __keyValInt; 
-	__keyValInt mTrade;	//무역 시세
+	
+
 	typedef map<int, _training> __training; 
 	__training mTraining;//성장
 
@@ -395,15 +388,7 @@ private:
 
 	//SIA를 고려한 기본 스피드
 	int getBaseSpeed(int s, int i, int a);
-
-	//price at buy
-	int getItemPriceBuy(int itemId) {
-		return (int)(mTrade[itemId] + (mItems[itemId].grade * 10));
-	};
-	//price at sell
-	int getItemPriceSell(int itemId) {
-		return (int)(getItemPriceBuy(itemId) * (1-tradeMargin));
-	};
+	
 	//add inventory
 	bool addInventory(int itemId, int quantity);
 	//increase property
@@ -457,5 +442,7 @@ private:
     
     //farming
     farming mFarming;
+	//Trade
+	trade mTrade;
 };
 
