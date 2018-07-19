@@ -105,6 +105,9 @@
     <ClInclude Include="library\achievement.h">
       <Filter>library</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cat.cpp">
@@ -134,6 +137,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="resource\actor.json">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="resource\achievement.json">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

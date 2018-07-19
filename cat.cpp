@@ -325,7 +325,7 @@ void tradeNotice(time_t updated) {
 	printf("%I64d Trade 시세가 변경되었습니다. \n", updated);
 }
 
-void init() {
+bool init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");
 	//setlocale(LC_ALL, "");
 #ifdef _WIN32
@@ -554,8 +554,11 @@ void init() {
 
 	logic.setActor(actor);
 
-	logic.init(farmNotice, tradeNotice, trade_margin, trade_interval, trade_weight);
+	if(!logic.init(farmNotice, tradeNotice, trade_margin, trade_interval, trade_weight))
+		return false;
 	logic.print(3);
+
+	return true;
 } 
 
 void training() {
@@ -758,12 +761,34 @@ void farm() {
 		break;
 	}
 }
+void achievement() {	
+	for (int i = 0; i < 2; i++) {		
+		bool isDaily = i == 0 ? true : false;
+		int size = logic.getAchievementSize(isDaily);
+		for (int n = 0; n < size; n++) {
+			achievement::detail p;
+			logic.getAchievementDetail(isDaily, n, p);
+			printf("[%s %02d] %ls \t %ls (%d 개) [%d / %d] %s %s \n"
+				, isDaily ? "매일" : "전체"
+				, n + 1
+				, p.title.c_str()
+				, logic.getItem(p.rewardId).name.c_str()
+				, p.rewardVal
+				, p.accumulation
+				, p.goal
+				, p.isFinished ? "완료" : ""
+				, p.isReceived ? "수령" : ""
+			);
+		}
+		printf("\n");
+	}
+}
 
 bool ask() {
 	display(imgIdle[getRandValue(IDLE_NUM)].c_str());
 	logic.print();
 	printf("------------------------------------------------------------------------ \n");
-    printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 농사 \n 6: 체력보충 \n 7: 도감 보기  \n > ");
+    printf( " 1: 액션 \n 2: 아이템 구매 \n 3. 아이템 판매 \n 4: 경묘 \n 5: 농사 \n 6: 체력보충 \n 7: 도감 보기 \n 8: 업적 보기  \n > ");
 	int key;
 	scanf("%d", &key);
 	cls();
@@ -794,7 +819,11 @@ bool ask() {
 		break;
 	case 7:
 		logic.print(4);
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+		sleepThisThread(3000);        
+		break;
+	case 8:
+		achievement();
+		sleepThisThread(4000);
 		break;
 	default:
 		break;
@@ -803,9 +832,11 @@ bool ask() {
 }
 
 int main()
-{	
+{
+	
+	if (!init())
+		return -1;
 	intro();
-	init();
 	thread p(runThread);
 		
 	while (true) {

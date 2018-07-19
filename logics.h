@@ -3,17 +3,19 @@
 #include "library/farming.h"
 #include "library/inventory.h"
 #include "library/trade.h"
+#include "library/achievement.h"
 
 #include <locale>
 #include <codecvt>
 #include <algorithm>
 
+//Config
+#define CONFIG_ACHIEVEMENT "resource/achievement.json"
+#define CONFIG_ACTOR "resource/actor.json"
+#define CONFIG_META "resource/meta.json"
+
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
-//Trade 시세 변경 간격
-//#define tradeUpdateInterval	60
-//최대 무역 합산 시세
-//#define maxTradeValue 100
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
 //판매 마진
@@ -95,6 +97,27 @@ enum trainingType {
 	trainingType_improve,		//수련
 	trainingType_study,			//학습
 	trainingType_max,
+};
+
+//achievement category
+enum achievement_category {
+	achievement_category_training = 0,
+	achievement_category_trade_buy,
+	achievement_category_trade_sell,
+	achievement_category_recharge, //체력 충전
+	achievement_category_farming,   
+	achievement_category_race	
+};
+enum achievement_farming_id {
+	achievement_farming_id_plant = 0, //심기 횟수
+	achievement_farming_id_care,	//돌보기 횟수
+	achievement_farming_id_harvest,		//수확 횟수
+	achievement_farming_id_output		//수확량
+};
+enum achievement_race_id {
+	achievement_race_id_try = 0, //참가 횟수
+	achievement_race_id_first,	//1등
+	achievement_race_id_second,	//2등
 };
 
 //HP lock
@@ -254,10 +277,13 @@ class logics
 {
 public:
 	logics() {
+		hInst = this;
 		srand((int)time(0));		
 		mRaceParticipants = new raceParticipants;
 	};
-	~logics() {};
+	~logics() {
+		hInst = NULL;
+	};
 	bool init(farmingFinshedNotiCallback
 		, tradeUpdatedCallback
 		, float trade_margin
@@ -290,6 +316,14 @@ public:
 
 	//경묘 메타 정보
 	void addRaceMeta(_race & race);
+
+	//achievement
+	int getAchievementSize(bool isDaily) {
+		return mAchievement.getSize(isDaily);
+	};
+	bool getAchievementDetail(bool isDaily, int idx, achievement::detail &p) {
+		return mAchievement.getDetail(isDaily, idx, p);
+	};
     
     //farming
     void addSeed(farming::seed * p){
@@ -325,6 +359,13 @@ public:
 	//auto recharge HP
 	//충전이 되면 true, 이미 만땅이거나 시간이 아니면 false
 	bool rechargeHP();
+	
+	//add inventory
+	bool addInventory(int itemId, int quantity);
+
+	//achievement
+	achievement mAchievement;
+	static logics * hInst;
 private:
 	//error messages
 	typedef vector<wstring> errorMessages;
@@ -379,9 +420,7 @@ private:
 
 	//SIA를 고려한 기본 스피드
 	int getBaseSpeed(int s, int i, int a);
-	
-	//add inventory
-	bool addInventory(int itemId, int quantity);
+		
 	//increase property
 	void addProperty(int strength, int intelligence, int appeal);
 	
@@ -431,9 +470,12 @@ private:
 
 	void printInven(inventoryType type, wstring &sz);
     
+	static void achievementCallback(bool isDaily, int idx);
+
     //farming
     farming mFarming;
 	//Trade
 	trade mTrade;
+	
 };
 

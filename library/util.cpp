@@ -18,6 +18,15 @@ int rounding(float f) {
 	return (int)round(f);
 }
 
+string loadJsonString(const char *path) {
+	ifstream fileopen;
+	fileopen.open(path, ios::in | ios::binary);
+	string str((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
+	fileopen.close();
+
+	return str;
+}
+
 wstring utf8_to_utf16(const string& utf8)
 {
 	std::vector<unsigned long> unicode;

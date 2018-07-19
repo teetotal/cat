@@ -15,6 +15,7 @@ public:
 		int rewardVal;		//보상 값(수량)
 
 		bool isFinished;
+		bool isReceived;
 	};
 
 	struct done {
@@ -25,11 +26,9 @@ public:
 
 	bool mIsRunThread;
 
-	bool init(achievementCallback fn);
+	bool init(string json, achievementCallback fn);
 	void finalize();
 
-	void addAchieve(bool isDaily, wstring title, int category, int id, int value, int rewardId, int rewardValue, bool isFinished);
-	
 	void push(int category, int id, int val); //모든 한일을 일단 queue에 넣는다.
 	
 	void accumulate(); //queue에 쌓인걸 누적한다.
@@ -39,6 +38,7 @@ public:
 	int getSize(bool isDaily) {
 		return (isDaily) ? (int)mDaily.size() : (int)mTotally.size();
 	}
+	bool rewardReceive(bool isDaily, int idx);
 private:	
 	struct achieve {
 		wstring title;
@@ -50,8 +50,9 @@ private:
 		int rewardValue;
 
 		bool isFinished;
+		bool isReceived;
 
-		achieve(wstring title, int category, int id, int value, int rewardId, int rewardValue, bool isFinished = false) {
+		achieve(wstring title, int category, int id, int value, int rewardId, int rewardValue, bool isFinished = false, bool isReceived = false) {
 			this->title = title;
 			this->category = category;
 			this->id = id;
@@ -60,6 +61,7 @@ private:
 			this->rewardId = rewardId;
 			this->rewardValue = rewardValue;
 			this->isFinished = isFinished;
+			this->isReceived = isReceived;
 		}
 	};
 	typedef vector<achieve*> achieveVector;
@@ -74,8 +76,18 @@ private:
 
 	achievementCallback mCallback;
 
+	bool loadConfig(string json);
 	int getAccumulation(int category, int id);
 	void calculate(bool isDaily, achieveVector * vec);
+	void addAchieve(bool isDaily
+		, wstring title
+		, int category
+		, int id
+		, int value
+		, int rewardId
+		, int rewardValue
+		, bool isFinished
+		, bool isReceived);
 	static void threadRun(achievement *);
 };
 

@@ -1,14 +1,22 @@
 ﻿#include "logics.h"
+logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB
 	, tradeUpdatedCallback tradeCB
 	, float trade_margin
 	, int trade_updateInterval
 	, int trade_weight) {
+
 	mFarming.init(farmCB);
 	mFarming.addField(0, 0);
+	
+	string szAchieve = loadJsonString(CONFIG_ACHIEVEMENT);
+	if (!mAchievement.init(szAchieve, achievementCallback))
+		return false;
 
-	mTrade.init(trade_margin, trade_updateInterval, trade_weight, tradeCB);
+	if (!mTrade.init(trade_margin, trade_updateInterval, trade_weight, tradeCB))
+		return false;
+
 	
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
@@ -18,6 +26,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 void logics::finalize() {
 	mFarming.finalize();
 	mTrade.finalize();
+	mAchievement.finalize();
 }
 void logics::printInven(inventoryType type, wstring &sz) {
 	vector<intPair> vec;
@@ -339,6 +348,8 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 		}
 	}
 	type = mTraining[id].type;
+	//업적
+	mAchievement.push(achievement_category_training, id, 1);
 	if (increaseExp())
 		return error_levelup;
 	return error_success;
@@ -370,6 +381,16 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 		return error_not_enough_item;
 
 	mActor->point += amount;
+
+	if (amount < 0) {
+		mAchievement.push(achievement_category_trade_buy, 0, 1);
+		mAchievement.push(achievement_category_trade_buy, id, quantity);
+	}
+	else if (amount > 0){
+		mAchievement.push(achievement_category_trade_sell, 0, 1);
+		mAchievement.push(achievement_category_trade_sell, id, quantity * -1);
+	}
+
 	if (increaseExp())
 		return error_levelup;
 	return error_success;
@@ -384,6 +405,7 @@ errorCode logics::runRecharge(int id, int quantity) {
 	}
 	int val = mItems[id].value * quantity;
 	increaseHP(val);
+	mAchievement.push(achievement_category_recharge, 0, quantity);
 	return error_success;
 }
 
@@ -616,6 +638,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 		}		
 	}
 	mRaceParticipants->push_back(p);
+	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);
 	if (increaseExp())
 		return error_levelup;
 
@@ -810,33 +833,40 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 }
 	 
 	 // 순위 결정
-	if(lastRank >= raceParticipantNum) {
-	//if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { 
-		ret = false;
-		for (int n = 0; n < mRaceParticipants->size(); n++) {
-			if (mRaceParticipants->at(n).rank == 0)
-				mRaceParticipants->at(n).rank = raceParticipantNum + 1;
-		}
-		//보상 지급
-		mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
-		for (int n = 0; n < mRace[mRaceCurrent.id].rewards.size(); n++) {
-			if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
-				mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
-				int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
-				int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
-				int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
-				addInventory(itemId, val);
+	 if (lastRank >= raceParticipantNum) {
+		 //if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { 
+		 ret = false;
+		 for (int n = 0; n < mRaceParticipants->size(); n++) {
+			 if (mRaceParticipants->at(n).rank == 0)
+				 mRaceParticipants->at(n).rank = raceParticipantNum + 1;
+		 }
+		 //보상 지급
+		 mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
+		 //업적
+		 if(mRaceCurrent.rank == 1)
+			 mAchievement.push(achievement_category_race, achievement_race_id_first, 1);
+		 else if (mRaceCurrent.rank == 2)
+			 mAchievement.push(achievement_category_race, achievement_race_id_second, 1);
+			 
+		 for (int n = 0; n < mRace[mRaceCurrent.id].rewards.size(); n++) {
+			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
+				 mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
+				 int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
+				 int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
+				 int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
+				 addInventory(itemId, val);
 
-				mRaceCurrent.prize = mRace[mRaceCurrent.id].rewards[n].prize;
-				mRaceCurrent.rewardItemId = itemId;
-				mRaceCurrent.rewardItemQuantity = val;
+				 mRaceCurrent.prize = mRace[mRaceCurrent.id].rewards[n].prize;
+				 mRaceCurrent.rewardItemId = itemId;
+				 mRaceCurrent.rewardItemQuantity = val;
 
-				break;
-			}
-		}
+				 break;
+			 }
+		 }
 	}		
-	else
-		ret = true;
+	 else {
+		 ret = true;
+	}
 
 	return mRaceParticipants;
 }
@@ -854,6 +884,9 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 	
 	mActor->inven.pushItem(getInventoryType(productId), productId, earning);
 	increaseExp();
+
+	mAchievement.push(achievement_category_farming, achievement_farming_id_harvest, 1);
+	mAchievement.push(achievement_category_farming, achievement_farming_id_output, earning);
 	return error_success;
 };
 
@@ -863,6 +896,7 @@ errorCode logics::farmingPlant(int idx, int seedId) {
 	if (!mActor->inven.popItem(inventoryType_farming, seedId, 1))
 		return error_not_enough_item;
 
+	mAchievement.push(achievement_category_farming, achievement_farming_id_plant, 1);
 	return error_success;
 };
 errorCode logics::farmingCare(int idx) {
@@ -873,6 +907,9 @@ errorCode logics::farmingCare(int idx) {
 		boost = farmGluttony * -1;
 	}
 	if (mFarming.care(idx, boost)) {
+
+		mAchievement.push(achievement_category_farming, achievement_farming_id_care, 1);
+
 		if (boost == 0)
 			return error_success;
 		else
@@ -880,3 +917,12 @@ errorCode logics::farmingCare(int idx) {
 	}
 	return error_farming_failure;
 };
+
+void logics::achievementCallback(bool isDaily, int idx) {
+	printf("%d achievementCallback \n", idx);
+	achievement::detail d;
+	hInst->mAchievement.getDetail(isDaily, idx, d);
+	hInst->mAchievement.rewardReceive(isDaily, idx);
+	hInst->addInventory(d.rewardId, d.rewardVal);
+
+}
