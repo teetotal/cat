@@ -14,7 +14,12 @@
     "appeal": 10
   },
   "inventory": {
-    "growth": [ ],
+    "growth": [
+      {
+        "id": 1,
+        "quantity": 10
+      }
+    ],
     "race": [ ],
     "adorn": [ ],
     "HP": [ ]

@@ -3,9 +3,29 @@ logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB
 	, tradeUpdatedCallback tradeCB
-	, float trade_margin
-	, int trade_updateInterval
-	, int trade_weight) {
+	) {
+
+	if (!initActor())
+		return false;
+
+	string szMeta = loadJsonString(CONFIG_META);
+	Document d;
+	d.Parse(szMeta.c_str());
+	if (d.HasParseError())
+		return false;
+
+	if(!initErrorMessage(d["errors"]))
+		return false;
+	if (!initItems(d["items"]))
+		return false;
+	if (!initSeed(d["seed"]))
+		return false;
+	if (!initTraining(d["training"]))
+		return false;
+	if (!initJobTitle(d["jobTitle"]))
+		return false;
+	if (!initRace(d["race"]))
+		return false;
 
 	mFarming.init(farmCB);
 	mFarming.addField(0, 0);
@@ -14,12 +34,215 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 	if (!mAchievement.init(szAchieve, achievementCallback))
 		return false;
 
-	if (!mTrade.init(trade_margin, trade_updateInterval, trade_weight, tradeCB))
+	//trade
+	float trade_margin = d["trade"]["margin"].GetFloat();
+	int trade_interval = d["trade"]["updateInterval"].GetInt();
+	int trade_weight = d["trade"]["levelWeight"].GetInt();
+
+	if (!mTrade.init(trade_margin, trade_interval, trade_weight, tradeCB))
 		return false;
 
 	
 	mActor->loginTime = time(0);
 	mActor->lastUpdateTime = mActor->loginTime;
+	return true;
+}
+void logics::insertInventory(Value &p, inventoryType type)
+{	
+	for (SizeType i = 0; i < p.Size(); i++) {
+		int id = p[i]["id"].GetInt();
+		int quantity = p[i]["quantity"].GetInt();
+		mActor->inven.pushItem(type, id, quantity);
+	}
+}
+/* private initialize */
+bool logics::initActor()
+{
+	string sz = loadJsonString(CONFIG_ACTOR);
+
+	Document d;
+	d.Parse(sz.c_str());
+	_actor* actor = new _actor;
+	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
+	actor->userId = d["userId"].GetString();
+
+	actor->name = utf8_to_utf16(string(d["name"].GetString()));
+	actor->id = d["id"].GetString();
+
+	actor->point = d["point"].GetInt();
+	actor->hp = d["hp"].GetInt();
+	actor->exp = d["exp"].GetInt();
+	actor->level = d["level"].GetInt();
+
+	actor->property.strength = d["property"]["strength"].GetInt();
+	actor->property.intelligence = d["property"]["intelligence"].GetInt();
+	actor->property.appeal = d["property"]["appeal"].GetInt();
+
+	const Value& collection = d["collection"];
+	for (SizeType i = 0; i < collection.Size(); i++) {
+		int id = collection[i].GetInt();
+		actor->collection[id] = true;
+	}
+
+	mActor = actor;
+	insertInventory(d["inventory"]["growth"], inventoryType_growth);
+	insertInventory(d["inventory"]["HP"], inventoryType_growth);
+	insertInventory(d["inventory"]["race"], inventoryType_growth);
+	insertInventory(d["inventory"]["adorn"], inventoryType_growth);
+
+	return true;
+}
+bool logics::initErrorMessage(Value & p)
+{
+	for (SizeType i = 0; i < p.Size(); i++)
+	{
+		addErrorMessage(utf8_to_utf16(p[i].GetString()));
+	}
+	return true;
+}
+bool logics::initItems(Value & p)
+{
+	for (SizeType i = 0; i < p.Size(); i++)
+	{
+		_item item;
+		item.id = p[i]["id"].GetInt();
+		item.type = (itemType)p[i]["type"].GetInt();
+		item.value = p[i]["value"].GetInt();
+		item.grade = p[i]["grade"].GetInt();
+		string sz = p[i]["name"].GetString();
+		item.name = utf8_to_utf16(sz);
+		insertItem(item);
+	}
+	return true;
+}
+bool logics::initSeed(Value & p)
+{
+	for (SizeType i = 0; i < p.Size(); i++)
+	{
+		farming::seed * seed = new farming::seed();
+		seed->id = p[i]["id"].GetInt();
+		seed->name = utf8_to_utf16(p[i]["name"].GetString());
+		seed->farmProductId = p[i]["farmProductId"].GetInt();
+		seed->outputMax = p[i]["outputMax"].GetInt();
+		seed->timeGrow = p[i]["timeGrow"].GetInt();
+		seed->cares = p[i]["cares"].GetInt();
+		seed->maxOvertime = p[i]["maxOvertime"].GetInt();
+		addSeed(seed);
+	}
+	return true;
+}
+bool logics::initTraining(Value & t)
+{
+	for (SizeType i = 0; i < t.Size(); i++) {
+		_training p;
+		for (int k = 0; k < maxTrainingItems; k++) {
+			p.reward.items[k] = NULL;
+			p.cost.items[k] = NULL;
+		}
+		p.id = t[i]["id"].GetInt();
+		string sz = t[i]["name"].GetString();
+		p.name = utf8_to_utf16(sz);
+		p.type = (trainingType)t[i]["type"].GetInt();
+		p.level = t[i]["level"].GetInt();
+
+		p.reward.strength = t[i]["reward"]["strength"].GetInt();
+		p.reward.intelligence = t[i]["reward"]["intelligence"].GetInt();
+		p.reward.appeal = t[i]["reward"]["appeal"].GetInt();
+		p.reward.point = t[i]["reward"]["point"].GetInt();
+
+		p.cost.strength = t[i]["cost"]["strength"].GetInt();
+		p.cost.intelligence = t[i]["cost"]["intelligence"].GetInt();
+		p.cost.appeal = t[i]["cost"]["appeal"].GetInt();
+		p.cost.point = t[i]["cost"]["point"].GetInt();
+
+		p.start = 0;
+		//  반짝 
+		if (t[i].HasMember("moment")) {
+			p.start = getTime(
+				t[i]["moment"]["start"]["hour"].GetInt()
+				, t[i]["moment"]["start"]["min"].GetInt()
+				, t[i]["moment"]["start"]["sec"].GetInt()
+			);
+			p.count = t[i]["moment"]["count"].GetInt();
+			p.keep = t[i]["moment"]["keep"].GetInt();
+			p.interval = t[i]["moment"]["keep"].GetInt();
+		}
+
+		const Value& item = t[i]["reward"]["items"];
+		for (SizeType m = 0; m < item.Size(); m++) {
+			if (m >= maxTrainingItems)
+				break;
+			_itemPair* pair = new _itemPair;
+			pair->itemId = item[m]["id"].GetInt();
+			pair->val = item[m]["quantity"].GetInt();
+			p.reward.items[m] = pair;
+		}
+
+		const Value& item2 = t[i]["cost"]["items"];
+		for (SizeType m = 0; m < item2.Size(); m++) {
+			if (m >= maxTrainingItems)
+				break;
+			_itemPair* pair = new _itemPair;
+			pair->itemId = item2[m]["id"].GetInt();
+			pair->val = item2[m]["quantity"].GetInt();
+			p.cost.items[m] = pair;
+		}
+		if (!insertTraining(p))
+			return false;
+	}
+	return true;
+}
+bool logics::initJobTitle(Value & job)
+{
+	setDefaultJobTitle(utf8_to_utf16(job["default"].GetString()));
+	const Value& jobPrefix = job["prefix"];
+	for (SizeType i = 0; i < jobPrefix.Size(); i++) {
+		_jobTitlePrefix p;
+		p.level = jobPrefix[i]["level"].GetInt();
+		p.title = utf8_to_utf16(jobPrefix[i]["title"].GetString());
+
+		addJobTitlePrefix(p);
+	}
+
+	const Value& jobBody = job["body"];
+	for (SizeType i = 0; i < jobBody.Size(); i++) {
+		_jobTitleBody p;
+		p.S = jobBody[i]["S"].GetInt();
+		p.I = jobBody[i]["I"].GetInt();
+		p.A = jobBody[i]["A"].GetInt();
+		p.title = utf8_to_utf16(jobBody[i]["title"].GetString());
+
+		addJobTitleBody(p);
+	}
+	return true;
+}
+bool logics::initRace(Value & race)
+{
+	for (SizeType i = 0; i < race.Size(); i++) {
+		_race r;
+		r.id = race[i]["id"].GetInt();
+		r.title = utf8_to_utf16(race[i]["title"].GetString());
+		r.fee = race[i]["fee"].GetInt();
+		r.length = race[i]["length"].GetInt();
+		r.level = race[i]["level"].GetInt();
+
+		const Value& rewards = race[i]["rewards"];
+		for (SizeType j = 0; j < rewards.Size(); j++) {
+			_raceReward rr;
+			rr.prize = rewards[j]["prize"].GetInt();
+
+			const Value& items = rewards[j]["items"];
+			for (SizeType k = 0; k < items.Size(); k++) {
+				_itemPair ip;
+				ip.itemId = items[k]["id"].GetInt();
+				ip.val = items[k]["quantity"].GetInt();
+
+				rr.items.push_back(ip);
+			}
+			r.rewards.push_back(rr);
+		}
+		addRaceMeta(r);
+	}
 	return true;
 }
 
@@ -28,6 +251,7 @@ void logics::finalize() {
 	mTrade.finalize();
 	mAchievement.finalize();
 }
+/* temporary print */
 void logics::printInven(inventoryType type, wstring &sz) {
 	vector<intPair> vec;
 	mActor->inven.getWarehouse(vec, type);
@@ -262,12 +486,6 @@ bool logics::setTradeMarketPrice() {
 	return true;
 }
 */
-bool logics::setActor(_actor* actor) {
-	mActor = actor;
-	return true;
-}
-
-
 errorCode logics::isValidTraining(int id) {
 	//check validation
 	if (mTraining.find(id) == mTraining.end() || isValidTraningTime(id) == false) {
@@ -926,3 +1144,28 @@ void logics::achievementCallback(bool isDaily, int idx) {
 	hInst->addInventory(d.rewardId, d.rewardVal);
 
 }
+
+inventoryType logics::getInventoryType(int itemId) {
+	_item item = mItems[itemId];
+	inventoryType t;
+	if (item.type >= itemType_training && item.type < itemType_hp) {
+		t = inventoryType_growth;
+	}
+	else if (item.type >= itemType_hp && item.type < itemType_race) {
+		t = inventoryType_HP;
+	}
+	else if (item.type >= itemType_race && item.type < itemType_adorn) {
+		t = inventoryType_race;
+	}
+	else if (item.type >= itemType_adorn && item.type < itemType_farming) {
+		t = inventoryType_adorn;
+	}
+	else if (item.type >= itemType_farming && item.type < itemType_max) {
+		t = inventoryType_farming;
+	}
+	else {
+		t = inventoryType_collection;
+	}
+
+	return t;
+};

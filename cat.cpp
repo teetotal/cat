@@ -37,9 +37,6 @@ bool _kbhit()
 }
 
 #endif
-#include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
 
 #ifdef _WIN32
 	#include <Windows.h>
@@ -80,8 +77,8 @@ void display(const char* sz, int sleep = 0, bool isCls = true) {
 	if(isCls)
 		cls();
 	printf("%s", sz);
-	if(sleep > 0)
-        std::this_thread::sleep_for(std::chrono::milliseconds(sleep));
+	if (sleep > 0)
+		sleepThisThread(sleep);
 }
 void intro() {
 	char sz[100] = { 0, };
@@ -127,12 +124,11 @@ void progress() {
 			else std::cout << " ";
 		}
 		std::cout << "] " << int(progress * 100.0) << " %\r";
-	
 
 		std::cout.flush();
 
 		progress += (float)0.12; // for demonstration only
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		sleepThisThread(200);		
 	}
 	std::cout << std::endl;
 }
@@ -143,7 +139,7 @@ void result(const wchar_t * sz, errorCode err = error_success) {
 	cls();
 	display(imgResult.c_str());
 	printf("%c[1;36m %ls %c[0m        \n\n", 27, sz, 27);
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	sleepThisThread(2000);
 	cls();
 }
 
@@ -273,7 +269,7 @@ void runRace() {
         disable_raw_mode();
         tcflush(0, TCIFLUSH); // Clear stdin to prevent characters appearing on prompt
 #endif
-		std::this_thread::sleep_for(std::chrono::milliseconds(RACE_SLEEP));
+		sleepThisThread(RACE_SLEEP);		
 	}
 	//순위 정보
 	//sort(p->begin(), p->end());
@@ -288,7 +284,7 @@ void runRace() {
 			, 27
 			, p->at(n).shootItemCount
 			);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		sleepThisThread(1000);
 	}
 
 	//결과처리
@@ -305,18 +301,6 @@ void runRace() {
 	result(sz.c_str());
 }
 
-
-time_t getTime(int hour, int min, int sec) {
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	ltm->tm_hour = hour;
-	ltm->tm_min = min;
-	ltm->tm_sec = sec;
-	
-	return mktime(ltm);
-
-}
-
 void farmNotice(int fieldId) {
 	printf("%d 농작물을 수확하세요 늦으면 썩어버립니다. \n", fieldId);
 }
@@ -326,236 +310,16 @@ void tradeNotice(time_t updated) {
 }
 
 bool init() {
-	//setlocale(LC_ALL, "en_US.UTF-8");
-	//setlocale(LC_ALL, "");
+	//setlocale(LC_ALL, "en_US.UTF-8");	
 #ifdef _WIN32
 	_wsetlocale(LC_ALL, L"korean");
 #else
     setlocale( LC_ALL, "" );
     fwide( stdout, -1 );
-#endif
-
-	std::ifstream fileopen;
-	fileopen.open("resource/meta.json", ios::in | ios::binary);
-	std::string str((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
-	fileopen.close();
-
-
-	Document d;
-	d.Parse(str.c_str());
-	//error message
-	const Value& valueErr = d["errors"];
-	for (SizeType i = 0; i < valueErr.Size(); i++)
-	{
-		logic.addErrorMessage(utf8_to_utf16(valueErr[i].GetString()));
-	}
-	//trade
-	float trade_margin = d["trade"]["margin"].GetFloat();
-	int trade_interval = d["trade"]["updateInterval"].GetInt();
-	int trade_weight = d["trade"]["levelWeight"].GetInt();
-
-	//Add Items
-	const Value& valueInfo = d["items"];
-	for (SizeType i = 0; i < valueInfo.Size(); i++)
-	{
-		_item p;
-		p.id = valueInfo[i]["id"].GetInt();
-		p.type = (itemType)valueInfo[i]["type"].GetInt();
-		p.value = valueInfo[i]["value"].GetInt();
-		p.grade = valueInfo[i]["grade"].GetInt();
-		string sz = valueInfo[i]["name"].GetString();
-		p.name = utf8_to_utf16(sz);
-		logic.insertItem(p);
-	}
-    //Add seed
-    const Value& seeds = d["seed"];
-    for (SizeType i = 0; i < seeds.Size(); i++)
-    {
-        farming::seed * p = new farming::seed();
-        p->id = seeds[i]["id"].GetInt();
-        p->name = utf8_to_utf16(seeds[i]["name"].GetString());
-		p->farmProductId = seeds[i]["farmProductId"].GetInt();
-        p->outputMax = seeds[i]["outputMax"].GetInt();
-        p->timeGrow = seeds[i]["timeGrow"].GetInt();
-        p->cares = seeds[i]["cares"].GetInt();
-        p->maxOvertime = seeds[i]["maxOvertime"].GetInt();
-        logic.addSeed(p);
-    }
-
-	const  Value& t = d["training"];
-	for (SizeType i = 0; i < t.Size(); i++) {
-		_training p;
-		for (int k = 0; k < maxTrainingItems; k++) {
-			p.reward.items[k] = NULL;
-			p.cost.items[k] = NULL;
-		}
-		p.id = t[i]["id"].GetInt();
-		string sz = t[i]["name"].GetString();
-		p.name = utf8_to_utf16(sz);
-		p.type = (trainingType)t[i]["type"].GetInt();
-		p.level = t[i]["level"].GetInt();
-
-		p.reward.strength = t[i]["reward"]["strength"].GetInt();
-		p.reward.intelligence = t[i]["reward"]["intelligence"].GetInt();
-		p.reward.appeal = t[i]["reward"]["appeal"].GetInt();
-		p.reward.point = t[i]["reward"]["point"].GetInt();
-
-		p.cost.strength = t[i]["cost"]["strength"].GetInt();
-		p.cost.intelligence = t[i]["cost"]["intelligence"].GetInt();
-		p.cost.appeal = t[i]["cost"]["appeal"].GetInt();
-		p.cost.point = t[i]["cost"]["point"].GetInt();
-		
-		p.start = 0;
-		//  반짝 
-		if (t[i].HasMember("moment")) {
-			p.start = getTime(
-				t[i]["moment"]["start"]["hour"].GetInt()
-				, t[i]["moment"]["start"]["min"].GetInt()
-				, t[i]["moment"]["start"]["sec"].GetInt()
-			);
-			p.count = t[i]["moment"]["count"].GetInt();
-			p.keep = t[i]["moment"]["keep"].GetInt();
-			p.interval = t[i]["moment"]["keep"].GetInt();
-
-		}
-
-		const Value& item = t[i]["reward"]["items"];
-		for (SizeType m = 0; m < item.Size(); m++) {
-			if (m >= maxTrainingItems)
-				break;
-			_itemPair* pair = new _itemPair;
-			pair->itemId = item[m]["id"].GetInt();
-			pair->val = item[m]["quantity"].GetInt();
-			p.reward.items[m] = pair;
-		}
-
-		const Value& item2 = t[i]["cost"]["items"];
-		for (SizeType m = 0; m < item2.Size(); m++) {
-			if (m >= maxTrainingItems)
-				break;
-			_itemPair* pair = new _itemPair;
-			pair->itemId = item2[m]["id"].GetInt();
-			pair->val = item2[m]["quantity"].GetInt();
-			p.cost.items[m] = pair;
-		}
-		logic.insertTraining(p);
-	}
-
-	//jobTitle
-	const Value& job = d["jobTitle"];
-	logic.setDefaultJobTitle(utf8_to_utf16(job["default"].GetString()));
-	const Value& jobPrefix = job["prefix"];
-	for (SizeType i = 0; i < jobPrefix.Size(); i++) {
-		_jobTitlePrefix p;
-		p.level = jobPrefix[i]["level"].GetInt();
-		p.title = utf8_to_utf16(jobPrefix[i]["title"].GetString());
-
-		logic.addJobTitlePrefix(p);
-	}
-
-	const Value& jobBody = job["body"];
-	for (SizeType i = 0; i < jobBody.Size(); i++) {
-		_jobTitleBody p;
-		p.S = jobBody[i]["S"].GetInt();
-		p.I = jobBody[i]["I"].GetInt();
-		p.A = jobBody[i]["A"].GetInt();
-		p.title = utf8_to_utf16(jobBody[i]["title"].GetString());
-
-		logic.addJobTitleBody(p);
-	}
-
-	//Race Meta
-	const Value& race = d["race"];
-	for (SizeType i = 0; i < race.Size(); i++) {
-		_race r;
-		r.id = race[i]["id"].GetInt();
-		r.title = utf8_to_utf16(race[i]["title"].GetString());
-		r.fee = race[i]["fee"].GetInt();
-		r.length = race[i]["length"].GetInt();
-		r.level = race[i]["level"].GetInt();
-
-		const Value& rewards = race[i]["rewards"];
-		for (SizeType j = 0; j < rewards.Size(); j++) {
-			_raceReward rr;
-			rr.prize = rewards[j]["prize"].GetInt();
-
-			const Value& items = rewards[j]["items"];
-			for (SizeType k = 0; k < items.Size(); k++) {
-				_itemPair ip;
-				ip.itemId = items[k]["id"].GetInt();
-				ip.val = items[k]["quantity"].GetInt();
-
-				rr.items.push_back(ip);
-			}
-			r.rewards.push_back(rr);
-		}
-		logic.addRaceMeta(r);
-	}
-	
-
-	//Set Actor
-
-	fileopen.open("resource/actor.json", ios::in | ios::binary);
-	std::string sz((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
-	fileopen.close();
-
-	Document d2;
-	d2.Parse(sz.c_str());
-	_actor* actor = new _actor;
-	actor->userName = utf8_to_utf16(string(d2["userName"].GetString()));
-	actor->userId = d2["userId"].GetString();
-
-	actor->name = utf8_to_utf16(string(d2["name"].GetString()));
-	actor->id = d2["id"].GetString();
-
-	actor->point = d2["point"].GetInt();
-	actor->hp = d2["hp"].GetInt();
-	actor->exp = d2["exp"].GetInt();
-	actor->level = d2["level"].GetInt();
-
-	actor->property.strength = d2["property"]["strength"].GetInt();
-	actor->property.intelligence = d2["property"]["intelligence"].GetInt();
-	actor->property.appeal = d2["property"]["appeal"].GetInt();
-
-	//인벤토리
-	const Value& growth = d2["inventory"]["growth"];
-	for (SizeType i = 0; i < growth.Size(); i++) {
-		int id = growth[i]["id"].GetInt();
-		int quantity = growth[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_growth, id, quantity);
-		//actor->inventory.growth[id] = quantity;
-	}
-	const Value& hp = d2["inventory"]["HP"];
-	for (SizeType i = 0; i < hp.Size(); i++) {
-		int id = growth[i]["id"].GetInt();
-		int quantity = growth[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_HP, id, quantity);
-		//actor->inventory.growth[id] = quantity;
-	}
-	const Value& raceItem = d2["inventory"]["race"];
-	for (SizeType i = 0; i < raceItem.Size(); i++) {
-		int id = raceItem[i]["id"].GetInt();
-		int quantity = raceItem[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_race, id, quantity);
-		//actor->inventory.race[id] = quantity;
-	}
-	const Value& adorn = d2["inventory"]["adorn"];
-	for (SizeType i = 0; i < adorn.Size(); i++) {
-		int id = adorn[i]["id"].GetInt();
-		int quantity = adorn[i]["quantity"].GetInt();
-		actor->inven.pushItem(inventoryType_adorn, id, quantity);
-		//actor->inventory.adorn[id] = quantity;
-	}
-	const Value& collection = d2["collection"];
-	for (SizeType i = 0; i < collection.Size(); i++) {
-		int id = collection[i].GetInt();		
-		actor->collection[id] = true;
-	}
-
-	logic.setActor(actor);
-
-	if(!logic.init(farmNotice, tradeNotice, trade_margin, trade_interval, trade_weight))
+#endif	
+	if(!logic.init(farmNotice, tradeNotice))
 		return false;
+	
 	logic.print(3);
 
 	return true;
@@ -832,8 +596,7 @@ bool ask() {
 }
 
 int main()
-{
-	
+{	
 	if (!init())
 		return -1;
 	intro();

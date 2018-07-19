@@ -168,7 +168,6 @@
     <ClInclude Include="library\trade.h" />
     <ClInclude Include="library\util.h" />
     <ClInclude Include="logics.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

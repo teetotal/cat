@@ -27,6 +27,17 @@ string loadJsonString(const char *path) {
 	return str;
 }
 
+time_t getTime(int hour, int min, int sec) {
+	time_t now = time(0);
+	tm *ltm = localtime(&now);
+	ltm->tm_hour = hour;
+	ltm->tm_min = min;
+	ltm->tm_sec = sec;
+
+	return mktime(ltm);
+
+}
+
 wstring utf8_to_utf16(const string& utf8)
 {
 	std::vector<unsigned long> unicode;

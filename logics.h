@@ -285,15 +285,12 @@ public:
 		hInst = NULL;
 	};
 	bool init(farmingFinshedNotiCallback
-		, tradeUpdatedCallback
-		, float trade_margin
-		, int trade_updateInterval
-		, int trade_weight
+		, tradeUpdatedCallback		
 	);
 	void finalize();
 	bool insertItem(_item);	
 	bool insertTraining(_training);
-	bool setActor(_actor*);
+	
 	void print(int type = 0);
 	
 	_item getItem(int id) {
@@ -356,8 +353,7 @@ public:
 	//charge
 	errorCode runRecharge(int id, int quantity);	
 
-	//auto recharge HP
-	//충전이 되면 true, 이미 만땅이거나 시간이 아니면 false
+	//auto recharge HP 충전이 되면 true, 이미 만땅이거나 시간이 아니면 false
 	bool rechargeHP();
 	
 	//add inventory
@@ -393,34 +389,25 @@ private:
 
 	//경묘
 	raceParticipants* mRaceParticipants;
-
 	typedef map<int, _race> raceMeta;
-	raceMeta mRace;
-		
-	_raceCurrent mRaceCurrent;
-	
+	raceMeta mRace;		
+	_raceCurrent mRaceCurrent;	
 	//경묘용 아이템만 따로 모아논 벡터
 	typedef vector<int> intVector;
 	intVector mItemRace;
-
 	//race 랜덤 아이템
 	int getRandomRaceItem();
-
 	//race 아이템 발동 by Actor
 	void invokeRaceItemByIdx(int seq, int itemIdx);
-
 	//race 아이템 발동
 	void invokeRaceItem(int seq, itemType type, int quantity, int currentRank);
-
 	//race AI 아이템 발동
 	void invokeRaceItemAI();
-
 	//race 순위에 아이템 적용
 	void invokeRaceByRank(int rank, itemType type, int quantity);
-
 	//SIA를 고려한 기본 스피드
 	int getBaseSpeed(int s, int i, int a);
-		
+	
 	//increase property
 	void addProperty(int strength, int intelligence, int appeal);
 	
@@ -443,33 +430,17 @@ private:
 	//set jobTitle
 	void setJobTitle();
 
-	inventoryType getInventoryType(int itemId) {
-		_item item = mItems[itemId];
-		inventoryType t;
-		if (item.type >= itemType_training && item.type < itemType_hp) {
-			t = inventoryType_growth;
-		}
-		else if (item.type >= itemType_hp && item.type < itemType_race) {
-			t = inventoryType_HP;
-		}
-		else if (item.type >= itemType_race && item.type < itemType_adorn) {
-			t = inventoryType_race;
-		}
-		else if (item.type >= itemType_adorn && item.type < itemType_farming) {
-			t = inventoryType_adorn;
-		}
-		else if (item.type >= itemType_farming && item.type < itemType_max) {
-			t = inventoryType_farming;
-		}
-		else {
-			t = inventoryType_collection;
-		}
+	inventoryType getInventoryType(int itemId);
 
-		return t;
-	};
-
-	void printInven(inventoryType type, wstring &sz);
-    
+	bool initActor();
+	void insertInventory(Value &p, inventoryType type);
+	bool initErrorMessage(Value &p);
+	bool initItems(Value &p);
+	bool initSeed(Value &p);
+	bool initTraining(Value &p);
+	bool initJobTitle(Value &p);
+	bool initRace(Value &p);
+	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallback(bool isDaily, int idx);
 
     //farming
