@@ -67,7 +67,8 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	}
 	field * f = mFields[fieldIdx];
 	seed * s = mSeed[f->seedId];
-	
+	output = 0;
+	farmProductId = 0;
 	//time_t now = getNow();
 	//if (f->timePlant + s->timeGrow >= now) {
 	if (f->status == farming_status_grown || f->status == farming_status_decay){

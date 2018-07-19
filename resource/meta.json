@@ -203,7 +203,7 @@
       "outputMax": 10,
       "timeGrow": 15,
       "cares": 1,
-      "maxOvertime": 10
+      "maxOvertime": 60
     },
     {
       "id": 401,
@@ -212,7 +212,7 @@
       "outputMax": 20,
       "timeGrow": 30,
       "cares": 2,
-      "maxOvertime": 30
+      "maxOvertime": 90
     },
     {
       "id": 402,
@@ -221,7 +221,7 @@
       "outputMax": 30,
       "timeGrow": 60,
       "cares": 3,
-      "maxOvertime": 60
+      "maxOvertime": 180
     }
   ],
   "race": [
@@ -271,7 +271,7 @@
           "prize": 700,
           "items": [
             {
-              "id": 1006,
+              "id": 1100,
               "quantity": 3
             },
             {

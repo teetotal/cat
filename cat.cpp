@@ -183,7 +183,8 @@ void printRaceRunning(int id, _raceParticipant *p) {
 }
 void runRace() {
 #ifdef _WIN32
-	const int line = 50;
+	//const int line = 50;
+	const int line = 103;
 #else
 	const int line = 103;
 #endif
@@ -205,16 +206,19 @@ void runRace() {
 		string sz;
 		for (int n = 0; n < line; n++)
 			sz += "━";
-		printf("%s┓\n", sz.c_str());
+		printf("%s━\n", sz.c_str());
 		for (int n = 0; n < p->size(); n++) {
 			printRaceRunning(n, &p->at(n));
-			printf("\n");
+			if(n < p->size() -1)
+				printf("\n━━━━%s\n", sz.c_str());
+			else
+				printf("\n");
 		}
 		printf("%c[0m━━━", 27);
 		sz = "";
 		for (int n = 0; n < line; n++)
 			sz += "━";
-		printf("%s┛\n", sz.c_str());
+		printf("%s━\n", sz.c_str());
 
 		//당하고 있는 스킬
 		if (p->at(raceParticipantNum).currentSuffer != itemType_max) {
