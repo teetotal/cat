@@ -6,7 +6,6 @@
 #include "library/achievement.h"
 
 #include <locale>
-#include <codecvt>
 #include <algorithm>
 
 //Config
@@ -277,11 +276,14 @@ class logics
 {
 public:
 	logics() {
+		mIsFinalized = false;
 		hInst = this;
 		srand((int)time(0));		
 		mRaceParticipants = new raceParticipants;
 	};
 	~logics() {
+		if(!mIsFinalized)
+			finalize();
 		hInst = NULL;
 	};
 	bool init(farmingFinshedNotiCallback
@@ -442,11 +444,14 @@ private:
 	bool initRace(Value &p);
 	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallback(bool isDaily, int idx);
-
+	void saveActor();
+	void saveActorInventory(Document &d, Value &v, inventoryType type);
     //farming
     farming mFarming;
 	//Trade
 	trade mTrade;
+
+	bool mIsFinalized;
 	
 };
 

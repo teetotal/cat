@@ -3,7 +3,7 @@
   "userName": "대꼬",
   "id": "cat123",
   "name": "꼼냥이",
-  "title": 0,
+  "jobTitle": "",
   "point": 1600,
   "hp": 4,
   "exp": 0,
@@ -22,7 +22,8 @@
     ],
     "race": [ ],
     "adorn": [ ],
-    "HP": [ ]
+    "HP": [ ],
+    "farming": []
   },
   "collection": []
 }

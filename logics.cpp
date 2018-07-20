@@ -69,6 +69,8 @@ bool logics::initActor()
 	actor->name = utf8_to_utf16(string(d["name"].GetString()));
 	actor->id = d["id"].GetString();
 
+	actor->jobTitle = utf8_to_utf16(string(d["jobTitle"].GetString()));
+
 	actor->point = d["point"].GetInt();
 	actor->hp = d["hp"].GetInt();
 	actor->exp = d["exp"].GetInt();
@@ -86,9 +88,10 @@ bool logics::initActor()
 
 	mActor = actor;
 	insertInventory(d["inventory"]["growth"], inventoryType_growth);
-	insertInventory(d["inventory"]["HP"], inventoryType_growth);
-	insertInventory(d["inventory"]["race"], inventoryType_growth);
-	insertInventory(d["inventory"]["adorn"], inventoryType_growth);
+	insertInventory(d["inventory"]["HP"], inventoryType_HP);
+	insertInventory(d["inventory"]["race"], inventoryType_race);
+	insertInventory(d["inventory"]["adorn"], inventoryType_adorn);
+	insertInventory(d["inventory"]["farming"], inventoryType_farming);
 
 	return true;
 }
@@ -247,9 +250,11 @@ bool logics::initRace(Value & race)
 }
 
 void logics::finalize() {
+	mIsFinalized = true;
+	saveActor();
 	mFarming.finalize();
 	mTrade.finalize();
-	mAchievement.finalize();
+	mAchievement.finalize();	
 }
 /* temporary print */
 void logics::printInven(inventoryType type, wstring &sz) {
@@ -661,9 +666,9 @@ bool logics::increaseExp() {
 
 		//set job title
 		setJobTitle();
+		
 		return true;
-	}
-
+	}	
 	return false;
 }
 int logics::getMaxExp() {
@@ -789,6 +794,7 @@ void logics::setJobTitle() {
 	}
 
 	mActor->jobTitle = szPrefix + L" " + szBody;
+	
 	return;
 }
 
@@ -1168,4 +1174,68 @@ inventoryType logics::getInventoryType(int itemId) {
 	}
 
 	return t;
-};
+}
+void logics::saveActorInventory(Document &d, Value &v, inventoryType type) {
+	vector<intPair> vec;
+	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+	mActor->inven.getWarehouse(vec, type);
+	for (int n = 0; n < vec.size(); n++) {
+		
+		Value objValue;
+		objValue.SetObject();
+		objValue.AddMember("id", vec[n].key, allocator);
+		objValue.AddMember("quantity", vec[n].val, allocator);
+
+		v.PushBack(objValue, allocator);
+	}
+}
+
+void logics::saveActor() {
+	string sz = loadJsonString(CONFIG_ACTOR);
+	Document d;
+	d.Parse(sz.c_str());
+	
+	string userName = wstring_to_utf8(mActor->userName);
+	d["userName"] = StringRef(userName.c_str());
+	d["userId"] = StringRef(mActor->userId.c_str());
+	d["id"] = StringRef(mActor->id.c_str());
+	string name = wstring_to_utf8(mActor->name);
+	d["name"] = StringRef(name.c_str());
+	string jobTitle = wstring_to_utf8(mActor->jobTitle);
+	d["jobTitle"] = StringRef(jobTitle.c_str());
+	d["point"].SetInt(mActor->point);
+	d["hp"].SetInt(mActor->hp);
+	d["exp"].SetInt(mActor->exp);
+	d["level"].SetInt(mActor->level);
+	d["property"]["strength"].SetInt(mActor->property.strength);
+	d["property"]["intelligence"].SetInt(mActor->property.intelligence);
+	d["property"]["appeal"].SetInt(mActor->property.appeal);
+
+	d["inventory"]["growth"].Clear();
+	saveActorInventory(d, d["inventory"]["growth"], inventoryType_growth);
+	d["inventory"]["race"].Clear();
+	saveActorInventory(d, d["inventory"]["race"], inventoryType_race);
+	d["inventory"]["adorn"].Clear();
+	saveActorInventory(d, d["inventory"]["adorn"], inventoryType_adorn);
+	d["inventory"]["HP"].Clear();
+	saveActorInventory(d, d["inventory"]["HP"], inventoryType_HP);
+	d["inventory"]["farming"].Clear();
+	saveActorInventory(d, d["inventory"]["farming"], inventoryType_farming);
+
+	d["collection"].Clear();		
+	for (keyBoolMap::iterator it = mActor->collection.begin(); it != mActor->collection.end(); ++it) {		
+		if(it->second == true)
+			d["collection"].PushBack(it->first, d.GetAllocator());
+	}
+
+	rapidjson::StringBuffer buffer;
+	buffer.Clear();
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	d.Accept(writer);
+	printf("%s \n", buffer.GetString());
+		
+	string input(buffer.GetString());
+	std::ofstream out("output.json");
+	out << input;
+	out.close();
+}

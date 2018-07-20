@@ -37,7 +37,17 @@ time_t getTime(int hour, int min, int sec) {
 	return mktime(ltm);
 
 }
+string wstring_to_utf8(const wstring& str)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	return myconv.to_bytes(str);
+}
 
+wstring utf8_to_utf16(const string& str){
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	return myconv.from_bytes(str);
+}
+/*
 wstring utf8_to_utf16(const string& utf8)
 {
 	std::vector<unsigned long> unicode;
@@ -109,3 +119,4 @@ wstring utf8_to_utf16(const string& utf8)
 	}
 	return utf16;
 }
+*/
