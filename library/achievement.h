@@ -6,6 +6,8 @@ public:
 	achievement() {};
 	virtual ~achievement() {};
 
+	typedef map<int, intMap *> intDoubleDepthMap;
+
 	struct detail {
 		wstring title;
 		int goal;			//목표
@@ -39,6 +41,10 @@ public:
 		return (isDaily) ? (int)mDaily.size() : (int)mTotally.size();
 	}
 	bool rewardReceive(bool isDaily, int idx);
+
+	intDoubleDepthMap * getAccumulation() {
+		return &mAccumulation;
+	};
 private:	
 	struct achieve {
 		wstring title;
@@ -69,7 +75,7 @@ private:
 	achieveVector mTotally;		//누적
 
 	queue<done> mQueue;
-	map<int, intMap *> mAccumulation;
+	intDoubleDepthMap mAccumulation;
 
 	thread * mThread;
 	mutex mLock;

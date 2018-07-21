@@ -18,7 +18,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 		return false;
 	if (!initItems(d["items"]))
 		return false;
-	if (!initSeed(d["seed"]))
+	if (!initSeed(d["farming"], d["seed"]))
 		return false;
 	if (!initTraining(d["training"]))
 		return false;
@@ -28,7 +28,6 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 		return false;
 
 	mFarming.init(farmCB);
-	mFarming.addField(0, 0);
 	
 	string szAchieve = loadJsonString(CONFIG_ACHIEVEMENT);
 	if (!mAchievement.init(szAchieve, achievementCallback))
@@ -42,9 +41,6 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 	if (!mTrade.init(trade_margin, trade_interval, trade_weight, tradeCB))
 		return false;
 
-	
-	mActor->loginTime = time(0);
-	mActor->lastUpdateTime = mActor->loginTime;
 	return true;
 }
 void logics::insertInventory(Value &p, inventoryType type)
@@ -69,6 +65,10 @@ bool logics::initActor()
 	actor->name = utf8_to_utf16(string(d["name"].GetString()));
 	actor->id = d["id"].GetString();
 
+	actor->lastLoginLoginTime = getNow();
+	actor->lastLoginLogoutTime = d["lastLoginLogoutTime"].GetInt64();
+	actor->lastHPUpdateTime = d["lastHPUpdateTime"].GetInt64();
+
 	actor->jobTitle = utf8_to_utf16(string(d["jobTitle"].GetString()));
 
 	actor->point = d["point"].GetInt();
@@ -92,6 +92,27 @@ bool logics::initActor()
 	insertInventory(d["inventory"]["race"], inventoryType_race);
 	insertInventory(d["inventory"]["adorn"], inventoryType_adorn);
 	insertInventory(d["inventory"]["farming"], inventoryType_farming);
+
+	//farming
+	const Value& farms = d["farming"];
+	for (SizeType i = 0; i < farms.Size(); i++) {
+		mFarming.addField(
+			farms[i]["id"].GetInt()
+			, farms[i]["x"].GetInt()
+			, farms[i]["y"].GetInt()
+			, farms[i]["seedId"].GetInt()
+			, (farming::farming_status)farms[i]["status"].GetInt()
+			, farms[i]["timePlant"].GetInt64()
+			, farms[i]["cntCare"].GetInt()
+			, farms[i]["timeLastGrow"].GetInt64()
+			, farms[i]["boost"].GetInt()
+		);
+	}
+	//save backup
+	saveFile(CONFIG_ACTOR_BACKUP, sz);
+
+	mIsRunThread = true;
+	mThread = new thread(threadRun);
 
 	return true;
 }
@@ -118,8 +139,10 @@ bool logics::initItems(Value & p)
 	}
 	return true;
 }
-bool logics::initSeed(Value & p)
+bool logics::initSeed(Value & farming, Value & p)
 {
+	mFarmingExtendFee = farming["extendFee"].GetInt();
+
 	for (SizeType i = 0; i < p.Size(); i++)
 	{
 		farming::seed * seed = new farming::seed();
@@ -250,8 +273,11 @@ bool logics::initRace(Value & race)
 }
 
 void logics::finalize() {
+	mActor->lastLoginLogoutTime = getNow();
 	mIsFinalized = true;
 	saveActor();
+	mIsRunThread = false;
+	mThread->join();
 	mFarming.finalize();
 	mTrade.finalize();
 	mAchievement.finalize();	
@@ -708,8 +734,8 @@ int logics::getHP() {
 
 bool logics::rechargeHP() {
 	time_t now = time(0);
-	if (now - mActor->lastUpdateTime >= HPIncreaseInterval) {
-		mActor->lastUpdateTime = now;
+	if (now - mActor->lastHPUpdateTime >= HPIncreaseInterval) {
+		mActor->lastHPUpdateTime = now;
 		return increaseHP(1);
 	}
 	return false;
@@ -1140,7 +1166,20 @@ errorCode logics::farmingCare(int idx) {
 			return error_farming_gluttony;
 	}
 	return error_farming_failure;
-};
+}
+errorCode logics::farmingExtend()
+{
+	if (mActor->point < mFarmingExtendFee)
+		return error_not_enough_point;
+	
+	mActor->point -= mFarmingExtendFee;
+
+	mFarming.addField(mFarming.countField(), 0);
+	if (increaseExp())
+		return error_levelup;
+	return error_success;
+}
+;
 
 void logics::achievementCallback(bool isDaily, int idx) {
 	printf("%d achievementCallback \n", idx);
@@ -1149,6 +1188,19 @@ void logics::achievementCallback(bool isDaily, int idx) {
 	hInst->mAchievement.rewardReceive(isDaily, idx);
 	hInst->addInventory(d.rewardId, d.rewardVal);
 
+}
+
+void logics::threadRun()
+{
+	int count = 0;
+	while (logics::hInst->mIsRunThread) {
+		sleepThisThread(SEC);
+		if (count >= actorSaveInterval) {
+			logics::hInst->saveActor();
+			count = 0;
+		}
+		count++;
+	}
 }
 
 inventoryType logics::getInventoryType(int itemId) {
@@ -1201,6 +1253,10 @@ void logics::saveActor() {
 	d["id"] = StringRef(mActor->id.c_str());
 	string name = wstring_to_utf8(mActor->name);
 	d["name"] = StringRef(name.c_str());
+	d["lastLoginLoginTime"].SetInt64(mActor->lastLoginLoginTime);
+	d["lastLoginLogoutTime"].SetInt64(mActor->lastLoginLogoutTime);
+	d["lastHPUpdateTime"].SetInt64(mActor->lastHPUpdateTime);
+
 	string jobTitle = wstring_to_utf8(mActor->jobTitle);
 	d["jobTitle"] = StringRef(jobTitle.c_str());
 	d["point"].SetInt(mActor->point);
@@ -1228,14 +1284,88 @@ void logics::saveActor() {
 			d["collection"].PushBack(it->first, d.GetAllocator());
 	}
 
+	d["farming"].Clear();
+	farming::fields* f = mFarming.getFields();
+	for (int n = 0; n < f->size(); n++) {
+		if (f->at(n)) {
+			Value objValue;
+			objValue.SetObject();
+			objValue.AddMember("id"	, f->at(n)->id, d.GetAllocator());
+			objValue.AddMember("x"	, f->at(n)->x, d.GetAllocator());
+			objValue.AddMember("y"	, f->at(n)->y, d.GetAllocator());
+			objValue.AddMember("seedId", f->at(n)->seedId, d.GetAllocator());
+			objValue.AddMember("status", (int)f->at(n)->status, d.GetAllocator());
+			objValue.AddMember("timePlant", f->at(n)->timePlant, d.GetAllocator());
+			objValue.AddMember("cntCare", f->at(n)->cntCare, d.GetAllocator());
+			objValue.AddMember("timeLastGrow", f->at(n)->timeLastGrow, d.GetAllocator());
+			objValue.AddMember("boost", f->at(n)->boost, d.GetAllocator());
+		
+			d["farming"].PushBack(objValue, d.GetAllocator());
+		}
+	}
+	d["achievement"]["accumulation"].RemoveAllMembers();
+	const Value& accumulation = d["achievement"]["accumulation"];
+	
+	queue<char*> gabages;
+	achievement::intDoubleDepthMap * pAccumulation = mAchievement.getAccumulation();
+	for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
+		intMap * pIntMap = it->second;
+		//char category[10] = { 0 };
+		char* category = intToChar(it->first);
+		gabages.push(category);
+		/*
+		string sz;
+		sz += to_string(it->first);
+		//itoa(it->first, category, 10);
+		category = sz.c_str();
+		*/
+		/*
+		switch (it->first) {
+		case 0:
+			category = "0";
+			break;
+		case 1:
+			category = "1";
+			break;
+		case 2:
+			category = "2";
+			break;
+		case 3:
+			category = "3";
+			break;
+		case 4:
+			category = "4";
+			break;
+		}*/
+		if (d["achievement"]["accumulation"].HasMember(StringRef(category)) == false) {
+			Value arr;
+			arr.SetArray();
+			d["achievement"]["accumulation"].AddMember(StringRef(category), arr, d.GetAllocator());
+		}
+		for (intMap::iterator it2 = pIntMap->begin(); it2 != pIntMap->end(); ++it2) {
+			Value objValue;
+			objValue.SetObject();
+			objValue.AddMember("id", it2->first, d.GetAllocator());
+			objValue.AddMember("value", it2->second, d.GetAllocator());
+
+			d["achievement"]["accumulation"].FindMember(StringRef(category))->value.PushBack(objValue, d.GetAllocator());
+			//d["achievement"]["accumulation"][category].PushBack(objValue, d.GetAllocator());
+			
+		}
+	}
+
 	rapidjson::StringBuffer buffer;
 	buffer.Clear();
 	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 	d.Accept(writer);
-	printf("%s \n", buffer.GetString());
+	//printf("%s \n", buffer.GetString());
 		
 	string input(buffer.GetString());
-	std::ofstream out("output.json");
-	out << input;
-	out.close();
+	saveFile(CONFIG_ACTOR, input);
+
+	while (gabages.size() > 0) {
+		char * p = gabages.front();
+		gabages.pop();
+		delete p;
+	}
 }

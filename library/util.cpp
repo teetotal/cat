@@ -27,6 +27,12 @@ string loadJsonString(const char *path) {
 	return str;
 }
 
+void saveFile(const char* path, string sz) {
+	std::ofstream out(path);
+	out << sz;
+	out.close();
+}
+
 time_t getTime(int hour, int min, int sec) {
 	time_t now = time(0);
 	tm *ltm = localtime(&now);
@@ -46,6 +52,12 @@ string wstring_to_utf8(const wstring& str)
 wstring utf8_to_utf16(const string& str){
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	return myconv.from_bytes(str);
+}
+
+char* intToChar(int n) {
+	char *buf = new char[10];
+	return ::itoa(n, buf, 10);
+	
 }
 /*
 wstring utf8_to_utf16(const string& utf8)

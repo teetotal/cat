@@ -77,6 +77,15 @@ public:
 	bool init(farmingFinshedNotiCallback fn);
 	void finalize();
 	void addField(int x, int y);	//밭 늘리기	
+	void addField(int id
+		, int x
+		, int y
+		, int seedId
+		, farming_status status
+		, time_t timePlant
+		, int cntCare
+		, time_t timeLastGrow
+		, int boost);
 	fields* getFields() {			//밭 목록
 		return &mFields;
 	};			

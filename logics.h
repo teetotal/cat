@@ -11,14 +11,13 @@
 //Config
 #define CONFIG_ACHIEVEMENT "resource/achievement.json"
 #define CONFIG_ACTOR "resource/actor.json"
+#define CONFIG_ACTOR_BACKUP "resource/actor_backup.json"
 #define CONFIG_META "resource/meta.json"
 
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
-//판매 마진
-//#define tradeMargin 0.2f
 //기본 HP
 #define defaultHP 4
 //도감용 아이템 시작 id
@@ -47,6 +46,8 @@
 #define farmGluttonyIntelThreshold 30
 //farming 식탐
 #define farmGluttony 2
+//Actor save interval
+#define actorSaveInterval	10
 
 enum errorCode {
 	error_success = 0,
@@ -196,8 +197,9 @@ struct _actor {
 	inventory inven;
 	keyBoolMap collection;	//도감
 
-	time_t loginTime;	//시작시간
-	time_t lastUpdateTime; //지난 HP 업데이트 시간
+	time_t lastLoginLoginTime;	//마지막 로그인 시간
+	time_t lastLoginLogoutTime; //마지막 로그아웃 시간
+	time_t lastHPUpdateTime; //지난 HP 업데이트 시간
 };
 
 //직업명 prefix
@@ -290,6 +292,7 @@ public:
 		, tradeUpdatedCallback		
 	);
 	void finalize();
+	void saveActor(); //현재 정보 저장
 	bool insertItem(_item);	
 	bool insertTraining(_training);
 	
@@ -332,10 +335,7 @@ public:
 	errorCode farmingHarvest(int idx, int &productId, int &earning);
 	errorCode farmingCare(int idx);
 	//돈 차감이랑 최대 밭 개수 지정
-	errorCode farmingExtend() {
-		mFarming.addField(mFarming.countField(), 0);
-		return error_success;
-	}
+	errorCode farmingExtend();
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -364,6 +364,8 @@ public:
 	//achievement
 	achievement mAchievement;
 	static logics * hInst;
+
+	bool mIsRunThread;
 private:
 	//error messages
 	typedef vector<wstring> errorMessages;
@@ -438,19 +440,22 @@ private:
 	void insertInventory(Value &p, inventoryType type);
 	bool initErrorMessage(Value &p);
 	bool initItems(Value &p);
-	bool initSeed(Value &p);
+	bool initSeed(Value &farming, Value &seed);
 	bool initTraining(Value &p);
 	bool initJobTitle(Value &p);
 	bool initRace(Value &p);
 	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallback(bool isDaily, int idx);
-	void saveActor();
+	static void threadRun();
+	
 	void saveActorInventory(Document &d, Value &v, inventoryType type);
     //farming
     farming mFarming;
+	int mFarmingExtendFee;
 	//Trade
 	trade mTrade;
 
+	thread* mThread;
 	bool mIsFinalized;
 	
 };

@@ -16,6 +16,20 @@ void farming::addField(int x, int y) {
 	mFields.push_back(f);
 }
 
+void farming::addField(int id, int x, int y, int seedId, farming_status status, time_t timePlant, int cntCare, time_t timeLastGrow, int boost)
+{
+	mFields.resize(id + 1);
+	field* f = new field(x, y);
+	f->id = id;
+	f->seedId = seedId;
+	f->status = status;
+	f->timePlant = timePlant;
+	f->cntCare = cntCare;
+	f->timeLastGrow = timeLastGrow;
+	f->boost = boost;
+	mFields[id] = f;
+}
+
 //작물 상태 확인
 void farming::setStatus() {
 	for (size_t n = 0; n < mFields.size(); n++)

@@ -195,6 +195,9 @@
       "grade": 3
     }
   ],
+  "farming": {
+    "extendFee": 200
+  },
   "seed": [
     {
       "id": 400,

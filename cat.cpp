@@ -505,7 +505,7 @@ void farm_extend() {
 
 void farm() {
 	logic.print(7);
-	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 4, 밭 추가, 0: 상태 보기 \n > ");
+	printf("1. 씨앗 심기, 2. 가꾸기, 3. 수확하기, 4, 밭 추가(200 차감), 0: 상태 보기 \n > ");
 	int type;
 	scanf("%d", &type);
 	switch (type)
@@ -529,7 +529,7 @@ void farm() {
 		break;
 	}
 }
-void achievement() {	
+void achieves() {	
 	for (int i = 0; i < 2; i++) {		
 		bool isDaily = i == 0 ? true : false;
 		int size = logic.getAchievementSize(isDaily);
@@ -590,7 +590,7 @@ bool ask() {
 		sleepThisThread(3000);        
 		break;
 	case 8:
-		achievement();
+		achieves();
 		sleepThisThread(4000);
 		break;
 	default:
