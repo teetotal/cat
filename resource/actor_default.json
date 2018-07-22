@@ -1,0 +1,39 @@
+{
+  "userId": "id123",
+  "userName": "대꼬",
+  "id": "cat123",
+  "name": "꼼냥이",
+  "lastLoginLoginTime": 0,
+  "lastLoginLogoutTime": 0,
+  "lastHPUpdateTime": 0,
+  "jobTitle": "",
+  "point": 400,
+  "hp": 3,
+  "exp": 0,
+  "level": 1,
+  "property": {
+    "strength": 0,
+    "intelligence": 0,
+    "appeal": 0
+  },
+  "inventory": {
+    "growth": [
+    ],
+    "race": [ ],
+    "adorn": [
+    ],
+    "HP": [
+    ],
+    "farming": [
+    ]
+  },
+  "collection": [  ],
+  "farming": [
+  ],
+  "achievement": {
+    "daily": [ ],
+    "totally": [ ],
+    "accumulation": {
+    }
+  }
+}

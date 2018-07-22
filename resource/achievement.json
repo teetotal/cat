@@ -1,5 +1,4 @@
 {
-  "lastLogin": 0,
   "daily": [
     {
       "title": "정어리 낚시 1번 하기",
@@ -7,9 +6,7 @@
       "id": 2,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 10
     },
     {
       "title": "아이템 구매 1번 하기",
@@ -17,9 +14,7 @@
       "id": 0,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 10
     },
     {
       "title": "300 아이템 구매 10개 하기",
@@ -27,9 +22,7 @@
       "id": 300,
       "value": 10,
       "rewardId": 400,
-      "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 10
     },
     {
       "title": "아이템 판매 1번 하기",
@@ -37,9 +30,7 @@
       "id": 0,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 10
     }
   ],
   "totally": [
@@ -50,8 +41,7 @@
       "value": 3,
       "rewardId": 400,
       "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "isFinished": false
     },
     {
       "title": "아이템 구매 3번 하기",
@@ -59,9 +49,7 @@
       "id": 0,
       "value": 3,
       "rewardId": 400,
-      "rewardValue": 10,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 10
     },
     {
       "title": "체력 충전 1번 하기",
@@ -69,9 +57,7 @@
       "id": 0,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "농사 심기 1번 하기",
@@ -79,9 +65,7 @@
       "id": 0,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "농사 돌보기 1번 하기",
@@ -89,9 +73,7 @@
       "id": 1,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "농사 수확 1번 하기",
@@ -99,9 +81,7 @@
       "id": 2,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "농사 수확량 10 채우기",
@@ -109,9 +89,7 @@
       "id": 3,
       "value": 10,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "경묘 1번 참가하기",
@@ -119,9 +97,7 @@
       "id": 0,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "경묘 1등 1번 하기",
@@ -129,9 +105,7 @@
       "id": 1,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     },
     {
       "title": "경묘 2등 1번 하기",
@@ -139,9 +113,7 @@
       "id": 2,
       "value": 1,
       "rewardId": 400,
-      "rewardValue": 1,
-      "isFinished": false,
-      "isReceived": false
+      "rewardValue": 1
     }
   ]
 }

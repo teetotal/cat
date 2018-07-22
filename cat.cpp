@@ -207,9 +207,9 @@ void runRace() {
 		for (int n = 0; n < line; n++)
 			sz += "━";
 		printf("%s━\n", sz.c_str());
-		for (int n = 0; n < p->size(); n++) {
+		for (int n = 0; n < (int)p->size(); n++) {
 			printRaceRunning(n, &p->at(n));
-			if(n < p->size() -1)
+			if(n < (int)(p->size() -1))
 				printf("\n━━━━%s\n", sz.c_str());
 			else
 				printf("\n");
@@ -354,7 +354,7 @@ void training() {
 	sz += L"\n 지력: " + std::to_wstring(property.intelligence);
 	sz += L"\n 매력: " + std::to_wstring(property.appeal);
 	sz += L"\n";
-	for (int n = 0; n < rewards.size(); n++) {
+	for (int n = 0; n < (int)rewards.size(); n++) {
 		sz += logic.getItem(rewards[n].itemId).name + L"(";
 		sz += std::to_wstring(rewards[n].val);
 		sz += L") \n";		

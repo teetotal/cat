@@ -139,5 +139,8 @@
     <None Include="resource\achievement.json">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="resource\actor_default.json">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -5,9 +5,6 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 	, tradeUpdatedCallback tradeCB
 	) {
 
-	if (!initActor())
-		return false;
-
 	string szMeta = loadJsonString(CONFIG_META);
 	Document d;
 	d.Parse(szMeta.c_str());
@@ -26,11 +23,12 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 		return false;
 	if (!initRace(d["race"]))
 		return false;
+	if (!initAchievement(d["achievement"]))
+		return false;
 
 	mFarming.init(farmCB);
-	
-	string szAchieve = loadJsonString(CONFIG_ACHIEVEMENT);
-	if (!mAchievement.init(szAchieve, achievementCallback))
+		
+	if (!initActor())
 		return false;
 
 	//trade
@@ -108,6 +106,29 @@ bool logics::initActor()
 			, farms[i]["boost"].GetInt()
 		);
 	}
+
+	//achievement
+	//daily, totally
+	bool isDaily = true;
+	for (int n = 0; n < 2; n++) {
+		const Value& p = isDaily ? d["achievement"]["daily"]: d["achievement"]["totally"];
+		for (SizeType i = 0; i < p.Size(); i++) {
+			mAchievement.setAchievementAccumulation(isDaily
+				, p[i]["category"].GetInt()
+				, p[i]["id"].GetInt()
+				, p[i]["accumulation"].GetInt()
+				, p[i]["isFinished"].GetBool()
+				, p[i]["isReceived"].GetBool()
+				);
+		}
+		isDaily = false;
+	}
+
+	//accumulation
+	const Value& achieveAccumulation = d["achievement"]["accumulation"];
+	//이 부분 추가 해야 함. 07-22
+
+
 	//save backup
 	saveFile(CONFIG_ACTOR_BACKUP, sz);
 
@@ -272,6 +293,34 @@ bool logics::initRace(Value & race)
 	return true;
 }
 
+bool logics::initAchievement(Value & p)
+{
+	bool isDaily = true;
+	for (int n = 0; n < 2; n++) 
+	{
+		const Value &v = isDaily ? p["daily"]: p["totally"];
+		
+		for (SizeType i = 0; i < v.Size(); i++)
+		{			
+			mAchievement.addAchieve(
+				isDaily
+				, utf8_to_utf16(v[i]["title"].GetString())
+				, v[i]["category"].GetInt()
+				, v[i]["id"].GetInt()
+				, v[i]["value"].GetInt()
+				, v[i]["rewardId"].GetInt()
+				, v[i]["rewardValue"].GetInt()
+			);
+		}
+		isDaily = false;
+	}
+
+	if (!mAchievement.init(achievementCallback))
+		return false;
+
+	return true;
+}
+
 void logics::finalize() {
 	mActor->lastLoginLogoutTime = getNow();
 	mIsFinalized = true;
@@ -286,7 +335,7 @@ void logics::finalize() {
 void logics::printInven(inventoryType type, wstring &sz) {
 	vector<intPair> vec;
 	mActor->inven.getWarehouse(vec, type);
-	for (int n = 0; n < vec.size(); n++) {
+	for (int n = 0; n < (int)vec.size(); n++) {
 		sz += to_wstring(vec[n].key)
 			+ L". "
 			+ mItems[vec[n].key].name
@@ -301,7 +350,7 @@ void logics::print(int type) {
 		wstring sz, szGrowth, szHP, szRace, szAdorn;
 		vector<intPair> vec;
 		mActor->inven.getWarehouse(vec);
-		for (int n = 0; n < vec.size(); n++) {
+		for (int n = 0; n < (int)vec.size(); n++) {
 			sz += to_wstring(vec[n].key) + L"-" + mItems[vec[n].key].name + L"(" + to_wstring(vec[n].val) + L")\n ";
 		}
 		int hp = getHP();
@@ -413,7 +462,7 @@ void logics::print(int type) {
 				, it->second.level
 			);
 			
-			for (int m = 0; m < it->second.rewards.size(); m++) {
+			for (int m = 0; m < (int)it->second.rewards.size(); m++) {
 				printf("%d등 상금: %d (%ls 외 %d)\n"
 					, m+1 
 					, it->second.rewards[m].prize
@@ -449,7 +498,7 @@ void logics::print(int type) {
 		};
         farming::fields* f = mFarming.getFields();
 		printf("--------------------------- Farming\n");
-        for(int n = 0; n < f->size(); n++){
+        for(int n = 0; n < (int)f->size(); n++){
 			if (f->at(n) == NULL)
 				continue;
 
@@ -782,7 +831,7 @@ void logics::setJobTitle() {
 	wstring szPrefix;
 	wstring szBody = mJobTitle._default;
 	
-	for (int n = 0; n < mJobTitle.prefix.size(); n++) {
+	for (int n = 0; n < (int)mJobTitle.prefix.size(); n++) {
 		if (mActor->level <= mJobTitle.prefix[0].level) {
 			szPrefix = mJobTitle.prefix[n].title;
 			break;
@@ -810,7 +859,7 @@ void logics::setJobTitle() {
 	pI = (int)((I / sum2) * 100.0f);
 	pA = (int)((A / sum2) * 100.0f);
 
-	for (int n = 0; n < mJobTitle.body.size(); n++) {
+	for (int n = 0; n < (int)mJobTitle.body.size(); n++) {
 		if (pS >= mJobTitle.body[n].S
 			&& pI >= mJobTitle.body[n].I
 			&& pA >= mJobTitle.body[n].A) {
@@ -842,7 +891,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	if (mActor->point < mRace[id].fee)
 		return error_not_enough_point;
 
-	for (int m = 0; m < items.size(); m++) {
+	for (int m = 0; m < (int)items.size(); m++) {
 		if(!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
 			return error_not_enough_item;
 	}
@@ -880,7 +929,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	p.appeal = mActor->property.appeal;
 	
 	int idx = 0;
-	for (int m = 0; m < items.size(); m++) {
+	for (int m = 0; m < (int)items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
 			p.items[idx] = items[m].itemId;
 			addInventory(items[m].itemId, -1);
@@ -1008,7 +1057,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 //순위 산정용 벡터
 	 vector<_raceParticipant> orderedVector;
 
-	 for (int n = 0; n < mRaceParticipants->size(); n++) {
+	 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank == 0) {
 			 orderedVector.push_back(mRaceParticipants->at(n));
 		 }
@@ -1022,7 +1071,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 
 	 //현재 순위 산정
 	 sort(orderedVector.begin(), orderedVector.end());
-	 for (int n = 0; n < orderedVector.size(); n++) {		 
+	 for (int n = 0; n < (int)orderedVector.size(); n++) {		 
 		 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
 	 }
 
@@ -1034,7 +1083,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 invokeRaceItemAI();
 
 	 //진행 값 설정
-	 for (int n = 0; n < mRaceParticipants->size(); n++) {
+	 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank > 0)
 			 continue;
 
@@ -1086,7 +1135,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 if (lastRank >= raceParticipantNum) {
 		 //if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { 
 		 ret = false;
-		 for (int n = 0; n < mRaceParticipants->size(); n++) {
+		 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 			 if (mRaceParticipants->at(n).rank == 0)
 				 mRaceParticipants->at(n).rank = raceParticipantNum + 1;
 		 }
@@ -1098,7 +1147,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 		 else if (mRaceCurrent.rank == 2)
 			 mAchievement.push(achievement_category_race, achievement_race_id_second, 1);
 			 
-		 for (int n = 0; n < mRace[mRaceCurrent.id].rewards.size(); n++) {
+		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
 			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
 				 mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
 				 int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
@@ -1231,7 +1280,7 @@ void logics::saveActorInventory(Document &d, Value &v, inventoryType type) {
 	vector<intPair> vec;
 	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 	mActor->inven.getWarehouse(vec, type);
-	for (int n = 0; n < vec.size(); n++) {
+	for (int n = 0; n < (int)vec.size(); n++) {
 		
 		Value objValue;
 		objValue.SetObject();
@@ -1286,7 +1335,7 @@ void logics::saveActor() {
 
 	d["farming"].Clear();
 	farming::fields* f = mFarming.getFields();
-	for (int n = 0; n < f->size(); n++) {
+	for (int n = 0; n < (int)f->size(); n++) {
 		if (f->at(n)) {
 			Value objValue;
 			objValue.SetObject();
@@ -1303,9 +1352,38 @@ void logics::saveActor() {
 			d["farming"].PushBack(objValue, d.GetAllocator());
 		}
 	}
+
+	d["achievement"]["daily"].Clear();
+	d["achievement"]["totally"].Clear();
+
+	bool isDaily = true;
+	for (int n = 0; n < 2; n++) {
+		int nSize = mAchievement.getSize(isDaily);
+		for (int i = 0; i < nSize; i++) {
+			achievement::detail p;
+			mAchievement.getDetail(isDaily, i, p);
+
+			Value objValue;
+			objValue.SetObject();
+			objValue.AddMember("category", p.category, d.GetAllocator());
+			objValue.AddMember("id", p.id, d.GetAllocator());
+			objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
+			objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
+			objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
+
+			if (isDaily) {
+				d["achievement"]["daily"].PushBack(objValue, d.GetAllocator());
+			}
+			else {
+				d["achievement"]["totally"].PushBack(objValue, d.GetAllocator());
+			}
+		}
+		isDaily = isDaily ? false : true;
+	}
+	
 	d["achievement"]["accumulation"].RemoveAllMembers();
 	const Value& accumulation = d["achievement"]["accumulation"];
-	
+
 	queue<char*> gabages;
 	achievement::intDoubleDepthMap * pAccumulation = mAchievement.getAccumulation();
 	for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {

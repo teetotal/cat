@@ -1,1 +1,160 @@
-{"userId":"id123","userName":"대꼬","id":"cat123","name":"꼼냥이","lastLoginLoginTime":1532166725,"lastLoginLogoutTime":1532166840,"lastHPUpdateTime":1532166730,"jobTitle":"견습 적당히 때뭍은 교회오빠냥","point":550,"hp":5,"exp":17,"level":5,"property":{"strength":11,"intelligence":22,"appeal":10},"inventory":{"growth":[{"id":1,"quantity":19},{"id":2,"quantity":67}],"race":[],"adorn":[{"id":300,"quantity":7},{"id":301,"quantity":3}],"HP":[{"id":100,"quantity":16},{"id":101,"quantity":30}],"farming":[{"id":400,"quantity":273}]},"collection":[1001],"farming":[{"id":0,"x":0,"y":1,"seedId":400,"status":3,"timePlant":1532166384,"cntCare":1,"timeLastGrow":1532166384,"boost":0},{"id":1,"x":1,"y":0,"seedId":0,"status":5,"timePlant":0,"cntCare":0,"timeLastGrow":0,"boost":0},{"id":2,"x":2,"y":0,"seedId":0,"status":5,"timePlant":0,"cntCare":0,"timeLastGrow":0,"boost":0},{"id":3,"x":3,"y":0,"seedId":0,"status":5,"timePlant":0,"cntCare":0,"timeLastGrow":0,"boost":0}],"achievement":{"accumulation":{"0":[{"id":2,"value":1}],"1":[{"id":0,"value":2},{"id":300,"value":1},{"id":301,"value":2}],"5":[{"id":0,"value":1},{"id":2,"value":1}]}}}
+{
+  "userId": "id123",
+  "userName": "대꼬",
+  "id": "cat123",
+  "name": "꼼냥이",
+  "lastLoginLoginTime": 1532259594,
+  "lastLoginLogoutTime": 1532258351,
+  "lastHPUpdateTime": 1532259599,
+  "jobTitle": "견습 천재냥",
+  "point": 164,
+  "hp": 7,
+  "exp": 3,
+  "level": 2,
+  "property": {
+    "strength": 0,
+    "intelligence": 2,
+    "appeal": 0
+  },
+  "inventory": {
+    "growth": [
+      {
+        "id": 2,
+        "quantity": 8
+      }
+    ],
+    "race": [ ],
+    "adorn": [ ],
+    "HP": [
+      {
+        "id": 101,
+        "quantity": 10
+      }
+    ],
+    "farming": [
+      {
+        "id": 400,
+        "quantity": 22
+      }
+    ]
+  },
+  "collection": [ ],
+  "farming": [
+    {
+      "id": 0,
+      "x": 0,
+      "y": 0,
+      "seedId": 0,
+      "status": 5,
+      "timePlant": 0,
+      "cntCare": 0,
+      "timeLastGrow": 0,
+      "boost": 0
+    }
+  ],
+  "achievement": {
+    "daily": [
+      {
+        "category": 0,
+        "id": 2,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 1,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 1,
+        "id": 300,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 2,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      }
+    ],
+    "totally": [
+      {
+        "category": 0,
+        "id": 2,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 1,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 3,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 4,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 4,
+        "id": 1,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 4,
+        "id": 2,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 4,
+        "id": 3,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 5,
+        "id": 0,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 5,
+        "id": 1,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      },
+      {
+        "category": 5,
+        "id": 2,
+        "accumulation": 0,
+        "isFinished": false,
+        "isReceived": false
+      }
+    ],
+    "accumulation": { }
+  }
+}

@@ -182,6 +182,7 @@
   <ItemGroup>
     <None Include="resource\achievement.json" />
     <None Include="resource\actor.json" />
+    <None Include="resource\actor_default.json" />
     <None Include="resource\meta.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

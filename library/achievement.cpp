@@ -1,15 +1,13 @@
 ﻿#include "achievement.h"
 
-bool achievement::init(string json, achievementCallback fn)
+bool achievement::init(achievementCallback fn)
 {
-	if (!loadConfig(json))
-		return false;
 	mCallback = fn;
 	mIsRunThread = true;
 	mThread = new thread(threadRun, this);
 	return true;
 }
-
+/*
 bool achievement::loadConfig(string json) {
 	const char * t[] = { "daily", "totally" };	
 	Document d;
@@ -37,7 +35,7 @@ bool achievement::loadConfig(string json) {
 	}
 	return true;
 }
-
+*/
 void achievement::finalize()
 {
 	mIsRunThread = false;
@@ -68,10 +66,15 @@ void achievement::accumulate() {
 			mAccumulation[p.category]->insert(std::pair<int, int>(p.id, p.value));			
 		else
 			mAccumulation[p.category]->at(p.id) += p.value;
+
+		//update daily
+		calculate(true, &p);
+		//update totally
+		calculate(false, &p);
 	}
 	mLock.unlock();
 }
-
+/*
 int achievement::getAccumulation(int category, int id)
 {
 	mLock.lock();
@@ -93,19 +96,21 @@ int achievement::getAccumulation(int category, int id)
 	mLock.unlock();
 	return 0;
 }
-
-void achievement::calculate(bool isDaily, achieveVector * vec) {
-	for (int n = 0; n < vec->size(); n++) {
+*/
+void achievement::calculate(bool isDaily, done *pDone) {
+	achieveVector * vec = isDaily ? &mDaily : &mTotally;
+	for (int n = 0; n < (int)vec->size(); n++) {
 		achieve * p = vec->at(n);
 		if (p->isFinished)
 			continue;
 		
-		int val = getAccumulation(p->category, p->id);
-		if (val >= p->value) {
-			//업적 달성 및 보상 지급
-			p->isFinished = true;
-			mCallback(isDaily, n);
-		}			
+		if (p->category == pDone->category && p->id == pDone->id && p->isFinished == false) {
+			p->accumulation += pDone->value;
+			if (p->accumulation >= p->value) {
+				p->isFinished = true;
+				mCallback(isDaily, n);
+			}
+		}				
 	}
 }
 
@@ -116,45 +121,47 @@ void achievement::addAchieve(bool isDaily
 	, int value
 	, int rewardId
 	, int rewardValue
-	, bool isFinished
-	, bool isReceived
 )
 {
-	achieve * p = new achieve(title, category, id, value, rewardId, rewardValue, isFinished, isReceived);
+	achieve * p = new achieve(title, category, id, value, rewardId, rewardValue);
 	if (isDaily)
 		mDaily.push_back(p);
 	else
 		mTotally.push_back(p);
 }
 
-void achievement::calculate()
+void achievement::setAchievementAccumulation(bool isDaily, int category, int id, int accumulation, bool isFinished, bool isReceived)
 {
-	calculate(true, &mDaily);
-	calculate(false, &mTotally);
+}
+
+void achievement::setAccumulation(int category, int id, int accumulation)
+{
 }
 
 bool achievement::getDetail(bool isDaily, int idx, detail & p)
 {
 	achieve * a;
 	if (isDaily) {
-		if (mDaily.size() <= idx)
+		if ((int)mDaily.size() <= idx)
 			return false;
 		
 		a = mDaily[idx];
 	}		
 	else {
-		if (mTotally.size() <= idx)
+		if ((int)mTotally.size() <= idx)
 			return false;
 
 		a = mTotally[idx];
 	}
+	p.category = a->category;
+	p.id = a->id;
 	p.isFinished = a->isFinished;
 	p.isReceived = a->isReceived;
 	p.goal = a->value;
 	p.rewardId = a->rewardId;
 	p.rewardVal = a->rewardValue;
 	p.title = a->title;
-	p.accumulation = getAccumulation(a->category, a->id);		
+	p.accumulation = a->accumulation;//getAccumulation(a->category, a->id);		
 
 	return true;
 }
@@ -165,17 +172,16 @@ void achievement::threadRun(achievement * p)
 	{
 		sleepThisThread(SEC);
 		p->accumulate();
-		p->calculate();
 	}
 	
 }
 
 bool achievement::rewardReceive(bool isDaily, int idx) {
-	if (isDaily == true && mDaily.size() > idx && mDaily[idx]->isReceived == false) {
+	if (isDaily == true && (int)mDaily.size() > idx && mDaily[idx]->isReceived == false) {
 		mDaily[idx]->isReceived = true;
 		return true;
 	}
-	else if (isDaily == false && mTotally.size() > idx && mTotally[idx]->isReceived == false) {
+	else if (isDaily == false && (int)mTotally.size() > idx && mTotally[idx]->isReceived == false) {
 		mTotally[idx]->isReceived = true;
 		return true;
 	}

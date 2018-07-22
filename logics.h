@@ -444,6 +444,8 @@ private:
 	bool initTraining(Value &p);
 	bool initJobTitle(Value &p);
 	bool initRace(Value &p);
+	bool initAchievement(Value &p);
+
 	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallback(bool isDaily, int idx);
 	static void threadRun();
