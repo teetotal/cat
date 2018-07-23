@@ -603,7 +603,7 @@ int main()
 {	
 	if (!init())
 		return -1;
-	intro();
+	//intro();
 	thread p(runThread);
 		
 	while (true) {

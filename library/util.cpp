@@ -43,6 +43,9 @@ time_t getTime(int hour, int min, int sec) {
 	return mktime(ltm);
 
 }
+tm * getLocalTm(time_t t) {
+	return localtime(&t);
+}
 string wstring_to_utf8(const wstring& str)
 {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;

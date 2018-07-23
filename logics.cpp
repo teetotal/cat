@@ -63,6 +63,7 @@ bool logics::initActor()
 	actor->name = utf8_to_utf16(string(d["name"].GetString()));
 	actor->id = d["id"].GetString();
 
+	time_t lastLogin = d["lastLoginLoginTime"].GetInt64();
 	actor->lastLoginLoginTime = getNow();
 	actor->lastLoginLogoutTime = d["lastLoginLogoutTime"].GetInt64();
 	actor->lastHPUpdateTime = d["lastHPUpdateTime"].GetInt64();
@@ -125,9 +126,25 @@ bool logics::initActor()
 	}
 
 	//accumulation
-	const Value& achieveAccumulation = d["achievement"]["accumulation"];
-	//이 부분 추가 해야 함. 07-22
+	const Value& achieveAccumulation = d["achievement"]["accumulation"];	
+	for (Value::ConstMemberIterator it = achieveAccumulation.MemberBegin();
+		it != achieveAccumulation.MemberEnd(); ++it)
+	{		
+		const char * category = it->name.GetString();
+		const Value& list = d["achievement"]["accumulation"][category];
 
+		for (SizeType i = 0; i < list.Size(); i++) {
+			int id = list[i]["id"].GetInt();
+			int value = list[i]["value"].GetInt();
+			mAchievement.setAccumulation(atoi(category)
+				, id
+				, value
+			);
+		}		
+	}
+
+	if (!mAchievement.init(achievementCallback, lastLogin))
+		return false;
 
 	//save backup
 	saveFile(CONFIG_ACTOR_BACKUP, sz);
@@ -314,10 +331,6 @@ bool logics::initAchievement(Value & p)
 		}
 		isDaily = false;
 	}
-
-	if (!mAchievement.init(achievementCallback))
-		return false;
-
 	return true;
 }
 

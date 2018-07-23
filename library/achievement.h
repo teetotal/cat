@@ -31,7 +31,7 @@ public:
 
 	bool mIsRunThread;
 
-	bool init(achievementCallback fn);
+	bool init(achievementCallback fn, time_t lastLogin);
 	void addAchieve(bool isDaily
 		, wstring title
 		, int category
@@ -97,14 +97,11 @@ private:
 
 	thread * mThread;
 	mutex mLock;
-
+	time_t mLastLogin;
 	achievementCallback mCallback;
-
-	bool loadConfig(string json);
-	//int getAccumulation(int category, int id);
-	//void calculate(bool isDaily, achieveVector * vec);
+		
 	void calculate(bool isDaily, done *pDone);
-	
+	void resetDaily();
 	static void threadRun(achievement *);
 };
 

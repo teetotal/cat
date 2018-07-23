@@ -1,7 +1,9 @@
 ﻿#include "achievement.h"
 
-bool achievement::init(achievementCallback fn)
+bool achievement::init(achievementCallback fn, time_t lastLogin)
 {
+	mLastLogin = lastLogin;
+	resetDaily();
 	mCallback = fn;
 	mIsRunThread = true;
 	mThread = new thread(threadRun, this);
@@ -52,51 +54,23 @@ void achievement::push(int category, int id, int val) {
 	mLock.unlock();
 };
 
-void achievement::accumulate() {
+void achievement::accumulate() {	
 	mLock.lock();
+	resetDaily();
 	while (mQueue.size() > 0)
-	{
+	{		
 		done p = mQueue.front();
 		mQueue.pop();
-		if (mAccumulation.find(p.category) == mAccumulation.end()) {
-			mAccumulation[p.category] = new intMap;
-		}
-			
-		if (mAccumulation[p.category]->find(p.id) == mAccumulation[p.category]->end())
-			mAccumulation[p.category]->insert(std::pair<int, int>(p.id, p.value));			
-		else
-			mAccumulation[p.category]->at(p.id) += p.value;
-
-		//update daily
+		setAccumulation(p.category, p.id, p.value);		
+		
 		calculate(true, &p);
+				
 		//update totally
 		calculate(false, &p);
 	}
 	mLock.unlock();
 }
-/*
-int achievement::getAccumulation(int category, int id)
-{
-	mLock.lock();
-	if (mAccumulation.find(category) == mAccumulation.end()) {
-		mLock.unlock();
-		return 0;
-	}
 
-	if (mAccumulation[category]->find(id) == mAccumulation[category]->end()) {
-		mLock.unlock();
-		return 0;
-	}
-		
-	else {
-		int val = mAccumulation[category]->at(id);
-		mLock.unlock();		
-		return val;
-	}		
-	mLock.unlock();
-	return 0;
-}
-*/
 void achievement::calculate(bool isDaily, done *pDone) {
 	achieveVector * vec = isDaily ? &mDaily : &mTotally;
 	for (int n = 0; n < (int)vec->size(); n++) {
@@ -111,6 +85,22 @@ void achievement::calculate(bool isDaily, done *pDone) {
 				mCallback(isDaily, n);
 			}
 		}				
+	}
+}
+
+void achievement::resetDaily()
+{
+	//update daily
+	int lastYday = getLocalTm(mLastLogin)->tm_yday;
+	int nowYday = getLocalTm(getNow())->tm_yday;
+	if (lastYday != nowYday) {
+		//초기화
+		for (int n = 0; n < (int)mDaily.size(); n++) {
+			mDaily[n]->isFinished = false;
+			mDaily[n]->isReceived = false;
+			mDaily[n]->accumulation = 0;
+		}
+		mLastLogin = getNow();
 	}
 }
 
@@ -132,10 +122,26 @@ void achievement::addAchieve(bool isDaily
 
 void achievement::setAchievementAccumulation(bool isDaily, int category, int id, int accumulation, bool isFinished, bool isReceived)
 {
+	achieveVector * a = (isDaily ? &mDaily : &mTotally);
+	for (int n = 0; n < (int)a->size(); n++) {
+		if (a->at(n)->category == category && a->at(n)->id == id) {
+			a->at(n)->accumulation = accumulation;
+			a->at(n)->isFinished = isFinished;
+			a->at(n)->isReceived = isReceived;
+		}
+	}
 }
 
 void achievement::setAccumulation(int category, int id, int accumulation)
 {
+	if (mAccumulation.find(category) == mAccumulation.end()) {
+		mAccumulation[category] = new intMap;
+	}
+
+	if (mAccumulation[category]->find(id) == mAccumulation[category]->end())
+		mAccumulation[category]->insert(std::pair<int, int>(id, accumulation));
+	else
+		mAccumulation[category]->at(id) += accumulation;
 }
 
 bool achievement::getDetail(bool isDaily, int idx, detail & p)
