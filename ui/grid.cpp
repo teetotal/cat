@@ -4,11 +4,19 @@
 
 #include "grid.h"
 #include "HelloWorldScene.h"
-void grid::init(float originX, float originY, float width, float height, const char* font, int fontSize) {
-    mOriginX =originX;
-    mOriginY = originY;
-    mWidth = width - GRID_MARGIN * 2;
-    mHeight = height - GRID_MARGIN * 2;
+
+grid * grid::hInstance = NULL;
+
+void grid::init(const char* font, int fontSize, Color4F bgColor) {
+
+    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+    mOriginX =origin.x;
+    mOriginY = origin.y;
+
+    mWidth = visibleSize.width - GRID_MARGIN * 2;
+    mHeight = visibleSize.height - GRID_MARGIN * 2;
 
     mGridWidth = (mWidth) / GRID_X;
     mGridHeight = (mHeight) / GRID_Y;
@@ -18,6 +26,8 @@ void grid::init(float originX, float originY, float width, float height, const c
 
     MenuItemFont::setFontName(font);
     MenuItemFont::setFontSize(fontSize);
+
+    Director::getInstance()->setClearColor(bgColor);
 }
 bool grid::getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align){
 

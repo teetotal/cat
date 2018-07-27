@@ -23,9 +23,19 @@ typedef void (*Callback1)(Ref* pSender);
 
 class grid {
 public:
-    grid(){};
-    ~grid(){};
-    void init(float originX, float originY, float width, float height, const char* font = "fonts/Marker Felt.ttf", int fontSize = GRID_DEFAULT_FONT_SIZE);
+    grid(){
+        hInstance = this;
+    };
+    ~grid(){
+        hInstance = NULL;
+    };
+    static grid * inst(){
+        return hInstance;
+    };
+    void init(const char* font = "fonts/Marker Felt.ttf"
+            , int fontSize = GRID_DEFAULT_FONT_SIZE
+            , Color4F bgColor = Color4F::WHITE
+    );
     bool getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align = ALIGNMENT_NONE);
     bool drawGrid(Scene * p);
     bool drawPoint(Scene * p);
@@ -52,6 +62,8 @@ private:
     float mGridWidth, mGridHeight;
     const char* mDefaultFont;
     int mDefaultFontSize;
+
+    static grid * hInstance;
 
     const Vec2 getNoneAnchorPoint(){
         return Vec2(0,1.75);
