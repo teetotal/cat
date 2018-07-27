@@ -10,6 +10,20 @@
 
 USING_NS_CC;
 
+enum SCENECODE{
+    SCENECODE_MAIN = 0,
+    SCENECODE_ACTION,
+    SCENECODE_RACE,
+    SCENECODE_FARMING,
+    SCENECODE_BUY,
+    SCENECODE_SELL,
+    SCENECODE_RECHARGE,
+    SCENECODE_PURCHASE,
+    SCENECODE_COLLECTION,
+    SCENECODE_ACHIEVEMENT,
+    SCENECODE_NONE
+};
+
 class MainScene : public Scene{
 public:
     static Scene* createScene();
@@ -25,19 +39,7 @@ public:
 private:
     grid mGrid;
 
-    enum SCENECODE{
-        SCENECODE_MAIN = 0,
-        SCENECODE_ACTION,
-        SCENECODE_RACE,
-        SCENECODE_FARMING,
-        SCENECODE_BUY,
-        SCENECODE_SELL,
-        SCENECODE_RECHARGE,
-        SCENECODE_PURCHASE,
-        SCENECODE_COLLECTION,
-        SCENECODE_ACHIEVEMENT,
-        SCENECODE_NONE
-    };
+
     void callback2(Ref* pSender, SCENECODE type);
 
     virtual void onEnter();

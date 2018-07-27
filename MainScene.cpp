@@ -5,6 +5,8 @@
 #include "MainScene.h"
 #include "SimpleAudioEngine.h"
 
+#include "ActionScene.h"
+
 
 Scene* MainScene::createScene()
 {
@@ -153,6 +155,10 @@ void MainScene::menuCloseCallback(Ref* pSender)
 
 void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
     CCLOG("Callback !!!!!!!! %d", type);
+    if(type == SCENECODE_ACTION){
+        auto pScene = ActionScene::createScene();
+        Director::getInstance()->replaceScene(pScene);
+    }
 };
 
 
