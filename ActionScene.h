@@ -7,7 +7,7 @@
 
 #include "MainScene.h"
 #include "cocos2d.h"
-#include "ui/grid.h"
+#include "ui/ui.h"
 
 USING_NS_CC;
 

@@ -7,7 +7,6 @@
 
 #include "ActionScene.h"
 
-
 Scene* MainScene::createScene()
 {
     return MainScene::create();
@@ -103,7 +102,7 @@ bool MainScene::init()
     */
 
     //Cat Main UI
-    //mGrid.drawGrid(this);
+    mGrid.drawGrid(this);
     //mGrid.drawPoint(this);
     mGrid.addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
@@ -121,7 +120,7 @@ bool MainScene::init()
     mGrid.addTextButton(7,0,"$ 172,820 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
     mGrid.addTextButton(8,0,"♥ 80/117 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
 
-    mGrid.addLabel(8,1,"체력: 10,234\n지력: 5,000\n매력: 82,340", this, 10);
+    mGrid.addLabel(8,2,"체력: 10,234\n지력: 5,000\n매력: 82,340", this, 10);
 
     mGrid.addTextButton(0,3,"도감", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 14);
     mGrid.addTextButton(0,4,"업적", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 14);
@@ -157,7 +156,40 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
     CCLOG("Callback !!!!!!!! %d", type);
     if(type == SCENECODE_ACTION){
         auto pScene = ActionScene::createScene();
-        Director::getInstance()->replaceScene(pScene);
+        //Director::getInstance()->replaceScene(pScene);
+        Director::getInstance()->pushScene(pScene);
+    } else if(type == SCENECODE_RACE){
+        this->removeChild(layerGray);
+        //this->removeChild(layer);
+
+    } else if(type == SCENECODE_FARMING){
+
+        auto size = Size(400,200);
+        layer = gui::inst()->addPopup(layerGray, this, size, "background.png", Color4B::WHITE);
+        gui::inst()->addTextButton(8,0
+                ,"Close"
+                , layer
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
+                , 14
+                , ALIGNMENT_CENTER
+                , Color3B::RED
+                , size
+                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+                , Size(0,0)
+                , Size(0,0)
+        );
+
+        gui::inst()->addLabel(4,5
+                ,"┲"
+                , layer
+                , 50
+                , ALIGNMENT_CENTER
+                , Color3B::BLACK
+                , size
+                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+                , Size(0,0)
+                , Size(0,0)
+        );
     }
 };
 

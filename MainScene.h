@@ -6,7 +6,7 @@
 #define PROJ_ANDROID_MAINSCENE_H
 
 #include "cocos2d.h"
-#include "ui/grid.h"
+#include "ui/ui.h"
 
 USING_NS_CC;
 
@@ -37,8 +37,10 @@ public:
     CREATE_FUNC(MainScene);
 
 private:
-    grid mGrid;
+    gui mGrid;
 
+    cocos2d::LayerColor * layer;
+    cocos2d::LayerColor * layerGray;
 
     void callback2(Ref* pSender, SCENECODE type);
 

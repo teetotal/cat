@@ -14,12 +14,13 @@ Scene* ActionScene::createScene()
 }
 
 bool ActionScene::init() {
-    grid::inst()->addTextButton(0,6,"╈", this, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_ACTION), 32);
+    gui::inst()->addTextButton(0,6,"╈", this, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_ACTION), 32);
 
     return true;
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
-    auto pScene = MainScene::createScene();
-    Director::getInstance()->replaceScene(pScene);
+    //auto pScene = MainScene::createScene();
+    //Director::getInstance()->replaceScene(pScene);
+    Director::getInstance()->popScene();
 }
