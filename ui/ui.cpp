@@ -10,6 +10,8 @@ void gui::init(const char* font, int fontSize, Color4F bgColor) {
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    mResolution = Director::getInstance()->getWinSizeInPixels();
+
 
     mOriginX =origin.x;
     mOriginY = origin.y;
@@ -28,6 +30,16 @@ void gui::init(const char* font, int fontSize, Color4F bgColor) {
 
     Director::getInstance()->setClearColor(bgColor);
 }
+
+float gui::getRealPixel(float x){
+    return mResolution.width * x / mVisibleX;
+}
+
+float gui::getSizeFromRealPixel(float x){
+
+    return mVisibleX * x / mResolution.width;
+}
+
 bool gui::getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align
         , Size dimension
         , Size grid
@@ -43,8 +55,8 @@ bool gui::getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align
     float marginX = margin.width == GRID_INVALID_VALUE ? GRID_MARGIN : margin.width;
     float marginY = margin.height == GRID_INVALID_VALUE ? GRID_MARGIN : margin.height;
 
-    float dimensionX = dimension.width == GRID_INVALID_VALUE ? mWidth : dimension.width;
-    float dimensionY = dimension.height == GRID_INVALID_VALUE ? mHeight : dimension.height;
+    float dimensionX = dimension.width == GRID_INVALID_VALUE ? mWidth : dimension.width - marginX * 2;
+    float dimensionY = dimension.height == GRID_INVALID_VALUE ? mHeight : dimension.height - marginY * 2;
 
     float gridWidth = dimensionX / gridX;
     float gridHeight = dimensionY / gridY;
@@ -133,6 +145,8 @@ Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, A
         , Size grid
         , Size origin
         , Size margin
+        , const string img
+        , bool isBGImg
 ){
     if(fontSize == 0)
         fontSize = mDefaultFontSize;
@@ -140,17 +154,59 @@ Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, A
     float pointX, pointY;
     getPoint(x,y
             , pointX, pointY
-            , align
+            , ALIGNMENT_CENTER
             , dimension
             , grid
             , origin
             , margin
     );
-    auto label = Label::createWithTTF(text, mDefaultFont, fontSize);
-    label->setPosition(Point(pointX, pointY));
+
+    float pointX_NONE, pointY_NONE;
+    getPoint(x,y
+            , pointX_NONE, pointY_NONE
+            , ALIGNMENT_NONE
+            , dimension
+            , grid
+            , origin
+            , margin
+    );
+
+    float gap = pointX - pointX_NONE;
+
+    Label * label = Label::createWithTTF(text, mDefaultFont, fontSize);
     label->setColor(color);
-    if(align == ALIGNMENT_NONE)
-        label->setAnchorPoint(getNoneAnchorPoint());
+
+    float pX = pointX;
+
+    if(img.compare("") != 0){
+        auto sprite = Sprite::create(img);
+        if(isBGImg){
+            pX = pointX;
+            if(align == ALIGNMENT_NONE)
+                pX = pX - gap + (sprite->getContentSize().width /2);
+
+            sprite->setPosition(Point(pX, pointY));
+            label->setPosition(Point(pX, pointY));
+        }else{
+            pX = pointX;
+            if(align == ALIGNMENT_NONE)
+                pX = pX - gap + (sprite->getContentSize().width /2);
+            else {
+                pX = pX - gap + ((sprite->getContentSize().width + label->getContentSize().width) /2);
+            }
+            sprite->setPosition(Point(pX, pointY));
+            label->setPosition(Point(pX + (sprite->getContentSize().width /2) + (label->getContentSize().width / 2), pointY));
+        }
+
+        p->addChild(sprite);
+    }else{
+        if(align == ALIGNMENT_NONE){
+            pX = pX - gap + (label->getContentSize().width / 2);
+        }
+
+        label->setPosition(Point(pX, pointY));
+    }
+
     p->addChild(label);
     return label;
 }
@@ -226,6 +282,10 @@ LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const str
     auto listener = EventListenerTouchOneByOne::create();
     listener->setSwallowTouches(true);
     listener->onTouchBegan = [](Touch *touch,Event*event)->bool {
+        CCLOG("x %f, y: %f"
+        , touch->getLocation().x
+        , touch->getLocation().y
+        );
         return true;
     };
 
@@ -233,4 +293,63 @@ LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const str
     dispatcher->addEventListenerWithSceneGraphPriority(listener, layerBG);
 
     return layer;
+}
+
+Layout * gui::createLayout(Size size, const string bgImg, bool hasBGColor, Color3B bgColor){
+    Layout* l = Layout::create();
+    if(hasBGColor){
+        l->setBackGroundColor(bgColor);
+        l->setBackGroundColorType(Layout::BackGroundColorType::SOLID);
+    }
+
+    if(bgImg.compare("") != 0)
+        l->setBackGroundImage(bgImg);
+
+    l->setContentSize(size);
+
+    return l;
+}
+
+void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, ScrollView::Direction d){
+    ssize_t n = p->getChildrenCount();
+    if(d == ScrollView::Direction::HORIZONTAL){
+        e->setPosition(Vec2(
+                n * (e->getContentSize().width + margin) //+ margin
+                , (p->getContentSize().height / 2) - (e->getContentSize().height / 2)
+                       )
+        );
+        p->setInnerContainerSize( Size((n+1) * (e->getContentSize().width + margin) /*+ margin*/, e->getContentSize().height + margin) );
+    }
+    p->addChild(e);
+}
+
+ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg ){
+
+    ScrollView * sv = ScrollView::create();
+    //sv->setBackGroundColor(Color3B::GRAY);
+    //sv->setBackGroundColorType(Layout::BackGroundColorType::SOLID);
+    if(bgImg.compare("") != 0)
+        sv->setBackGroundImage(bgImg);
+
+    float svX1, svY1, svX2, svY2;
+    getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+    getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+
+    sv->setPosition(Vec2(std::min(svX1, svX2), std::min(svY1, svY2)));
+
+
+    sv->setContentSize(Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2)));
+
+    ScrollView::Direction d = ScrollView::Direction::BOTH;
+
+    float gapX = std::max(svX1, svX2) - std::min(svX1, svX2);
+    float gapY = std::max(svY1, svY2) - std::min(svY1, svY2);
+
+    if(gapX < gapY)
+        d = ScrollView::Direction::VERTICAL;
+    else if(gapX > gapY)
+        d = ScrollView::Direction::HORIZONTAL;
+
+    sv->setDirection(d);
+    return sv;
 }
