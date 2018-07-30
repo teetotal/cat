@@ -48,6 +48,7 @@ private:
 
     cocos2d::LayerColor * layer;
     cocos2d::LayerColor * layerGray;
+    LoadingBar * loadingBar;
 
     void callback2(Ref* pSender, SCENECODE type);
 

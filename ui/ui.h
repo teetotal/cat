@@ -42,6 +42,13 @@ public:
     float getRealPixel(float x);
     float getSizeFromRealPixel(float x);
 
+    bool getPoint(int x, int y, Vec2 &point, ALIGNMENT align = ALIGNMENT_NONE
+            , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+    );
+
     bool getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align = ALIGNMENT_NONE
                   , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
                   , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
@@ -81,12 +88,15 @@ public:
             , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , const string img = ""
+            , bool isBGImg = true
     );
 
     LayerColor * addPopup(LayerColor * &pBG, Node * p, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
     Layout * createLayout(Size size, const string bgImg = "", bool hasBGColor = false, Color3B bgColor = Color3B::WHITE);
     void addLayoutToScrollView(ScrollView * p, Layout * e, float margin, ScrollView::Direction d = ScrollView::Direction::HORIZONTAL);
     ScrollView * addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg = "");
+    LoadingBar * addProgressBar(int x, int y, const string img, Node * p, float defaultVal = 0.f);
 
 private:
     float mOriginX, mOriginY;
@@ -104,6 +114,15 @@ private:
     const Vec2 getNoneAnchorPoint(){
         return Vec2(0,1.75);
     };
+
+    void getPoint(int x, int y
+            , float &pointX_Center, float &pointY_Center
+            , float &pointX_None, float &pointY_None
+            , ALIGNMENT align
+            , Size dimension
+            , Size grid
+            , Size origin
+            , Size margin);
 };
 
 

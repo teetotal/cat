@@ -40,6 +40,16 @@ float gui::getSizeFromRealPixel(float x){
     return mVisibleX * x / mResolution.width;
 }
 
+bool gui::getPoint(int x, int y, Vec2 &point, ALIGNMENT align
+        , Size dimension
+        , Size grid
+        , Size origin
+        , Size margin){
+
+    return getPoint(x, y, point.x, point.y, align, dimension, grid, origin, margin);
+
+}
+
 bool gui::getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align
         , Size dimension
         , Size grid
@@ -76,6 +86,34 @@ bool gui::getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align
             break;
     }
     return true;
+}
+
+void gui::getPoint(int x, int y
+        , float &pointX_Center, float &pointY_Center
+        , float &pointX_None, float &pointY_None
+        , ALIGNMENT align
+        , Size dimension
+        , Size grid
+        , Size origin
+        , Size margin) {
+
+    getPoint(x,y
+            , pointX_Center, pointY_Center
+            , ALIGNMENT_CENTER
+            , dimension
+            , grid
+            , origin
+            , margin
+    );
+
+    getPoint(x,y
+            , pointX_None, pointY_None
+            , ALIGNMENT_NONE
+            , dimension
+            , grid
+            , origin
+            , margin
+    );
 }
 
 bool gui::drawGrid(Node * p
@@ -152,8 +190,10 @@ Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, A
         fontSize = mDefaultFontSize;
 
     float pointX, pointY;
+    float pointX_NONE, pointY_NONE;
     getPoint(x,y
             , pointX, pointY
+            , pointX_NONE, pointY_NONE
             , ALIGNMENT_CENTER
             , dimension
             , grid
@@ -161,62 +201,54 @@ Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, A
             , margin
     );
 
-    float pointX_NONE, pointY_NONE;
-    getPoint(x,y
-            , pointX_NONE, pointY_NONE
-            , ALIGNMENT_NONE
-            , dimension
-            , grid
-            , origin
-            , margin
-    );
-
-    float gap = pointX - pointX_NONE;
-
     Label * label = Label::createWithTTF(text, mDefaultFont, fontSize);
     label->setColor(color);
 
-    float pX = pointX;
+    float pX;
 
     if(img.compare("") != 0){
         auto sprite = Sprite::create(img);
         if(isBGImg){
-            pX = pointX;
-            if(align == ALIGNMENT_NONE)
-                pX = pX - gap + (sprite->getContentSize().width /2);
 
-            sprite->setPosition(Point(pX, pointY));
-            label->setPosition(Point(pX, pointY));
+            sprite->setPosition(Point(
+                    (align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width /2) : pointX
+                    , pointY));
+            label->setPosition(Point(
+                    (align == ALIGNMENT_NONE) ? pointX_NONE + (label->getContentSize().width /2) : pointX
+                    , pointY));
+
         }else{
-            pX = pointX;
-            if(align == ALIGNMENT_NONE)
-                pX = pX - gap + (sprite->getContentSize().width /2);
-            else {
-                pX = pX - gap + ((sprite->getContentSize().width + label->getContentSize().width) /2);
-            }
+
+            pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width /2) :
+                 pointX_NONE + ((sprite->getContentSize().width + label->getContentSize().width) /2);
+
             sprite->setPosition(Point(pX, pointY));
             label->setPosition(Point(pX + (sprite->getContentSize().width /2) + (label->getContentSize().width / 2), pointY));
         }
 
         p->addChild(sprite);
+
     }else{
-        if(align == ALIGNMENT_NONE){
-            pX = pX - gap + (label->getContentSize().width / 2);
-        }
+
+        pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (label->getContentSize().width / 2) :
+             pointX;
 
         label->setPosition(Point(pX, pointY));
     }
 
     p->addChild(label);
+
     return label;
 }
 
-MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const ccMenuCallback &callback,
-                              int fontSize, ALIGNMENT align, const Color3B color
+MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const ccMenuCallback &callback
+        , int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid
         , Size origin
         , Size margin
+        , const string img
+        , bool isBGImg
 ) {
 
     if(fontSize > 0)
@@ -225,20 +257,52 @@ MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const cc
     auto pItem = MenuItemFont::create(text, callback);
     pItem->setColor(color);
     auto pMenu = Menu::create(pItem, NULL);
+
     float pointX, pointY;
+    float pointX_NONE, pointY_NONE;
     getPoint(x,y
             , pointX, pointY
-            , align
+            , pointX_NONE, pointY_NONE
+            , ALIGNMENT_CENTER
             , dimension
             , grid
             , origin
-            , margin);
-    pMenu->setPosition(Point(pointX, pointY));
-    if(align == ALIGNMENT_NONE){
-        pItem->setAnchorPoint(getNoneAnchorPoint());
-        //pMenu->setAnchorPoint(Vec2(0,1.5));
-    }
+            , margin
+    );
 
+    float pX;
+
+    if(img.compare("") != 0){
+
+        auto sprite = Sprite::create(img);
+        if(isBGImg){
+
+            sprite->setPosition(
+                    Point((align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width /2) : pointX
+                    , pointY));
+
+            pMenu->setPosition(
+                    Point((align == ALIGNMENT_NONE) ? pointX_NONE + (pItem->getContentSize().width /2) : pointX
+                    , pointY));
+
+        }else{
+
+            pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width /2) :
+                 pointX_NONE + ((sprite->getContentSize().width + pItem->getContentSize().width) /2);
+
+            sprite->setPosition(Point(pX, pointY));
+            pMenu->setPosition(Point(pX + (sprite->getContentSize().width /2) + (pItem->getContentSize().width / 2), pointY));
+        }
+
+        p->addChild(sprite);
+
+    }else{
+
+        pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (pItem->getContentSize().width / 2) :
+             pointX;
+
+        pMenu->setPosition(Point(pX, pointY));
+    }
 
     p->addChild(pMenu);
 
@@ -352,4 +416,16 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
 
     sv->setDirection(d);
     return sv;
+}
+
+LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float defaultVal){
+    Vec2 point;
+    getPoint(x, y, point, ALIGNMENT_CENTER);
+    LoadingBar * loadingBar = LoadingBar::create(img);
+    loadingBar->setDirection(LoadingBar::Direction::LEFT);
+    loadingBar->setPosition(point);
+    loadingBar->setPercent(defaultVal);
+    p->addChild(loadingBar);
+
+    return loadingBar;
 }

@@ -107,6 +107,9 @@ bool MainScene::init()
 
     //Cat Main UI
     gui::inst()->drawGrid(this);
+
+    loadingBar = gui::inst()->addProgressBar(4, 0, "LoadingBarFile.png", this, 10);
+
     //mGrid.drawPoint(this);
     //gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
     gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
@@ -118,7 +121,7 @@ bool MainScene::init()
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , "HelloWorld.png"
+            , "check.png"
             , false);
 
     //mGrid.addTextButton(0,0,"대꼬 lv.18 \n[견습] 길거리의 낭만 고양이", this, CC_CALLBACK_1(HelloWorld::callback2, this, 0), 12, ALIGNMENT_NONE);
@@ -128,21 +131,20 @@ bool MainScene::init()
     gui::inst()->addTextButton(2,6,"╁", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
 
     //mGrid.addTextButton(4,0,"EXP 1,024 / 2,048", this, CC_CALLBACK_1(HelloWorld::callback2, this, 5), 12, ALIGNMENT_CENTER, Color3B::GRAY);
-    gui::inst()->addLabel(4,0,"EXP 1,024 / 2,048", this, 12, ALIGNMENT_CENTER, Color3B::GRAY
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , "banner.jpg"
-            , true
-    );
+    gui::inst()->addLabel(4,0,"EXP 1,024 / 2,048", this, 12, ALIGNMENT_CENTER);
 
     gui::inst()->addTextButton(7,0,"$ 172,820 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
     gui::inst()->addTextButton(8,0,"♥ 80/117 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
 
     gui::inst()->addLabel(8,2,"체력: 10,234\n지력: 5,000\n매력: 82,340", this, 10);
 
-    gui::inst()->addTextButton(0,3,"도감", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 14);
+    gui::inst()->addTextButton(0,3,"도감", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 14, ALIGNMENT_NONE, Color3B::GRAY
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , "check.png"
+            , false);
     gui::inst()->addTextButton(0,4,"업적", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 14);
 
     gui::inst()->addTextButton(6,6,"벼룩시장", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 14);
@@ -185,7 +187,11 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
         auto pScene = ActionScene::createScene();
         //Director::getInstance()->replaceScene(pScene);
         Director::getInstance()->pushScene(pScene);
-    } else if(type == SCENECODE_RACE){
+    } else if(type == SCENECODE_BUY){
+        // more things happened, change the percentage again.
+        loadingBar->setPercent(loadingBar->getPercent() + 10.f);
+    }
+    else if(type == SCENECODE_RACE){
         this->removeChild(layerGray);
         //this->removeChild(layer);
 
