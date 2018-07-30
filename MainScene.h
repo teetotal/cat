@@ -48,14 +48,22 @@ private:
 
     cocos2d::LayerColor * layer;
     cocos2d::LayerColor * layerGray;
+    cocos2d::LayerColor * mParitclePopupLayer;
     LoadingBar * loadingBar;
 
+    void scheduleCB(float f);
+    void callback0();
+    void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
 
     virtual void onEnter();
     virtual void onEnterTransitionDidFinish();
     virtual void onExitTransitionDidStart();
     virtual void onExit();
+
+    void store();
+    void store2();
+    void particleSample();
 };
 
 

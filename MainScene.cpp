@@ -154,6 +154,8 @@ bool MainScene::init()
 
     gui::inst()->addTextButton(4,3,"╂", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE), 150);
 
+
+
     return true;
 }
 
@@ -175,262 +177,45 @@ void MainScene::menuCloseCallback(Ref* pSender)
 
 }
 
+
+
 void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
     CCLOG("Callback !!!!!!!! %d", type);
 
-    auto size = Size(400,200);
-    auto margin = Size(15, 15);
-    Size nodeSize = Size(100, 100);
-    Size gridSize = Size(1, 6);
-
-    if(type == SCENECODE_ACTION){
-        auto pScene = ActionScene::createScene();
-        //Director::getInstance()->replaceScene(pScene);
-        Director::getInstance()->pushScene(pScene);
-    } else if(type == SCENECODE_BUY){
-        // more things happened, change the percentage again.
-        loadingBar->setPercent(loadingBar->getPercent() + 10.f);
+    switch(type){
+        case SCENECODE_ACTION:
+            //Director::getInstance()->replaceScene(pScene);
+            Director::getInstance()->pushScene(ActionScene::createScene());
+            break;
+        case SCENECODE_SELL:
+            particleSample();
+            break;
+        case SCENECODE_BUY:
+            loadingBar->setPercent(loadingBar->getPercent() + 10.f);
+            break;
+        case SCENECODE_RACE:
+            this->removeChild(layerGray);
+            break;
+        case SCENECODE_INVENTORY:
+            store2();
+            break;
+        case SCENECODE_POPUP_1:
+            store();
+            break;
+        default:
+            break;
     }
-    else if(type == SCENECODE_RACE){
-        this->removeChild(layerGray);
-        //this->removeChild(layer);
 
-    } else if(type == SCENECODE_INVENTORY){
-        this->removeChild(layerGray);
-        layer = gui::inst()->addPopup(layerGray, this, size, "bg.png", Color4B::WHITE);
-        gui::inst()->addTextButton(8,0
-                ,"Close"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::RED
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
+}
 
-        //grid line
-        //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+void MainScene::callback0(){
+    CCLOG("callback0");
 
-        //tab
-        gui::inst()->addTextButton(0,1
-                ,"성장"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_1)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
+}
 
-        gui::inst()->addTextButton(1,1
-                ,"경묘"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
-        gui::inst()->addTextButton(2,1
-                ,"농사"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_3)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
-
-        gui::inst()->addTextButton(3,1
-                ,"체력"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_4)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
-
-        gui::inst()->addTextButton(4,1
-                ,"꾸밈"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_5)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
-
-        gui::inst()->addTextButton(5,1
-                ,"전체"
-                , layer
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY)
-                , 14
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size::ZERO
-                , margin
-        );
-
-        ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin);
-
-        for(int n=0; n < 10; n++){
-
-            Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
-
-            gui::inst()->addLabel(0,1
-                    , "`"
-                    , l
-                    , 24
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLACK
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,2
-                    , "[초급] 정어리 낚시"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLACK
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,3
-                    , "$10 S0 I0 A0"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::GRAY
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,4
-                    , "$0 S10 I12 A0"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLUE
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addLayoutToScrollView(sv, l, 10);
-        }
-
-        layer->addChild(sv, 1, 123);
-
-        /*
-        gui::inst()->addLabel(4,5
-                ,"┲"
-                , layer
-                , 50
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , size
-                , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                , Size(0,0)
-                , Size(0,0)
-        );
-         */
-    } else if(type == SCENECODE_POPUP_1) {
-        ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin);
-
-        for(int n=0; n < 10; n++){
-
-            Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
-
-            gui::inst()->addLabel(0,1
-                    , "╈"
-                    , l
-                    , 20
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLACK
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,2
-                    , "[초급] 정어리 낚시"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLACK
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,3
-                    , "$10 S0 I0 A0"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::GRAY
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addTextButton(0,4
-                    , "$0 S10 I12 A0"
-                    , l
-                    , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                    , 12
-                    , ALIGNMENT_CENTER
-                    , Color3B::BLUE
-                    , nodeSize
-                    , gridSize
-                    , Size::ZERO
-                    , Size::ZERO
-            );
-
-            gui::inst()->addLayoutToScrollView(sv, l, 10);
-        }
-        layer->removeChildByTag(123, true);
-        layer->addChild(sv);
-    }
-};
+void MainScene::callback1(Ref* pSender){
+    CCLOG("callback1");
+}
 
 
 void MainScene::onEnter(){
@@ -448,4 +233,297 @@ void MainScene::onExitTransitionDidStart(){
 void MainScene::onExit(){
     Scene::onExit();
     CCLOG("onExit\n");
+}
+
+
+void MainScene::store() {
+
+    auto size = Size(400,200);
+    auto margin = Size(15, 15);
+    Size nodeSize = Size(100, 100);
+    Size gridSize = Size(1, 6);
+
+    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin);
+
+    for(int n=0; n < 10; n++){
+
+        Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
+
+        gui::inst()->addLabel(0,1
+                , "╈"
+                , l
+                , 20
+                , ALIGNMENT_CENTER
+                , Color3B::BLACK
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,2
+                , "[초급] 정어리 낚시"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::BLACK
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,3
+                , "$10 S0 I0 A0"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::GRAY
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,4
+                , "$0 S10 I12 A0"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::BLUE
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addLayoutToScrollView(sv, l, 10);
+    }
+    layer->removeChildByTag(123, true);
+    layer->addChild(sv);
+}
+void MainScene::store2() {
+    auto size = Size(400,200);
+    auto margin = Size(15, 15);
+    Size nodeSize = Size(100, 100);
+    Size gridSize = Size(1, 6);
+
+    this->removeChild(layerGray);
+    layer = gui::inst()->addPopup(layerGray, this, size, "bg.png", Color4B::WHITE);
+    gui::inst()->addTextButton(8,0
+            ,"Close"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::RED
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    //grid line
+    //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+
+    //tab
+    gui::inst()->addTextButton(0,1
+            ,"성장"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_1)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    gui::inst()->addTextButton(1,1
+            ,"경묘"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+    gui::inst()->addTextButton(2,1
+            ,"농사"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_3)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    gui::inst()->addTextButton(3,1
+            ,"체력"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_4)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    gui::inst()->addTextButton(4,1
+            ,"꾸밈"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_5)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    gui::inst()->addTextButton(5,1
+            ,"전체"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin);
+
+    for(int n=0; n < 10; n++){
+
+        Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
+
+        gui::inst()->addLabel(0,1
+                , "`"
+                , l
+                , 24
+                , ALIGNMENT_CENTER
+                , Color3B::BLACK
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,2
+                , "[초급] 정어리 낚시"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::BLACK
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,3
+                , "$10 S0 I0 A0"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::GRAY
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addTextButton(0,4
+                , "$0 S10 I12 A0"
+                , l
+                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+                , 12
+                , ALIGNMENT_CENTER
+                , Color3B::BLUE
+                , nodeSize
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addLayoutToScrollView(sv, l, 10);
+    }
+
+    layer->addChild(sv, 1, 123);
+
+
+
+    /*
+    gui::inst()->addLabel(4,5
+            ,"┲"
+            , layer
+            , 50
+            , ALIGNMENT_CENTER
+            , Color3B::BLACK
+            , size
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size(0,0)
+            , Size(0,0)
+    );
+     */
+}
+
+void MainScene::particleSample(){
+
+    Color4B bgColor;
+    bgColor.r = 0;
+    bgColor.g = 0;
+    bgColor.b = 0;
+    bgColor.a = 200;
+
+    LayerColor * popup = gui::inst()->addPopup(mParitclePopupLayer, this, Size(400, 220), "", bgColor);
+    ParticleSystemQuad * particle = ParticleSystemQuad::create("particles/particle_magic.plist");
+    //particle->setDuration(3);
+    //particle->setStartRadius(10);
+    //particle->setEndRadius(0);
+
+    Vec2 point;
+    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(400, 220), Size(1,1), Size::ZERO, Size::ZERO);
+    particle->setPosition(point);
+    //particle->setAutoRemoveOnFinish(true);
+    //particle->setonEnterTransitionDidFinishCallback(CC_CALLBACK_0(MainScene::callback0, this));
+    //particle->setOnExitCallback(CC_CALLBACK_0(MainScene::callback0, this));
+    /*
+    particle->setOnExitCallback([this, popupBg](){
+        CCLOG("setOnExitCallback");
+        //mParitclePopupLayer->removeFromParent();
+        this->removeChild(popupBg);
+    });
+     */
+    popup->addChild(particle);
+
+    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 3);
+    //this->removeChild(mParitclePopupLayer);
+}
+
+void MainScene::scheduleCB(float f){
+    CCLOG("callback schedule %f", f);
+    this->removeChild(mParitclePopupLayer);
+    /*
+    if(mParitclePopupLayer)
+        mParitclePopupLayer->removeFromParent();
+        */
 }
