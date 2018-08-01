@@ -3,13 +3,7 @@
 //
 
 #include "ui_gacha.h"
-void ui_gacha::test(){
-    CCLOG("!!!!!CB TEST !!!!!");
-    this->scheduleOnce(schedule_selector(ui_gacha::cb), 10);
-}
-void ui_gacha::cb(float f){
-    CCLOG("!!!!!CB !!!!!");
-}
+
 void ui_gacha::initDetails(bool isAutoRelease
         , float moveLength
         , float rotateAmplitude
@@ -38,36 +32,79 @@ LayerColor * ui_gacha::createLayer(LayerColor * &pBG
 ) {
 
     mParent = pParent;
+    mParticleReady = particleReady;
     mParticleFinish = particleFinish;
 
-    mParitclePopup = gui::inst()->addPopup(mParitclePopupLayer, pParent, bgSize, imgBG, bgColor);
+    mParitclePopup = gui::inst()->createModalLayer(mParitclePopupLayer, bgSize, imgBG, bgColor);
     pBG = mParitclePopupLayer;
-    auto particle = ParticleSystemQuad::create(particleReady);
-    //particle->setDuration(3);
-    //particle->setStartRadius(10);
-    //particle->setEndRadius(0);
 
     gui::inst()->getPoint(0,0, mPoint, ALIGNMENT_CENTER, bgSize, Size(1,1), Size::ZERO, Size::ZERO);
+
+    mReadyImg = new (std::nothrow) Sprite();
+    mReadyImg->initWithFile(imgReady);
+    mReadyImg->setPosition(mPoint);
+
+    return mParitclePopup;
+}
+
+void ui_gacha::run(const string img, LayerColor * contentsLayer){
+
+    mParitclePopup->removeAllChildren();
+    mReadyImg->setRotation(0);
+    mReadyImg->setScale(1);
+
+    auto particle = ParticleSystemQuad::create(mParticleReady);
     particle->setPosition(mPoint);
-    //particle->setAutoRemoveOnFinish(true);
-    //particle->setonEnterTransitionDidFinishCallback(CC_CALLBACK_0(MainScene::callback0, this));
-    //particle->setOnExitCallback(CC_CALLBACK_0(MainScene::callback0, this));
-    /*
-    particle->setOnExitCallback([this, popupBg](){
-        CCLOG("setOnExitCallback");
-        //mParitclePopupLayer->removeFromParent();
-        this->removeChild(popupBg);
+
+    mParitclePopup->addChild(particle);
+
+    particle->setAutoRemoveOnFinish(true);
+    particle->setOnExitCallback([this, img, contentsLayer](){
+        callback(img, contentsLayer);
     });
-     */
+    mParitclePopup->addChild(mReadyImg);
 
-    auto img = Sprite::create(imgReady);
-    img->setPosition(mPoint);
+    mReadyImg->setOpacity(255);
+    mReadyImg->runAction(getSequence());
 
-    //img->setTag(1);
+    mParent->addChild(mParitclePopupLayer);
+
+    contentsLayer->setVisible(false);
+    contentsLayer->setPosition(Vec2(mPoint.x - contentsLayer->getContentSize().width / 2, mPoint.y - contentsLayer->getContentSize().height / 2));
+    mParitclePopup->addChild(contentsLayer);
+}
+
+void ui_gacha::callback(const string img, LayerColor * contentsLayer) {
+
+    auto particle = ParticleSystemQuad::create(mParticleFinish);
+    particle->setPosition(mPoint);
+    particle->setAutoRemoveOnFinish(true);
+    particle->setOnExitCallback([this, contentsLayer](){
+        contentsLayer->setVisible(true);
+    });
+
+    auto sprite = Sprite::create(img);
+    sprite->setPosition(mPoint);
+    sprite->setOpacity(0);
+
+    auto seq = Sequence::create(
+            FadeIn::create(mFadeinTime)
+            , Hide::create()
+            , nullptr);
+
+    sprite->runAction(seq);
+
+
+    mParitclePopup->addChild(sprite);
+    mParitclePopup->addChild(particle);
+}
+
+Sequence * ui_gacha::getSequence(){
+
     float t = mReadyEffectInterval;
-
     float length = mMoveLength;
     float amplitude = mRotateAmplitude;
+
     auto shakeAnimation = Sequence::create(
             MoveBy::create(t, Vec2(length / 2, 0)),
 
@@ -97,55 +134,7 @@ LayerColor * ui_gacha::createLayer(LayerColor * &pBG
             nullptr
     );
 
-    auto seq = Sequence::create(Repeat::create(shakeAnimation, mShakeRepeat)
+    return Sequence::create(Repeat::create(shakeAnimation, mShakeRepeat)
             , FadeOut::create(mFadeoutTime)
             , nullptr);
-    img->runAction(seq);
-
-    mParitclePopup->addChild(img);
-    mParitclePopup->addChild(particle);
-
-    //auto delay = cocos2d::DelayTime::create(3);
-    //this->runAction(Sequence::create(delay, nullptr));
-    //CCLOG("finish delay");
-    //this->removeChild(mParitclePopupLayer);
-
-    particle->setAutoRemoveOnFinish(true);
-    //this->scheduleOnce(schedule_selector(ui_gacha::callback), mReadyTime);
-    particle->setOnExitCallback([this](){
-        callback(false);
-    });
-
-    //this->removeChild(mParitclePopupLayer);
-
-    return mParitclePopup;
 }
-
-void ui_gacha::callback(bool isRelease) {
-
-    auto particle = ParticleSystemQuad::create(mParticleFinish);
-    particle->setPosition(mPoint);
-    particle->setAutoRemoveOnFinish(true);
-    //particle->setScale(0.1);
-
-    /*
-    particle->setOnExitCallback([this, particle](){
-        callback(true);
-    });
-     */
-
-    auto sprite = Sprite::create("gem.jpg");
-    sprite->setPosition(mPoint);
-    sprite->setOpacity(0);
-    sprite->runAction(FadeIn::create(mFadeinTime));
-    //mParitclePopup->removeChildByTag(1);
-
-    mParitclePopup->addChild(sprite);
-    mParitclePopup->addChild(particle);
-
-    //this->scheduleOnce(schedule_selector(ui_gacha::callbackFinish), 3);
-}
-
-void ui_gacha::callbackFinish(float f){
-    //mParent->removeChild(mParitclePopupLayer);
-};

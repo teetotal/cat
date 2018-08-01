@@ -66,11 +66,50 @@ public:
     Label * addLabel(int x
             , int y
             , const string &text
+            , Scene *p
+            , int fontSize = 0
+            , ALIGNMENT align = ALIGNMENT_CENTER
+            , const Color3B color = Color3B::BLACK
+            , const string img = ""
+            , bool isBGImg = true
+    );
+
+    Label * addLabelAutoDimension(int x
+            , int y
+            , const string text
             , Node *p
             , int fontSize = 0
             , ALIGNMENT align = ALIGNMENT_CENTER
             , const Color3B color = Color3B::BLACK
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , const string img = ""
+            , bool isBGImg = true
+    );
+
+    Label * addLabel(Node *p
+            , int x
+            , int y
+            , const string text
+            , int fontSize = 0
+            , ALIGNMENT align = ALIGNMENT_CENTER
+            , const Color3B color = Color3B::BLACK
             , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , const string img = ""
+            , bool isBGImg = true
+    );
+    MenuItem* addTextButtonAutoDimension(int x
+            , int y
+            , const char * text
+            , Node* p
+            , const ccMenuCallback& callback
+            , int fontSize = 0
+            , ALIGNMENT align = ALIGNMENT_CENTER
+            , const Color3B color = Color3B::BLACK
             , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
@@ -94,6 +133,8 @@ public:
     );
 
     LayerColor * addPopup(LayerColor * &pBG, Node * p, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
+    LayerColor * createModalLayer(LayerColor * &pBG, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
+
     Layout * createLayout(Size size, const string bgImg = "", bool hasBGColor = false, Color3B bgColor = Color3B::WHITE);
     void addLayoutToScrollView(ScrollView * p, Layout * e, float margin, ScrollView::Direction d = ScrollView::Direction::HORIZONTAL);
     ScrollView * addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg = "");

@@ -177,8 +177,50 @@ bool gui::drawPoint(Node *p) {
     }
     return true;
 }
+Label * gui::addLabel(int x
+        , int y
+        , const string &text
+        , Scene *p
+        , int fontSize
+        , ALIGNMENT align
+        , const Color3B color
+        , const string img
+        , bool isBGImg
+){
+ return  addLabel(p, x, y, text, fontSize, align, color
+         , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+         , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+         , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+         , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+         , img
+         , isBGImg
+    );
+}
 
-Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, ALIGNMENT align, const Color3B color
+Label * gui::addLabelAutoDimension(int x
+        , int y
+        , const string text
+        , Node *p
+        , int fontSize
+        , ALIGNMENT align
+        , const Color3B color
+        , Size grid
+        , Size origin
+        , Size margin
+        , const string img
+        , bool isBGImg
+){
+    return  addLabel(p, x, y, text, fontSize, align, color
+            , p->getContentSize()
+            , grid
+            , origin
+            , margin
+            , img
+            , isBGImg
+    );
+}
+
+Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid
         , Size origin
@@ -240,7 +282,16 @@ Label * gui::addLabel(int x, int y, const string &text, Node *p, int fontSize, A
 
     return label;
 }
-
+MenuItem * gui::addTextButtonAutoDimension(int x, int y, const char * text, Node *p, const ccMenuCallback &callback
+        , int fontSize, ALIGNMENT align, const Color3B color
+        , Size grid
+        , Size origin
+        , Size margin
+        , const string img
+        , bool isBGImg
+){
+    return addTextButton(x, y, text, p, callback, fontSize, align, color, p->getContentSize(), grid, origin, margin, img, isBGImg);
+}
 MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
@@ -264,7 +315,7 @@ MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const cc
             , pointX, pointY
             , pointX_NONE, pointY_NONE
             , ALIGNMENT_CENTER
-            , p->getContentSize()
+            , dimension
             , grid
             , origin
             , margin
@@ -312,8 +363,62 @@ MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const cc
     return pItem;
 }
 
+
+LayerColor *
+gui::createModalLayer(LayerColor * &layerBG, Size size, const string bgImg, Color4B bgColor) {
+    //layerBG = LayerColor::create(Color4B::BLACK);
+    layerBG = new (std::nothrow) LayerColor();
+    layerBG->initWithColor(Color4B::BLACK);
+
+    layerBG->setContentSize(Size(mVisibleX, mVisibleY));
+
+    layerBG->setPosition(Vec2(mOriginX, mOriginY));
+    layerBG->setOpacity(DEFAULT_OPACITY);
+
+    //LayerColor * layer = cocos2d::LayerColor::create(bgColor);
+    LayerColor * layer = new (std::nothrow) LayerColor();
+    layer->initWithColor(bgColor);
+
+    layer->setContentSize(size);
+    layer->setPosition(Vec2(mVisibleX / 2 - (size.width / 2),
+                            (mVisibleY / 2) - (size.height / 2)
+                       )
+    );
+
+    //drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, Size::ZERO);
+
+    if(bgImg.compare("") != 0){
+        auto sprite = Sprite::create(bgImg);
+        sprite->setContentSize(size);
+        sprite->setPosition(Vec2::ZERO);
+        sprite->setAnchorPoint(Vec2::ZERO);
+        layer->addChild(sprite);
+    }
+
+    layerBG->addChild(layer);
+
+    auto listener = EventListenerTouchOneByOne::create();
+    listener->setSwallowTouches(true);
+    listener->onTouchBegan = [](Touch *touch,Event*event)->bool {
+        CCLOG("x %f, y: %f"
+        , touch->getLocation().x
+        , touch->getLocation().y
+        );
+        return true;
+    };
+
+    auto dispatcher = Director::getInstance()->getEventDispatcher();
+    dispatcher->addEventListenerWithSceneGraphPriority(listener, layerBG);
+
+    return layer;
+}
+
 LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const string bgImg, Color4B bgColor){
 
+    LayerColor * layer = createModalLayer(layerBG, size, bgImg, bgColor);
+    p->addChild(layerBG);
+    return layer;
+    /*
     layerBG = LayerColor::create(Color4B::BLACK);
     layerBG->setContentSize(Size(mVisibleX, mVisibleY));
 
@@ -356,6 +461,7 @@ LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const str
     dispatcher->addEventListenerWithSceneGraphPriority(listener, layerBG);
 
     return layer;
+     */
 }
 
 Layout * gui::createLayout(Size size, const string bgImg, bool hasBGColor, Color3B bgColor){
@@ -428,3 +534,4 @@ LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float
 
     return loadingBar;
 }
+

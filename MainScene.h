@@ -45,7 +45,7 @@ public:
 
 private:
     gui mGrid;
-    ui_gacha * u;
+    ui_gacha  mGacha;
     cocos2d::LayerColor * layer;
     cocos2d::LayerColor * layerGray;
     cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;

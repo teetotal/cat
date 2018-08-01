@@ -25,6 +25,7 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+    mParitclePopup = NULL;
     //////////////////////////////
     // 1. super init first
     if ( !Scene::init() )
@@ -117,10 +118,6 @@ bool MainScene::init()
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
     gui::inst()->addLabel(0,1,"[견습] 길거리의 낭만 고양이", this, 12, ALIGNMENT_NONE, Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , "check.png"
             , false);
 
@@ -154,6 +151,12 @@ bool MainScene::init()
 
     gui::inst()->addTextButton(4,3,"╂", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE), 150);
 
+    //gacha
+    mParitclePopup = mGacha.createLayer(mParitclePopupLayer
+            , this
+            , "crystal_marvel.png"
+            , "particles/particle_magic.plist"
+            , "particles/particle_finally.plist");
 
 
     return true;
@@ -252,52 +255,48 @@ void MainScene::store() {
 
         Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
 
-        gui::inst()->addLabel(0,1
+        gui::inst()->addLabelAutoDimension(0,1
                 , "╈"
                 , l
                 , 20
                 , ALIGNMENT_CENTER
                 , Color3B::BLACK
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,2
+        gui::inst()->addTextButtonAutoDimension(0,2
                 , "[초급] 정어리 낚시"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::BLACK
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,3
+        gui::inst()->addTextButtonAutoDimension(0,3
                 , "$10 S0 I0 A0"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::GRAY
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,4
+        gui::inst()->addTextButtonAutoDimension(0,4
                 , "$0 S10 I12 A0"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::BLUE
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
@@ -316,14 +315,13 @@ void MainScene::store2() {
 
     this->removeChild(layerGray);
     layer = gui::inst()->addPopup(layerGray, this, size, "bg.png", Color4B::WHITE);
-    gui::inst()->addTextButton(8,0
+    gui::inst()->addTextButtonAutoDimension(8,0
             ,"Close"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::RED
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
@@ -333,78 +331,72 @@ void MainScene::store2() {
     //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
     //tab
-    gui::inst()->addTextButton(0,1
+    gui::inst()->addTextButtonAutoDimension(0,1
             ,"성장"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_1)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
     );
 
-    gui::inst()->addTextButton(1,1
+    gui::inst()->addTextButtonAutoDimension(1,1
             ,"경묘"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
     );
-    gui::inst()->addTextButton(2,1
+    gui::inst()->addTextButtonAutoDimension(2,1
             ,"농사"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_3)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
     );
 
-    gui::inst()->addTextButton(3,1
+    gui::inst()->addTextButtonAutoDimension(3,1
             ,"체력"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_4)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
     );
 
-    gui::inst()->addTextButton(4,1
+    gui::inst()->addTextButtonAutoDimension(4,1
             ,"꾸밈"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_5)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
     );
 
-    gui::inst()->addTextButton(5,1
+    gui::inst()->addTextButtonAutoDimension(5,1
             ,"전체"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY)
             , 14
             , ALIGNMENT_CENTER
             , Color3B::BLACK
-            , size
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
@@ -416,52 +408,48 @@ void MainScene::store2() {
 
         Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
 
-        gui::inst()->addLabel(0,1
+        gui::inst()->addLabelAutoDimension(0,1
                 , "`"
                 , l
                 , 24
                 , ALIGNMENT_CENTER
                 , Color3B::BLACK
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,2
+        gui::inst()->addTextButtonAutoDimension(0,2
                 , "[초급] 정어리 낚시"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::BLACK
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,3
+        gui::inst()->addTextButtonAutoDimension(0,3
                 , "$10 S0 I0 A0"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::GRAY
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
         );
 
-        gui::inst()->addTextButton(0,4
+        gui::inst()->addTextButtonAutoDimension(0,4
                 , "$0 S10 I12 A0"
                 , l
                 , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
                 , 12
                 , ALIGNMENT_CENTER
                 , Color3B::BLUE
-                , nodeSize
                 , gridSize
                 , Size::ZERO
                 , Size::ZERO
@@ -491,143 +479,30 @@ void MainScene::store2() {
 
 void MainScene::particleSample(){
 
-    u = new ui_gacha;
-    u->initDetails();
-    //u->test();
+    auto layer = LayerColor::create();
+    layer->setContentSize(Size(300, 225));
 
-
-    mParitclePopup = u->createLayer(mParitclePopupLayer
-            , this
-            , "crystal_marvel.png"
-            , "particles/particle_magic.plist"
-            , "particles/particle_finally.plist");
-
-    gui::inst()->addTextButton(0,0, "Close gacha"
-            , mParitclePopup, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
-            , 14
+    auto sprite = Sprite::create("gem.jpg");
+    sprite->setPosition(layer->getContentSize().width /2, layer->getContentSize().height /2);
+    sprite->setAnchorPoint(Vec2(0.5, 0.5));
+    layer->addChild(sprite);
+    gui::inst()->addTextButtonAutoDimension(0,5, "Close gacha"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
+            , 10
             , ALIGNMENT_CENTER
             , Color3B::WHITE
-            //, mParitclePopup->getContentSize()
+            , Size(1, 5)
     );
 
+    //sprite->setOpacity(0);
+    //sprite->runAction(FadeIn::create(mFadeinTime));
 
-    //this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 10);
-
-    /*
-    Color4B bgColor;
-    bgColor.r = 0;
-    bgColor.g = 0;
-    bgColor.b = 0;
-    bgColor.a = 220;
-
-    mParitclePopup = gui::inst()->addPopup(mParitclePopupLayer, this, Size(300, 220), "", bgColor);
-    ParticleSystemQuad * particle = ParticleSystemQuad::create("particles/particle_magic.plist");
-    //particle->setDuration(3);
-    //particle->setStartRadius(10);
-    //particle->setEndRadius(0);
-
-    Vec2 point;
-    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(300, 220), Size(1,1), Size::ZERO, Size::ZERO);
-    particle->setPosition(point);
-    //particle->setAutoRemoveOnFinish(true);
-    //particle->setonEnterTransitionDidFinishCallback(CC_CALLBACK_0(MainScene::callback0, this));
-    //particle->setOnExitCallback(CC_CALLBACK_0(MainScene::callback0, this));
-
-    particle->setOnExitCallback([this, popupBg](){
-        CCLOG("setOnExitCallback");
-        //mParitclePopupLayer->removeFromParent();
-        this->removeChild(popupBg);
-    });
+    mGacha.run("gem.jpg", layer);
 
 
-    auto img = Sprite::create("crystal_marvel.png");
-    img->setPosition(point);
-
-    img->setTag(1);
-    float t = 0.05;
-
-    float length = 5;
-    float amplitude = 10;
-    auto myShakeAnimation = Sequence::create(
-            MoveBy::create(t, Vec2(length / 2, 0)),
-
-            RotateBy::create(t, amplitude / 2),
-            RotateBy::create(t, amplitude * -1),
-
-            MoveBy::create(t, Vec2(length * -1, 0)),
-
-            RotateBy::create(t, amplitude),
-            RotateBy::create(t, amplitude * -1),
-
-            MoveBy::create(t, Vec2(length, 0)),
-
-            RotateBy::create(t, amplitude),
-            RotateBy::create(t, amplitude * -1),
-
-            MoveBy::create(t, Vec2(length * -1, 0)),
-
-            RotateBy::create(t, amplitude),
-            RotateBy::create(t, amplitude * -1),
-
-            MoveBy::create(t, Vec2(length / 2, 0)),
-            RotateBy::create(t, amplitude / 2),
-
-            ScaleBy::create(t, 1.5),
-            ScaleTo::create(t, 1),
-            nullptr
-    );
-
-    auto rep1 = Repeat::create(myShakeAnimation, 4);
-    auto seq = Sequence::create(rep1, FadeOut::create(1), nullptr);
-    img->runAction(seq);
-
-    //this->addChild(img);
-
-    mParitclePopup->addChild(img);
-
-    mParitclePopup->addChild(particle);
-
-    //auto delay = cocos2d::DelayTime::create(3);
-    //this->runAction(Sequence::create(delay, nullptr));
-    //CCLOG("finish delay");
-    //this->removeChild(mParitclePopupLayer);
-
-    mIsParticleFinished = false;
-    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 4);
-
-    //this->removeChild(mParitclePopupLayer);
-    */
 }
 
 void MainScene::scheduleCB(float f){
-    //this->removeChild(mParitclePopupLayer);
-    /*
-    CCLOG("callback schedule %f", f);
-    if(mIsParticleFinished){
-        this->removeChild(mParitclePopupLayer);
-        return;
-    }
-    mIsParticleFinished = true;
-    ParticleSystemQuad * particle = ParticleSystemQuad::create("particles/particle_finally.plist");
-    Vec2 point;
-    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(300, 220), Size(1,1), Size::ZERO, Size::ZERO);
-    particle->setPosition(point);
 
-    //particle->setScale(0.1);
-
-    auto sprite = Sprite::create("gem.jpg");
-    sprite->setPosition(point);
-    sprite->setOpacity(0);
-    sprite->runAction(FadeIn::create(2));
-    //mParitclePopup->removeChildByTag(1);
-    mParitclePopup->addChild(sprite);
-    mParitclePopup->addChild(particle);
-
-    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 3);
-    //
-     */
-    /*
-    if(mParitclePopupLayer)
-        mParitclePopupLayer->removeFromParent();
-        */
 }

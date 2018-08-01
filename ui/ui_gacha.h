@@ -7,20 +7,19 @@
 
 #include "ui.h"
 
-class ui_gacha : public Scene{
+class ui_gacha{
 public:
-    static Scene* createScene();
-
-    virtual bool init(){
+    ui_gacha() : mParitclePopupLayer(NULL), mParitclePopup(NULL), mReadyImg(NULL) {
         initDetails();
-        return true;
     };
-
-    CREATE_FUNC(ui_gacha);
-
-
     virtual ~ui_gacha(){
         CCLOG("gacha released");
+        if(mParitclePopupLayer)
+            delete mParitclePopupLayer;
+        if(mParitclePopup)
+            delete mParitclePopup;
+        if(mReadyImg)
+            delete mReadyImg;
     };
 
     void initDetails(bool isAutoRelease = true
@@ -29,7 +28,7 @@ public:
             , float readyEffectInterval = 0.05
             , unsigned int shakeRepeat = 4
             , float fadeoutTime = 1
-            , float fadeinTime = 1
+            , float fadeinTime = 3
     );
 
     LayerColor * createLayer(LayerColor * &pBG
@@ -42,16 +41,17 @@ public:
             , Color4B bgColor = Color4B::BLACK
     );
 
-    void test();
-    void cb(float f);
-
+    void run(const string img, LayerColor * contentsLayer);
 private:
-    void callback(bool isRelease);
-    void callbackFinish(float f);
+    void callback(const string img, LayerColor * contentsLayer);
+    Sequence * getSequence();
 
-    LayerColor * mParitclePopupLayer, * mParitclePopup;
+    LayerColor * mParitclePopupLayer, * mParitclePopup; //memory
     Node * mParent;
+    //Sequence * mShakeSeq;
+    Sprite * mReadyImg; //memory
     string mParticleFinish;
+    string mParticleReady;
     Vec2 mPoint;
 
     gui mGUI;
