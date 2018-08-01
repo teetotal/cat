@@ -27,10 +27,11 @@ enum ALIGNMENT{
 class gui {
 public:
     gui(){
-        hInstance = this;
+        if(hInstance == NULL)
+            hInstance = this;
     };
     ~gui(){
-        hInstance = NULL;
+        //hInstance = NULL;
     };
     static gui * inst(){
         return hInstance;

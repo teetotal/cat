@@ -264,7 +264,7 @@ MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const cc
             , pointX, pointY
             , pointX_NONE, pointY_NONE
             , ALIGNMENT_CENTER
-            , dimension
+            , p->getContentSize()
             , grid
             , origin
             , margin
@@ -341,7 +341,6 @@ LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const str
     }
 
     layerBG->addChild(layer);
-
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->setSwallowTouches(true);

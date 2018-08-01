@@ -7,7 +7,7 @@
 
 #include "cocos2d.h"
 #include "ui/ui.h"
-
+#include "ui/ui_gacha.h"
 USING_NS_CC;
 
 enum SCENECODE{
@@ -45,12 +45,16 @@ public:
 
 private:
     gui mGrid;
-
+    ui_gacha * u;
     cocos2d::LayerColor * layer;
     cocos2d::LayerColor * layerGray;
-    cocos2d::LayerColor * mParitclePopupLayer;
+    cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
+    bool mIsParticleFinished;
     LoadingBar * loadingBar;
 
+    static void paricleCB(){
+        //this->removeChild(mParitclePopupLayer);
+    };
     void scheduleCB(float f);
     void callback0();
     void callback1(Ref* pSender);

@@ -202,6 +202,9 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
         case SCENECODE_POPUP_1:
             store();
             break;
+        case SCENECODE_POPUP_2:
+            this->removeChild(mParitclePopupLayer);
+            break;
         default:
             break;
     }
@@ -488,40 +491,141 @@ void MainScene::store2() {
 
 void MainScene::particleSample(){
 
+    u = new ui_gacha;
+    u->initDetails();
+    //u->test();
+
+
+    mParitclePopup = u->createLayer(mParitclePopupLayer
+            , this
+            , "crystal_marvel.png"
+            , "particles/particle_magic.plist"
+            , "particles/particle_finally.plist");
+
+    gui::inst()->addTextButton(0,0, "Close gacha"
+            , mParitclePopup, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::WHITE
+            //, mParitclePopup->getContentSize()
+    );
+
+
+    //this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 10);
+
+    /*
     Color4B bgColor;
     bgColor.r = 0;
     bgColor.g = 0;
     bgColor.b = 0;
-    bgColor.a = 200;
+    bgColor.a = 220;
 
-    LayerColor * popup = gui::inst()->addPopup(mParitclePopupLayer, this, Size(400, 220), "", bgColor);
+    mParitclePopup = gui::inst()->addPopup(mParitclePopupLayer, this, Size(300, 220), "", bgColor);
     ParticleSystemQuad * particle = ParticleSystemQuad::create("particles/particle_magic.plist");
     //particle->setDuration(3);
     //particle->setStartRadius(10);
     //particle->setEndRadius(0);
 
     Vec2 point;
-    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(400, 220), Size(1,1), Size::ZERO, Size::ZERO);
+    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(300, 220), Size(1,1), Size::ZERO, Size::ZERO);
     particle->setPosition(point);
     //particle->setAutoRemoveOnFinish(true);
     //particle->setonEnterTransitionDidFinishCallback(CC_CALLBACK_0(MainScene::callback0, this));
     //particle->setOnExitCallback(CC_CALLBACK_0(MainScene::callback0, this));
-    /*
+
     particle->setOnExitCallback([this, popupBg](){
         CCLOG("setOnExitCallback");
         //mParitclePopupLayer->removeFromParent();
         this->removeChild(popupBg);
     });
-     */
-    popup->addChild(particle);
 
-    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 3);
+
+    auto img = Sprite::create("crystal_marvel.png");
+    img->setPosition(point);
+
+    img->setTag(1);
+    float t = 0.05;
+
+    float length = 5;
+    float amplitude = 10;
+    auto myShakeAnimation = Sequence::create(
+            MoveBy::create(t, Vec2(length / 2, 0)),
+
+            RotateBy::create(t, amplitude / 2),
+            RotateBy::create(t, amplitude * -1),
+
+            MoveBy::create(t, Vec2(length * -1, 0)),
+
+            RotateBy::create(t, amplitude),
+            RotateBy::create(t, amplitude * -1),
+
+            MoveBy::create(t, Vec2(length, 0)),
+
+            RotateBy::create(t, amplitude),
+            RotateBy::create(t, amplitude * -1),
+
+            MoveBy::create(t, Vec2(length * -1, 0)),
+
+            RotateBy::create(t, amplitude),
+            RotateBy::create(t, amplitude * -1),
+
+            MoveBy::create(t, Vec2(length / 2, 0)),
+            RotateBy::create(t, amplitude / 2),
+
+            ScaleBy::create(t, 1.5),
+            ScaleTo::create(t, 1),
+            nullptr
+    );
+
+    auto rep1 = Repeat::create(myShakeAnimation, 4);
+    auto seq = Sequence::create(rep1, FadeOut::create(1), nullptr);
+    img->runAction(seq);
+
+    //this->addChild(img);
+
+    mParitclePopup->addChild(img);
+
+    mParitclePopup->addChild(particle);
+
+    //auto delay = cocos2d::DelayTime::create(3);
+    //this->runAction(Sequence::create(delay, nullptr));
+    //CCLOG("finish delay");
     //this->removeChild(mParitclePopupLayer);
+
+    mIsParticleFinished = false;
+    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 4);
+
+    //this->removeChild(mParitclePopupLayer);
+    */
 }
 
 void MainScene::scheduleCB(float f){
+    //this->removeChild(mParitclePopupLayer);
+    /*
     CCLOG("callback schedule %f", f);
-    this->removeChild(mParitclePopupLayer);
+    if(mIsParticleFinished){
+        this->removeChild(mParitclePopupLayer);
+        return;
+    }
+    mIsParticleFinished = true;
+    ParticleSystemQuad * particle = ParticleSystemQuad::create("particles/particle_finally.plist");
+    Vec2 point;
+    gui::inst()->getPoint(0,0, point, ALIGNMENT_CENTER, Size(300, 220), Size(1,1), Size::ZERO, Size::ZERO);
+    particle->setPosition(point);
+
+    //particle->setScale(0.1);
+
+    auto sprite = Sprite::create("gem.jpg");
+    sprite->setPosition(point);
+    sprite->setOpacity(0);
+    sprite->runAction(FadeIn::create(2));
+    //mParitclePopup->removeChildByTag(1);
+    mParitclePopup->addChild(sprite);
+    mParitclePopup->addChild(particle);
+
+    this->scheduleOnce(schedule_selector(MainScene::scheduleCB), 3);
+    //
+     */
     /*
     if(mParitclePopupLayer)
         mParitclePopupLayer->removeFromParent();
