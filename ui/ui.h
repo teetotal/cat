@@ -132,6 +132,27 @@ public:
             , bool isBGImg = true
     );
 
+    Sprite* addSprite(int x
+            , int y
+            , const string img
+            , Node* p
+            , ALIGNMENT align = ALIGNMENT_CENTER
+            , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+    );
+
+    Sprite* addSpriteAutoDimension(int x
+            , int y
+            , const string img
+            , Node* p
+            , ALIGNMENT align = ALIGNMENT_CENTER
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+    );
+
     LayerColor * addPopup(LayerColor * &pBG, Node * p, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
     LayerColor * createModalLayer(LayerColor * &pBG, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
 

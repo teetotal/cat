@@ -418,50 +418,6 @@ LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const str
     LayerColor * layer = createModalLayer(layerBG, size, bgImg, bgColor);
     p->addChild(layerBG);
     return layer;
-    /*
-    layerBG = LayerColor::create(Color4B::BLACK);
-    layerBG->setContentSize(Size(mVisibleX, mVisibleY));
-
-    layerBG->setPosition(Vec2(mOriginX, mOriginY));
-    layerBG->setOpacity(DEFAULT_OPACITY);
-
-    p->addChild(layerBG);
-
-
-    LayerColor * layer = cocos2d::LayerColor::create(bgColor);
-    layer->setContentSize(size);
-    layer->setPosition(Vec2(mVisibleX / 2 - (size.width / 2),
-                            (mVisibleY / 2) - (size.height / 2)
-                       )
-    );
-
-    //drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, Size::ZERO);
-
-    if(bgImg.compare("") != 0){
-        auto sprite = Sprite::create(bgImg);
-        sprite->setContentSize(size);
-        sprite->setPosition(Vec2::ZERO);
-        sprite->setAnchorPoint(Vec2::ZERO);
-        layer->addChild(sprite);
-    }
-
-    layerBG->addChild(layer);
-
-    auto listener = EventListenerTouchOneByOne::create();
-    listener->setSwallowTouches(true);
-    listener->onTouchBegan = [](Touch *touch,Event*event)->bool {
-        CCLOG("x %f, y: %f"
-        , touch->getLocation().x
-        , touch->getLocation().y
-        );
-        return true;
-    };
-
-    auto dispatcher = Director::getInstance()->getEventDispatcher();
-    dispatcher->addEventListenerWithSceneGraphPriority(listener, layerBG);
-
-    return layer;
-     */
 }
 
 Layout * gui::createLayout(Size size, const string bgImg, bool hasBGColor, Color3B bgColor){
@@ -535,3 +491,38 @@ LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float
     return loadingBar;
 }
 
+Sprite *
+gui::addSpriteAutoDimension(int x, int y, const string img, Node *p, ALIGNMENT align, Size grid,
+                            Size origin, Size margin) {
+    return addSprite(x, y, img, p, align, p->getContentSize(), grid, origin, margin);
+}
+
+Sprite *
+gui::addSprite(int x, int y, const string img, Node *p, ALIGNMENT align, Size dimension, Size grid, Size origin,
+               Size margin) {
+
+    float pointX, pointY;
+    float pointX_NONE, pointY_NONE;
+    getPoint(x,y
+            , pointX, pointY
+            , pointX_NONE, pointY_NONE
+            , ALIGNMENT_CENTER
+            , dimension
+            , grid
+            , origin
+            , margin
+    );
+
+    Sprite * sprite = Sprite::create(img);
+    sprite->setAnchorPoint(Vec2(0.5, 0.5));
+
+    float pX;
+
+    pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width / 2) :
+         pointX;
+
+    sprite->setPosition(Point(pX, pointY));
+
+    p->addChild(sprite);
+    return sprite;
+}

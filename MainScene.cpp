@@ -111,6 +111,8 @@ bool MainScene::init()
 
     loadingBar = gui::inst()->addProgressBar(4, 0, "LoadingBarFile.png", this, 10);
 
+    gui::inst()->addSprite(4, 4, "zombie.png", this);
+
     //mGrid.drawPoint(this);
     //gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
     gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
@@ -149,7 +151,8 @@ bool MainScene::init()
     gui::inst()->addTextButton(8,6,"가방", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 14);
 
 
-    gui::inst()->addTextButton(4,3,"╂", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE), 150);
+    //gui::inst()->addTextButton(4,3,"╂", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE), 150);
+
 
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
@@ -187,14 +190,16 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 
     switch(type){
         case SCENECODE_ACTION:
-            //Director::getInstance()->replaceScene(pScene);
-            Director::getInstance()->pushScene(ActionScene::createScene());
+            store2();
             break;
         case SCENECODE_SELL:
             particleSample();
             break;
         case SCENECODE_BUY:
             loadingBar->setPercent(loadingBar->getPercent() + 10.f);
+            break;
+        case SCENECODE_FARMING:
+            Director::getInstance()->pushScene(ActionScene::createScene());
             break;
         case SCENECODE_RACE:
             this->removeChild(layerGray);
@@ -481,11 +486,7 @@ void MainScene::particleSample(){
 
     auto layer = LayerColor::create();
     layer->setContentSize(Size(300, 225));
-
-    auto sprite = Sprite::create("gem.jpg");
-    sprite->setPosition(layer->getContentSize().width /2, layer->getContentSize().height /2);
-    sprite->setAnchorPoint(Vec2(0.5, 0.5));
-    layer->addChild(sprite);
+    gui::inst()->addSpriteAutoDimension(0, 0, "gem.jpg", layer, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
     gui::inst()->addTextButtonAutoDimension(0,5, "Close gacha"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
@@ -494,10 +495,6 @@ void MainScene::particleSample(){
             , Color3B::WHITE
             , Size(1, 5)
     );
-
-    //sprite->setOpacity(0);
-    //sprite->runAction(FadeIn::create(mFadeinTime));
-
     mGacha.run("gem.jpg", layer);
 
 
