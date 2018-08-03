@@ -526,3 +526,53 @@ gui::addSprite(int x, int y, const string img, Node *p, ALIGNMENT align, Size di
     p->addChild(sprite);
     return sprite;
 }
+
+void gui::addBGScrolling(const string img, Node * p, float duration){
+    auto sprite1 = Sprite::create(img);
+    auto sprite2 = Sprite::create(img);
+    auto sprite3 = Sprite::create(img); // 카메라 전환시 빈공간 메꿔주기 위해 추가
+
+    Vec2 point = Vec2(mVisibleX / 2, mVisibleY / 2);
+    sprite1->setContentSize(Size(mVisibleX, mVisibleY));
+    sprite1->setAnchorPoint(Vec2(0.5, 0.5));
+    sprite1->setPosition(point);
+
+    Vec2 point2 = Vec2(point.x + sprite1->getContentSize().width , point.y);
+    sprite2->setContentSize(Size(mVisibleX, mVisibleY));
+    sprite2->setAnchorPoint(Vec2(0.5, 0.5));
+    sprite2->setPosition(point2);
+
+
+    Vec2 point3 = Vec2(point.x + sprite1->getContentSize().width *2, point.y);
+    sprite3->setContentSize(Size(mVisibleX, mVisibleY));
+    sprite3->setAnchorPoint(Vec2(0.5, 0.5));
+    sprite3->setPosition(point3);
+
+
+    Vec2 finishPoint = Vec2((mVisibleX / 2) * -1, mVisibleY / 2);
+    auto seq1 = RepeatForever::create(Sequence::create(
+            MoveTo::create(duration, finishPoint)
+            , Place::create(point)
+            , NULL
+    ));
+
+    auto seq2 = RepeatForever::create(Sequence::create(
+            MoveTo::create(duration, point)
+            , Place::create(point2)
+            , NULL
+    ));
+
+    auto seq3 = RepeatForever::create(Sequence::create(
+            MoveTo::create(duration, point2)
+            , Place::create(point3)
+            , NULL
+    ));
+
+    sprite1->runAction(seq1);
+    sprite2->runAction(seq2);
+    sprite3->runAction(seq3);
+
+    p->addChild(sprite1);
+    p->addChild(sprite2);
+    p->addChild(sprite3);
+}

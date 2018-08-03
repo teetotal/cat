@@ -153,13 +153,47 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
     );
 
-    LayerColor * addPopup(LayerColor * &pBG, Node * p, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
-    LayerColor * createModalLayer(LayerColor * &pBG, Size size, const string bgImg = "", Color4B bgColor = Color4B::WHITE);
+    LayerColor * addPopup(LayerColor * &pBG
+            , Node * p
+            , Size size
+            , const string bgImg = ""
+            , Color4B bgColor = Color4B::WHITE
+    );
+    LayerColor * createModalLayer(LayerColor * &pBG
+            , Size size
+            , const string bgImg = ""
+            , Color4B bgColor = Color4B::WHITE
+    );
 
-    Layout * createLayout(Size size, const string bgImg = "", bool hasBGColor = false, Color3B bgColor = Color3B::WHITE);
-    void addLayoutToScrollView(ScrollView * p, Layout * e, float margin, ScrollView::Direction d = ScrollView::Direction::HORIZONTAL);
-    ScrollView * addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg = "");
-    LoadingBar * addProgressBar(int x, int y, const string img, Node * p, float defaultVal = 0.f);
+    Layout * createLayout(Size size
+            , const string bgImg = ""
+            , bool hasBGColor = false
+            , Color3B bgColor = Color3B::WHITE
+    );
+
+    void addLayoutToScrollView(ScrollView * p
+            , Layout * e
+            , float margin
+            , ScrollView::Direction d = ScrollView::Direction::HORIZONTAL
+    );
+    ScrollView * addScrollView(Vec2 p1
+            , Vec2 p2
+            , Size size
+            , Size margin
+            , const string bgImg = ""
+    );
+
+    LoadingBar * addProgressBar(int x
+            , int y
+            , const string img
+            , Node * p
+            , float defaultVal = 0.f
+    );
+
+    //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
+    void addBGScrolling(const string img, Node * p, float duration);
+
+
 
 private:
     float mOriginX, mOriginY;
