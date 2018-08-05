@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -115,7 +115,7 @@ bool MainScene::init()
 
     //mGrid.drawPoint(this);
     //gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
-    gui::inst()->addLabel(0,0,"대꼬 lv.18", this, 12, ALIGNMENT_NONE);
+    gui::inst()->addLabel(0,0,"Daeko lv.18", this, 12, ALIGNMENT_NONE);
 
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
@@ -135,7 +135,7 @@ bool MainScene::init()
     gui::inst()->addTextButton(7,0,"$ 172,820 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
     gui::inst()->addTextButton(8,0,"♥ 80/117 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
 
-    gui::inst()->addLabel(8,2,"체력: 10,234\n지력: 5,000\n매력: 82,340", this, 10);
+    gui::inst()->addLabel(8,2,"S: 10,234\nI: 5,000\nA: 82,340", this, 10);
 
     gui::inst()->addTextButton(0,3,"도감", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 14, ALIGNMENT_NONE, Color3B::GRAY
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
@@ -160,6 +160,15 @@ bool MainScene::init()
             , "crystal_marvel.png"
             , "particles/particle_magic.plist"
             , "particles/particle_finally.plist");
+
+	//cultivation test
+	auto * l = gui::inst()->createLayout(Size(25, 35), "", false, Color3B::BLACK);
+	l->setPosition(Vec2(100, 100));
+	gui::inst()->addSprite(0, 1, "plant3.png", l, ALIGNMENT_CENTER, l->getContentSize(), Size(1,3), Size::ZERO, Size::ZERO);
+	auto _progressTimeBar = gui::inst()->addProgressBar(0, 0, "timeBar.png", l, 20, l->getContentSize(), Size(1, 3), Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(0, 2, "baby plant", l, 6, ALIGNMENT_CENTER, Color3B::GRAY, Size(1, 3), Size::ZERO, Size::ZERO);
+
+	this->addChild(l);
 
 
     return true;

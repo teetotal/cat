@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -45,7 +45,7 @@ bool ActionScene::init() {
     Vec2 center = Vec2(Director::getInstance()->getVisibleSize().width / 2, Director::getInstance()->getVisibleSize().height / 2);
     //zombie->setPosition(center);
 
-    this->addChild(ParticleRain::create());
+    //this->addChild(ParticleRain::create());
 
     Vec2 point;
     gui::inst()->getPoint(15, 3, point, ALIGNMENT_CENTER);

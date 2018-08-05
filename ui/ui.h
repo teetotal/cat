@@ -24,6 +24,14 @@ enum ALIGNMENT{
     ALIGNMENT_CENTER
 };
 
+//레벨에 따른 이미지 출력을 위한 구조체
+struct IMG_LEVEL {
+	const string img;
+	float level;
+};
+
+typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
+
 class gui {
 public:
     gui(){
@@ -188,12 +196,16 @@ public:
             , const string img
             , Node * p
             , float defaultVal = 0.f
+			, Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+			, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+			, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+			, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
     );
 
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
 
-
+	
 
 private:
     float mOriginX, mOriginY;
