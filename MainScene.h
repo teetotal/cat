@@ -8,6 +8,8 @@
 #include "cocos2d.h"
 #include "ui/ui.h"
 #include "ui/ui_gacha.h"
+#include "ui/ui_cultivation.h"
+
 USING_NS_CC;
 
 enum SCENECODE{
@@ -43,6 +45,10 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(MainScene);
 
+    void cultivationCBInner(int id){
+        CCLOG("cultivationCBInner %d", id);
+    };
+
 private:
     gui mGrid;
     ui_gacha  mGacha;
@@ -60,6 +66,13 @@ private:
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
 
+
+    static void cultivationCB(int id){
+        hInst->cultivationCBInner(id);
+    };
+
+
+
     virtual void onEnter();
     virtual void onEnterTransitionDidFinish();
     virtual void onExitTransitionDidStart();
@@ -68,6 +81,10 @@ private:
     void store();
     void store2();
     void particleSample();
+
+    ui_cultivation c1, c2, c3;
+
+    static MainScene * hInst;
 };
 
 

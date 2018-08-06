@@ -7,27 +7,67 @@
 
 #include "ui.h"
 
+#define FONT_MIN_SIZE 6
+
+typedef void(*cultivationCB)(int id);
+
 class ui_cultivation {
 public:
-    ui_cultivation() {
-        
+    ui_cultivation() : mIsDecay(false) {
+
     };
     virtual ~ui_cultivation(){
         CCLOG("ui_cultivation released");
     };
 
-	void addLevel(const string img, float maxLevel);
-	void init(float duration, float maxOverTime, const string decayImg);
+	//void addLevel(const string img, float maxLevel, const ccMenuCallback& callback, const string text = "");
+    void addLevel(const string img, float maxLevel, const string text = "");
+
+    Layout * init(
+            int id
+            , cultivationCB cb
+            , float fontSize
+            , const string decayImg
+            , const string progressBarImg
+            , Size size
+            , Node * p
+            , Vec2 position
+            , bool isAutoDimension
+            , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE));
+
 	void finalize();
-	void start();
-	
+	void update(float percent);
+	float getPercent(){
+        return mCurrentPercent;
+    }
+    void setDecay(bool b);
+
+    int mId;
 private:
-	time_t mStart;
-	float mDuration, mMaxOverTime;
+    struct imgLevel{
+        string img;
+        float maxLevel;
+        //ccMenuCallback callback;
+        string text;
+    };
+    vector<imgLevel> mVec;
+
+    Sprite * mImg;
+    LoadingBar * mProgressBar;
+    Label * mLabel;
+
+    float mFontSize;
+    int mCurrentIdx;
+    float mCurrentPercent;
+    bool mIsDecay;
+
+    Size mSize;
 	string mDecayImg;
 
 	gui mUI;
-
 };
 
 

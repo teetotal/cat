@@ -10,6 +10,7 @@
 
 using namespace cocos2d::ui;
 
+MainScene * MainScene::hInst = NULL;
 Scene* MainScene::createScene()
 {
     return MainScene::create();
@@ -25,6 +26,7 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+    hInst = this;
     mParitclePopup = NULL;
     //////////////////////////////
     // 1. super init first
@@ -161,15 +163,19 @@ bool MainScene::init()
             , "particles/particle_magic.plist"
             , "particles/particle_finally.plist");
 
-	//cultivation test
-	auto * l = gui::inst()->createLayout(Size(25, 35), "", false, Color3B::BLACK);
-	l->setPosition(Vec2(100, 100));
-	gui::inst()->addSprite(0, 1, "plant3.png", l, ALIGNMENT_CENTER, l->getContentSize(), Size(1,3), Size::ZERO, Size::ZERO);
-	auto _progressTimeBar = gui::inst()->addProgressBar(0, 0, "timeBar.png", l, 20, l->getContentSize(), Size(1, 3), Size::ZERO, Size::ZERO);
-	gui::inst()->addLabelAutoDimension(0, 2, "baby plant", l, 6, ALIGNMENT_CENTER, Color3B::GRAY, Size(1, 3), Size::ZERO, Size::ZERO);
 
-	this->addChild(l);
+  	//cultivation test
+    c1.addLevel("plant1.png", 10, "새싹");
+    c1.addLevel("plant2.png", 90, "");
+    c1.addLevel("plant3.png", 100, "다 큰 묘목");
+    c1.init(123, cultivationCB, 10, "plant_decay.png", "timeBar.png", Size(25, 35), this, Vec2(3,3), false);
 
+    c2.addLevel("plant1.png", 10, "새싹");
+    c2.addLevel("plant2.png", 90, "");
+    c2.addLevel("plant3.png", 100, "다 큰 묘목");
+    c2.init(124, cultivationCB, 10, "plant_decay.png", "timeBar.png", Size(25, 35), this, Vec2(3,4), false);
+
+    this->schedule(schedule_selector(MainScene::scheduleCB), .5f);
 
     return true;
 }
@@ -510,5 +516,13 @@ void MainScene::particleSample(){
 }
 
 void MainScene::scheduleCB(float f){
+    float p =c1.getPercent() + 5;
+    c1.update(p);
+
+    if(p > 100){
+        this->unschedule( schedule_selector(MainScene::scheduleCB));
+        c1.setDecay(true);
+    }
+
 
 }
