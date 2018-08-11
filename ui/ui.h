@@ -182,13 +182,14 @@ public:
     void addLayoutToScrollView(ScrollView * p
             , Layout * e
             , float margin
-            , ScrollView::Direction d = ScrollView::Direction::HORIZONTAL
+            , int newlineInterval = 0
     );
     ScrollView * addScrollView(Vec2 p1
             , Vec2 p2
             , Size size
             , Size margin
             , const string bgImg = ""
+            , Size innerSize = Size(0, 0)
     );
 
     LoadingBar * addProgressBar(int x

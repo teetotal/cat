@@ -435,20 +435,23 @@ Layout * gui::createLayout(Size size, const string bgImg, bool hasBGColor, Color
     return l;
 }
 
-void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, ScrollView::Direction d){
-    ssize_t n = p->getChildrenCount();
-    if(d == ScrollView::Direction::HORIZONTAL){
-        e->setPosition(Vec2(
-                n * (e->getContentSize().width + margin) //+ margin
-                , (p->getContentSize().height / 2) - (e->getContentSize().height / 2)
-                       )
-        );
-        p->setInnerContainerSize( Size((n+1) * (e->getContentSize().width + margin) /*+ margin*/, e->getContentSize().height + margin) );
+void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int newlineInterval){
+    ssize_t nCount = p->getChildrenCount();
+    float x, y;
+
+    if(newlineInterval == 0) {
+        x = nCount * (e->getContentSize().width + margin);
+        y = (p->getInnerContainerSize().height) - (e->getContentSize().height + margin);
+    } else {
+        x = (nCount % newlineInterval) * (e->getContentSize().width + margin);
+        y = (p->getInnerContainerSize().height) - ((nCount / newlineInterval) + 1) * (e->getContentSize().height + margin);
+
     }
+    e->setPosition(Vec2(x, y));
     p->addChild(e);
 }
 
-ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg ){
+ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize){
 
     ScrollView * sv = ScrollView::create();
     //sv->setBackGroundColor(Color3B::GRAY);
@@ -462,11 +465,22 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
 
     sv->setPosition(Vec2(std::min(svX1, svX2), std::min(svY1, svY2)));
 
-
     sv->setContentSize(Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2)));
 
-    ScrollView::Direction d = ScrollView::Direction::BOTH;
 
+    if(innerSize.width > 0 && innerSize.height > 0)
+        sv->setInnerContainerSize(innerSize);
+
+    ScrollView::Direction d;
+
+    if(sv->getContentSize().width < sv->getInnerContainerSize().width
+       && sv->getContentSize().height < sv->getInnerContainerSize().height)
+        d = ScrollView::Direction::BOTH;
+    else if(sv->getContentSize().width < sv->getInnerContainerSize().width)
+        d = ScrollView::Direction::HORIZONTAL;
+    else if(sv->getContentSize().height < sv->getInnerContainerSize().height)
+        d = ScrollView::Direction::VERTICAL;
+    /*
     float gapX = std::max(svX1, svX2) - std::min(svX1, svX2);
     float gapY = std::max(svY1, svY2) - std::min(svY1, svY2);
 
@@ -475,6 +489,7 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
     else if(gapX > gapY)
         d = ScrollView::Direction::HORIZONTAL;
 
+     */
     sv->setDirection(d);
     return sv;
 }

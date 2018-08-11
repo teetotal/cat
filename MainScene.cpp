@@ -228,6 +228,9 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
         case SCENECODE_POPUP_2:
             this->removeChild(mParitclePopupLayer);
             break;
+        case SCENECODE_COLLECTION:
+            dailyReward();
+            break;
         default:
             break;
     }
@@ -327,6 +330,74 @@ void MainScene::store() {
     layer->removeChildByTag(123, true);
     layer->addChild(sv);
 }
+
+void MainScene::dailyReward() {
+    auto size = Size(400,200);
+    auto margin = Size(10, 10);
+    Size nodeSize = Size(50, 50);
+    Size gridSize = Size(1, 3);
+
+    this->removeChild(layerGray);
+    layer = gui::inst()->addPopup(layerGray, this, size, "Main2.png", Color4B::WHITE);
+    gui::inst()->addTextButtonAutoDimension(8,0
+            ,"Close"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
+            , 10
+            , ALIGNMENT_CENTER
+            , Color3B::RED
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(8, 0), size, margin, "", Size(200, 280));
+
+    for(int n=0; n < 20; n++){
+
+        string img = "items/";
+        img += to_string(n+1);
+        img += ".png";
+        Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
+
+        gui::inst()->addLabelAutoDimension(0,0
+                , to_string(n+1)
+                , l
+                , 10
+                , ALIGNMENT_NONE
+                , (n < 5) ? Color3B::WHITE : Color3B::BLACK
+                , gridSize
+                , Size::ZERO
+                , Size(2,2)
+        );
+
+        auto sprite = gui::inst()->addSpriteAutoDimension(0, 1, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
+        sprite->setContentSize(Size(20, 20));
+
+        string text = "10개";
+        if(n < 5) {
+            sprite->setOpacity(80);
+            text = "수령";
+        }
+
+
+        gui::inst()->addLabelAutoDimension(0,2
+                , text
+                , l
+                , 10
+                , ALIGNMENT_CENTER
+                , (n < 5) ? Color3B::WHITE : Color3B::BLACK
+                , gridSize
+                , Size::ZERO
+                , Size::ZERO
+        );
+
+        gui::inst()->addLayoutToScrollView(sv, l, 5, 4);
+    }
+
+    layer->addChild(sv, 1, 123);
+}
+
 void MainScene::store2() {
     auto size = Size(400,200);
     auto margin = Size(15, 15);
@@ -422,7 +493,7 @@ void MainScene::store2() {
             , margin
     );
 
-    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin);
+    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin, "", Size(1050, 110));
 
     for(int n=0; n < 10; n++){
 

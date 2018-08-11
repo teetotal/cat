@@ -82,6 +82,8 @@ private:
     void store2();
     void particleSample();
 
+    void dailyReward();
+
     ui_cultivation c1, c2, c3;
 
     static MainScene * hInst;
