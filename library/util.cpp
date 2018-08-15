@@ -1,4 +1,6 @@
 ﻿#include "pch.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 time_t getNow() {
 	return time(0);
@@ -28,9 +30,11 @@ string loadJsonString(const char *path) {
 }
 
 void saveFile(const char* path, string sz) {
+#ifdef WIN32
 	std::ofstream out(path);
 	out << sz;
 	out.close();
+#endif
 }
 
 time_t getTime(int hour, int min, int sec) {
@@ -56,12 +60,13 @@ wstring utf8_to_utf16(const string& str){
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	return myconv.from_bytes(str);
 }
-
+/*
 char* intToChar(int n) {
 	char *buf = new char[10];
 	return ::itoa(n, buf, 10);
 	
 }
+ */
 /*
 wstring utf8_to_utf16(const string& utf8)
 {

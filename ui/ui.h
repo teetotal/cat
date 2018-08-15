@@ -112,7 +112,7 @@ public:
     );
     MenuItem* addTextButtonAutoDimension(int x
             , int y
-            , const char * text
+            , const string text
             , Node* p
             , const ccMenuCallback& callback
             , int fontSize = 0
@@ -126,7 +126,7 @@ public:
     );
     MenuItem* addTextButton(int x
             , int y
-            , const char * text
+            , const string text
             , Node* p
             , const ccMenuCallback& callback
             , int fontSize = 0

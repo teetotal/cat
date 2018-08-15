@@ -71,6 +71,14 @@ private:
         hInst->cultivationCBInner(id);
     };
 
+    static void farmingCB(int fieldId){
+
+    }
+
+    static void tradeCB(time_t t){
+
+    }
+
 
 
     virtual void onEnter();

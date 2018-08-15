@@ -2,11 +2,18 @@
 logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB
-	, tradeUpdatedCallback tradeCB
+	    , tradeUpdatedCallback tradeCB
+		, const string meta
+		, const string actor
 	) {
 
-	string szMeta = loadJsonString(CONFIG_META);
-	Document d;
+	string szMeta;
+	if(meta.compare("") == 0)
+		szMeta = loadJsonString(CONFIG_META);
+	else
+		szMeta = meta;
+
+	rapidjson::Document d;
 	d.Parse(szMeta.c_str());
 	if (d.HasParseError())
 		return false;
@@ -27,8 +34,8 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 		return false;
 
 	mFarming.init(farmCB);
-		
-	if (!initActor())
+
+	if (!initActor(actor))
 		return false;
 
 	//trade
@@ -41,20 +48,24 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 
 	return true;
 }
-void logics::insertInventory(Value &p, inventoryType type)
+void logics::insertInventory(rapidjson::Value &p, inventoryType type)
 {	
-	for (SizeType i = 0; i < p.Size(); i++) {
-		int id = p[i]["id"].GetInt();
-		int quantity = p[i]["quantity"].GetInt();
+	for (rapidjson::SizeType i = 0; i < p.Size(); i++) {
+		int id = p[rapidjson::SizeType(i)]["id"].GetInt();
+		int quantity = p[rapidjson::SizeType(i)]["quantity"].GetInt();
 		mActor->inven.pushItem(type, id, quantity);
 	}
 }
 /* private initialize */
-bool logics::initActor()
+bool logics::initActor(const string actorJson)
 {
-	string sz = loadJsonString(CONFIG_ACTOR);
+	string sz;
+	if(actorJson.compare("") == 0)
+		sz = loadJsonString(CONFIG_ACTOR);
+	else
+		sz = actorJson;
 
-	Document d;
+	rapidjson::Document d;
 	d.Parse(sz.c_str());
 	_actor* actor = new _actor;
 	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
@@ -79,9 +90,9 @@ bool logics::initActor()
 	actor->property.intelligence = d["property"]["intelligence"].GetInt();
 	actor->property.appeal = d["property"]["appeal"].GetInt();
 
-	const Value& collection = d["collection"];
-	for (SizeType i = 0; i < collection.Size(); i++) {
-		int id = collection[i].GetInt();
+	const rapidjson::Value& collection = d["collection"];
+	for (rapidjson::SizeType i = 0; i < collection.Size(); i++) {
+		int id = collection[rapidjson::SizeType(i)].GetInt();
 		actor->collection[id] = true;
 	}
 
@@ -93,18 +104,18 @@ bool logics::initActor()
 	insertInventory(d["inventory"]["farming"], inventoryType_farming);
 
 	//farming
-	const Value& farms = d["farming"];
-	for (SizeType i = 0; i < farms.Size(); i++) {
+	const rapidjson::Value& farms = d["farming"];
+	for (rapidjson::SizeType i = 0; i < farms.Size(); i++) {
 		mFarming.addField(
-			farms[i]["id"].GetInt()
-			, farms[i]["x"].GetInt()
-			, farms[i]["y"].GetInt()
-			, farms[i]["seedId"].GetInt()
-			, (farming::farming_status)farms[i]["status"].GetInt()
-			, farms[i]["timePlant"].GetInt64()
-			, farms[i]["cntCare"].GetInt()
-			, farms[i]["timeLastGrow"].GetInt64()
-			, farms[i]["boost"].GetInt()
+			farms[rapidjson::SizeType(i)]["id"].GetInt()
+			, farms[rapidjson::SizeType(i)]["x"].GetInt()
+			, farms[rapidjson::SizeType(i)]["y"].GetInt()
+			, farms[rapidjson::SizeType(i)]["seedId"].GetInt()
+			, (farming::farming_status)farms[rapidjson::SizeType(i)]["status"].GetInt()
+			, farms[rapidjson::SizeType(i)]["timePlant"].GetInt64()
+			, farms[rapidjson::SizeType(i)]["cntCare"].GetInt()
+			, farms[rapidjson::SizeType(i)]["timeLastGrow"].GetInt64()
+			, farms[rapidjson::SizeType(i)]["boost"].GetInt()
 		);
 	}
 
@@ -112,30 +123,31 @@ bool logics::initActor()
 	//daily, totally
 	bool isDaily = true;
 	for (int n = 0; n < 2; n++) {
-		const Value& p = isDaily ? d["achievement"]["daily"]: d["achievement"]["totally"];
-		for (SizeType i = 0; i < p.Size(); i++) {
+		const rapidjson::Value& p = isDaily ? d["achievement"]["daily"]: d["achievement"]["totally"];
+		for (rapidjson::SizeType i = 0; i < p.Size(); i++) {
 			mAchievement.setAchievementAccumulation(isDaily
-				, p[i]["category"].GetInt()
-				, p[i]["id"].GetInt()
-				, p[i]["accumulation"].GetInt()
-				, p[i]["isFinished"].GetBool()
-				, p[i]["isReceived"].GetBool()
+				, p[rapidjson::SizeType(i)]["category"].GetInt()
+				, p[rapidjson::SizeType(i)]["id"].GetInt()
+				, p[rapidjson::SizeType(i)]["accumulation"].GetInt()
+				, p[rapidjson::SizeType(i)]["isFinished"].GetBool()
+				, p[rapidjson::SizeType(i)]["isReceived"].GetBool()
 				);
 		}
 		isDaily = false;
 	}
 
 	//accumulation
-	const Value& achieveAccumulation = d["achievement"]["accumulation"];	
-	for (Value::ConstMemberIterator it = achieveAccumulation.MemberBegin();
+	const rapidjson::Value& achieveAccumulation = d["achievement"]["accumulation"];
+	for (rapidjson::Value::ConstMemberIterator it = achieveAccumulation.MemberBegin();
 		it != achieveAccumulation.MemberEnd(); ++it)
 	{		
 		const char * category = it->name.GetString();
-		const Value& list = d["achievement"]["accumulation"][category];
+		//const rapidjson::Value& list = d["achievement"]["accumulation"][category];
+        const rapidjson::Value& list = it->value;
 
-		for (SizeType i = 0; i < list.Size(); i++) {
-			int id = list[i]["id"].GetInt();
-			int value = list[i]["value"].GetInt();
+		for (rapidjson::SizeType i = 0; i < list.Size(); i++) {
+			int id = list[rapidjson::SizeType(i)]["id"].GetInt();
+			int value = list[rapidjson::SizeType(i)]["value"].GetInt();
 			mAchievement.setAccumulation(atoi(category)
 				, id
 				, value
@@ -154,152 +166,152 @@ bool logics::initActor()
 
 	return true;
 }
-bool logics::initErrorMessage(Value & p)
+bool logics::initErrorMessage(rapidjson::Value & p)
 {
-	for (SizeType i = 0; i < p.Size(); i++)
+	for (rapidjson::SizeType i = 0; i < p.Size(); i++)
 	{
 		addErrorMessage(utf8_to_utf16(p[i].GetString()));
 	}
 	return true;
 }
-bool logics::initItems(Value & p)
+bool logics::initItems(rapidjson::Value & p)
 {
-	for (SizeType i = 0; i < p.Size(); i++)
+	for (rapidjson::SizeType i = 0; i < p.Size(); i++)
 	{
 		_item item;
-		item.id = p[i]["id"].GetInt();
-		item.type = (itemType)p[i]["type"].GetInt();
-		item.value = p[i]["value"].GetInt();
-		item.grade = p[i]["grade"].GetInt();
-		string sz = p[i]["name"].GetString();
+		item.id = p[rapidjson::SizeType(i)]["id"].GetInt();
+		item.type = (itemType)p[rapidjson::SizeType(i)]["type"].GetInt();
+		item.value = p[rapidjson::SizeType(i)]["value"].GetInt();
+		item.grade = p[rapidjson::SizeType(i)]["grade"].GetInt();
+		string sz = p[rapidjson::SizeType(i)]["name"].GetString();
 		item.name = utf8_to_utf16(sz);
 		insertItem(item);
 	}
 	return true;
 }
-bool logics::initSeed(Value & farming, Value & p)
+bool logics::initSeed(rapidjson::Value & farming, rapidjson::Value & p)
 {
 	mFarmingExtendFee = farming["extendFee"].GetInt();
 
-	for (SizeType i = 0; i < p.Size(); i++)
+	for (rapidjson::SizeType i = 0; i < p.Size(); i++)
 	{
 		farming::seed * seed = new farming::seed();
-		seed->id = p[i]["id"].GetInt();
-		seed->name = utf8_to_utf16(p[i]["name"].GetString());
-		seed->farmProductId = p[i]["farmProductId"].GetInt();
-		seed->outputMax = p[i]["outputMax"].GetInt();
-		seed->timeGrow = p[i]["timeGrow"].GetInt();
-		seed->cares = p[i]["cares"].GetInt();
-		seed->maxOvertime = p[i]["maxOvertime"].GetInt();
+		seed->id = p[rapidjson::SizeType(i)]["id"].GetInt();
+		seed->name = utf8_to_utf16(p[rapidjson::SizeType(i)]["name"].GetString());
+		seed->farmProductId = p[rapidjson::SizeType(i)]["farmProductId"].GetInt();
+		seed->outputMax = p[rapidjson::SizeType(i)]["outputMax"].GetInt();
+		seed->timeGrow = p[rapidjson::SizeType(i)]["timeGrow"].GetInt();
+		seed->cares = p[rapidjson::SizeType(i)]["cares"].GetInt();
+		seed->maxOvertime = p[rapidjson::SizeType(i)]["maxOvertime"].GetInt();
 		addSeed(seed);
 	}
 	return true;
 }
-bool logics::initTraining(Value & t)
+bool logics::initTraining(rapidjson::Value & t)
 {
-	for (SizeType i = 0; i < t.Size(); i++) {
+	for (rapidjson::SizeType i = 0; i < t.Size(); i++) {
 		_training p;
 		for (int k = 0; k < maxTrainingItems; k++) {
 			p.reward.items[k] = NULL;
 			p.cost.items[k] = NULL;
 		}
-		p.id = t[i]["id"].GetInt();
-		string sz = t[i]["name"].GetString();
+		p.id = t[rapidjson::SizeType(i)]["id"].GetInt();
+		string sz = t[rapidjson::SizeType(i)]["name"].GetString();
 		p.name = utf8_to_utf16(sz);
-		p.type = (trainingType)t[i]["type"].GetInt();
-		p.level = t[i]["level"].GetInt();
+		p.type = (trainingType)t[rapidjson::SizeType(i)]["type"].GetInt();
+		p.level = t[rapidjson::SizeType(i)]["level"].GetInt();
 
-		p.reward.strength = t[i]["reward"]["strength"].GetInt();
-		p.reward.intelligence = t[i]["reward"]["intelligence"].GetInt();
-		p.reward.appeal = t[i]["reward"]["appeal"].GetInt();
-		p.reward.point = t[i]["reward"]["point"].GetInt();
+		p.reward.strength = t[rapidjson::SizeType(i)]["reward"]["strength"].GetInt();
+		p.reward.intelligence = t[rapidjson::SizeType(i)]["reward"]["intelligence"].GetInt();
+		p.reward.appeal = t[rapidjson::SizeType(i)]["reward"]["appeal"].GetInt();
+		p.reward.point = t[rapidjson::SizeType(i)]["reward"]["point"].GetInt();
 
-		p.cost.strength = t[i]["cost"]["strength"].GetInt();
-		p.cost.intelligence = t[i]["cost"]["intelligence"].GetInt();
-		p.cost.appeal = t[i]["cost"]["appeal"].GetInt();
-		p.cost.point = t[i]["cost"]["point"].GetInt();
+		p.cost.strength = t[rapidjson::SizeType(i)]["cost"]["strength"].GetInt();
+		p.cost.intelligence = t[rapidjson::SizeType(i)]["cost"]["intelligence"].GetInt();
+		p.cost.appeal = t[rapidjson::SizeType(i)]["cost"]["appeal"].GetInt();
+		p.cost.point = t[rapidjson::SizeType(i)]["cost"]["point"].GetInt();
 
 		p.start = 0;
 		//  반짝 
-		if (t[i].HasMember("moment")) {
+		if (t[rapidjson::SizeType(i)].HasMember("moment")) {
 			p.start = getTime(
-				t[i]["moment"]["start"]["hour"].GetInt()
-				, t[i]["moment"]["start"]["min"].GetInt()
-				, t[i]["moment"]["start"]["sec"].GetInt()
+				t[rapidjson::SizeType(i)]["moment"]["start"]["hour"].GetInt()
+				, t[rapidjson::SizeType(i)]["moment"]["start"]["min"].GetInt()
+				, t[rapidjson::SizeType(i)]["moment"]["start"]["sec"].GetInt()
 			);
-			p.count = t[i]["moment"]["count"].GetInt();
-			p.keep = t[i]["moment"]["keep"].GetInt();
-			p.interval = t[i]["moment"]["keep"].GetInt();
+			p.count = t[rapidjson::SizeType(i)]["moment"]["count"].GetInt();
+			p.keep = t[rapidjson::SizeType(i)]["moment"]["keep"].GetInt();
+			p.interval = t[rapidjson::SizeType(i)]["moment"]["keep"].GetInt();
 		}
 
-		const Value& item = t[i]["reward"]["items"];
-		for (SizeType m = 0; m < item.Size(); m++) {
+		const rapidjson::Value& item = t[rapidjson::SizeType(i)]["reward"]["items"];
+		for (rapidjson::SizeType m = 0; m < item.Size(); m++) {
 			if (m >= maxTrainingItems)
 				break;
 			_itemPair* pair = new _itemPair;
-			pair->itemId = item[m]["id"].GetInt();
-			pair->val = item[m]["quantity"].GetInt();
-			p.reward.items[m] = pair;
+			pair->itemId = item[rapidjson::SizeType(m)]["id"].GetInt();
+			pair->val = item[rapidjson::SizeType(m)]["quantity"].GetInt();
+			p.reward.items[rapidjson::SizeType(m)] = pair;
 		}
 
-		const Value& item2 = t[i]["cost"]["items"];
-		for (SizeType m = 0; m < item2.Size(); m++) {
+		const rapidjson::Value& item2 = t[rapidjson::SizeType(i)]["cost"]["items"];
+		for (rapidjson::SizeType m = 0; m < item2.Size(); m++) {
 			if (m >= maxTrainingItems)
 				break;
 			_itemPair* pair = new _itemPair;
-			pair->itemId = item2[m]["id"].GetInt();
-			pair->val = item2[m]["quantity"].GetInt();
-			p.cost.items[m] = pair;
+			pair->itemId = item2[rapidjson::SizeType(m)]["id"].GetInt();
+			pair->val = item2[rapidjson::SizeType(m)]["quantity"].GetInt();
+			p.cost.items[rapidjson::SizeType(m)] = pair;
 		}
 		if (!insertTraining(p))
 			return false;
 	}
 	return true;
 }
-bool logics::initJobTitle(Value & job)
+bool logics::initJobTitle(rapidjson::Value & job)
 {
 	setDefaultJobTitle(utf8_to_utf16(job["default"].GetString()));
-	const Value& jobPrefix = job["prefix"];
-	for (SizeType i = 0; i < jobPrefix.Size(); i++) {
+	const rapidjson::Value& jobPrefix = job["prefix"];
+	for (rapidjson::SizeType i = 0; i < jobPrefix.Size(); i++) {
 		_jobTitlePrefix p;
-		p.level = jobPrefix[i]["level"].GetInt();
-		p.title = utf8_to_utf16(jobPrefix[i]["title"].GetString());
+		p.level = jobPrefix[rapidjson::SizeType(i)]["level"].GetInt();
+		p.title = utf8_to_utf16(jobPrefix[rapidjson::SizeType(i)]["title"].GetString());
 
 		addJobTitlePrefix(p);
 	}
 
-	const Value& jobBody = job["body"];
-	for (SizeType i = 0; i < jobBody.Size(); i++) {
+	const rapidjson::Value& jobBody = job["body"];
+	for (rapidjson::SizeType i = 0; i < jobBody.Size(); i++) {
 		_jobTitleBody p;
-		p.S = jobBody[i]["S"].GetInt();
-		p.I = jobBody[i]["I"].GetInt();
-		p.A = jobBody[i]["A"].GetInt();
-		p.title = utf8_to_utf16(jobBody[i]["title"].GetString());
+		p.S = jobBody[rapidjson::SizeType(i)]["S"].GetInt();
+		p.I = jobBody[rapidjson::SizeType(i)]["I"].GetInt();
+		p.A = jobBody[rapidjson::SizeType(i)]["A"].GetInt();
+		p.title = utf8_to_utf16(jobBody[rapidjson::SizeType(i)]["title"].GetString());
 
 		addJobTitleBody(p);
 	}
 	return true;
 }
-bool logics::initRace(Value & race)
+bool logics::initRace(rapidjson::Value & race)
 {
-	for (SizeType i = 0; i < race.Size(); i++) {
+	for (rapidjson::SizeType i = 0; i < race.Size(); i++) {
 		_race r;
-		r.id = race[i]["id"].GetInt();
-		r.title = utf8_to_utf16(race[i]["title"].GetString());
-		r.fee = race[i]["fee"].GetInt();
-		r.length = race[i]["length"].GetInt();
-		r.level = race[i]["level"].GetInt();
+		r.id = race[rapidjson::SizeType(i)]["id"].GetInt();
+		r.title = utf8_to_utf16(race[rapidjson::SizeType(i)]["title"].GetString());
+		r.fee = race[rapidjson::SizeType(i)]["fee"].GetInt();
+		r.length = race[rapidjson::SizeType(i)]["length"].GetInt();
+		r.level = race[rapidjson::SizeType(i)]["level"].GetInt();
 
-		const Value& rewards = race[i]["rewards"];
-		for (SizeType j = 0; j < rewards.Size(); j++) {
+		const rapidjson::Value& rewards = race[rapidjson::SizeType(i)]["rewards"];
+		for (rapidjson::SizeType j = 0; j < rewards.Size(); j++) {
 			_raceReward rr;
-			rr.prize = rewards[j]["prize"].GetInt();
+			rr.prize = rewards[rapidjson::SizeType(j)]["prize"].GetInt();
 
-			const Value& items = rewards[j]["items"];
-			for (SizeType k = 0; k < items.Size(); k++) {
+			const rapidjson::Value& items = rewards[rapidjson::SizeType(j)]["items"];
+			for (rapidjson::SizeType k = 0; k < items.Size(); k++) {
 				_itemPair ip;
-				ip.itemId = items[k]["id"].GetInt();
-				ip.val = items[k]["quantity"].GetInt();
+				ip.itemId = items[rapidjson::SizeType(k)]["id"].GetInt();
+				ip.val = items[rapidjson::SizeType(k)]["quantity"].GetInt();
 
 				rr.items.push_back(ip);
 			}
@@ -310,23 +322,23 @@ bool logics::initRace(Value & race)
 	return true;
 }
 
-bool logics::initAchievement(Value & p)
+bool logics::initAchievement(rapidjson::Value & p)
 {
 	bool isDaily = true;
 	for (int n = 0; n < 2; n++) 
 	{
-		const Value &v = isDaily ? p["daily"]: p["totally"];
+		const rapidjson::Value &v = isDaily ? p["daily"]: p["totally"];
 		
-		for (SizeType i = 0; i < v.Size(); i++)
+		for (rapidjson::SizeType i = 0; i < v.Size(); i++)
 		{			
 			mAchievement.addAchieve(
 				isDaily
-				, utf8_to_utf16(v[i]["title"].GetString())
-				, v[i]["category"].GetInt()
-				, v[i]["id"].GetInt()
-				, v[i]["value"].GetInt()
-				, v[i]["rewardId"].GetInt()
-				, v[i]["rewardValue"].GetInt()
+				, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
+				, v[rapidjson::SizeType(i)]["category"].GetInt()
+				, v[rapidjson::SizeType(i)]["id"].GetInt()
+				, v[rapidjson::SizeType(i)]["value"].GetInt()
+				, v[rapidjson::SizeType(i)]["rewardId"].GetInt()
+				, v[rapidjson::SizeType(i)]["rewardValue"].GetInt()
 			);
 		}
 		isDaily = false;
@@ -359,6 +371,7 @@ void logics::printInven(inventoryType type, wstring &sz) {
 	}
 }
 void logics::print(int type) {
+#ifdef WIN32
 	if (type == 0) {
 		wstring sz, szGrowth, szHP, szRace, szAdorn;
 		vector<intPair> vec;
@@ -525,6 +538,7 @@ void logics::print(int type) {
         }
 		printf("-----------------------------------\n");
     }
+#endif
 }
 
 bool logics::insertItem(_item item) {
@@ -992,6 +1006,9 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 		if (currentRank > 1)
 			invokeRaceByRank(1, itemType_race_attactFirst, quantity);
 		break;
+
+        default:
+            break;
 	}
 	mRaceParticipants->at(seq).shootItemCount++;
 }
@@ -1123,6 +1140,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 				 case itemType_race_attactFirst:
 					 mRaceParticipants->at(n).sufferItems.pop();
 					 break;
+					 default:
+						 break;
 				 }
 			 }
 			 break;
@@ -1289,13 +1308,13 @@ inventoryType logics::getInventoryType(int itemId) {
 
 	return t;
 }
-void logics::saveActorInventory(Document &d, Value &v, inventoryType type) {
+void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type) {
 	vector<intPair> vec;
 	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 	mActor->inven.getWarehouse(vec, type);
 	for (int n = 0; n < (int)vec.size(); n++) {
-		
-		Value objValue;
+
+		rapidjson::Value objValue;
 		objValue.SetObject();
 		objValue.AddMember("id", vec[n].key, allocator);
 		objValue.AddMember("quantity", vec[n].val, allocator);
@@ -1305,22 +1324,24 @@ void logics::saveActorInventory(Document &d, Value &v, inventoryType type) {
 }
 
 void logics::saveActor() {
+    return; //임시로 막아 놓음. 버그 있는것 같음.
+
 	string sz = loadJsonString(CONFIG_ACTOR);
-	Document d;
+	rapidjson::Document d;
 	d.Parse(sz.c_str());
 	
 	string userName = wstring_to_utf8(mActor->userName);
-	d["userName"] = StringRef(userName.c_str());
-	d["userId"] = StringRef(mActor->userId.c_str());
-	d["id"] = StringRef(mActor->id.c_str());
+	d["userName"] = rapidjson::StringRef(userName.c_str());
+	d["userId"] = rapidjson::StringRef(mActor->userId.c_str());
+	d["id"] = rapidjson::StringRef(mActor->id.c_str());
 	string name = wstring_to_utf8(mActor->name);
-	d["name"] = StringRef(name.c_str());
+	d["name"] = rapidjson::StringRef(name.c_str());
 	d["lastLoginLoginTime"].SetInt64(mActor->lastLoginLoginTime);
 	d["lastLoginLogoutTime"].SetInt64(mActor->lastLoginLogoutTime);
 	d["lastHPUpdateTime"].SetInt64(mActor->lastHPUpdateTime);
 
 	string jobTitle = wstring_to_utf8(mActor->jobTitle);
-	d["jobTitle"] = StringRef(jobTitle.c_str());
+	d["jobTitle"] = rapidjson::StringRef(jobTitle.c_str());
 	d["point"].SetInt(mActor->point);
 	d["hp"].SetInt(mActor->hp);
 	d["exp"].SetInt(mActor->exp);
@@ -1350,17 +1371,17 @@ void logics::saveActor() {
 	farming::fields* f = mFarming.getFields();
 	for (int n = 0; n < (int)f->size(); n++) {
 		if (f->at(n)) {
-			Value objValue;
+			rapidjson::Value objValue;
 			objValue.SetObject();
-			objValue.AddMember("id"	, f->at(n)->id, d.GetAllocator());
-			objValue.AddMember("x"	, f->at(n)->x, d.GetAllocator());
-			objValue.AddMember("y"	, f->at(n)->y, d.GetAllocator());
-			objValue.AddMember("seedId", f->at(n)->seedId, d.GetAllocator());
+			objValue.AddMember("id"	, (int)f->at(n)->id, d.GetAllocator());
+			objValue.AddMember("x"	, (int)f->at(n)->x, d.GetAllocator());
+			objValue.AddMember("y"	, (int)f->at(n)->y, d.GetAllocator());
+			objValue.AddMember("seedId", (int)f->at(n)->seedId, d.GetAllocator());
 			objValue.AddMember("status", (int)f->at(n)->status, d.GetAllocator());
-			objValue.AddMember("timePlant", f->at(n)->timePlant, d.GetAllocator());
-			objValue.AddMember("cntCare", f->at(n)->cntCare, d.GetAllocator());
-			objValue.AddMember("timeLastGrow", f->at(n)->timeLastGrow, d.GetAllocator());
-			objValue.AddMember("boost", f->at(n)->boost, d.GetAllocator());
+			objValue.AddMember("timePlant", (int64_t)f->at(n)->timePlant, d.GetAllocator());
+			objValue.AddMember("cntCare", (int)f->at(n)->cntCare, d.GetAllocator());
+			objValue.AddMember("timeLastGrow", (int64_t)f->at(n)->timeLastGrow, d.GetAllocator());
+			objValue.AddMember("boost", (int)f->at(n)->boost, d.GetAllocator());
 		
 			d["farming"].PushBack(objValue, d.GetAllocator());
 		}
@@ -1376,7 +1397,7 @@ void logics::saveActor() {
 			achievement::detail p;
 			mAchievement.getDetail(isDaily, i, p);
 
-			Value objValue;
+			rapidjson::Value objValue;
 			objValue.SetObject();
 			objValue.AddMember("category", p.category, d.GetAllocator());
 			objValue.AddMember("id", p.id, d.GetAllocator());
@@ -1395,14 +1416,15 @@ void logics::saveActor() {
 	}
 	
 	d["achievement"]["accumulation"].RemoveAllMembers();
-	const Value& accumulation = d["achievement"]["accumulation"];
+	const rapidjson::Value& accumulation = d["achievement"]["accumulation"];
 
-	queue<char*> gabages;
+	queue<string> gabages;
 	achievement::intDoubleDepthMap * pAccumulation = mAchievement.getAccumulation();
 	for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
 		intMap * pIntMap = it->second;
 		//char category[10] = { 0 };
-		char* category = intToChar(it->first);
+
+		string category = to_string(it->first);
 		gabages.push(category);
 		/*
 		string sz;
@@ -1428,18 +1450,19 @@ void logics::saveActor() {
 			category = "4";
 			break;
 		}*/
-		if (d["achievement"]["accumulation"].HasMember(StringRef(category)) == false) {
-			Value arr;
+
+		if (d["achievement"]["accumulation"].HasMember(rapidjson::StringRef(category.c_str())) == false) {
+			rapidjson::Value arr;
 			arr.SetArray();
-			d["achievement"]["accumulation"].AddMember(StringRef(category), arr, d.GetAllocator());
+			d["achievement"]["accumulation"].AddMember(rapidjson::StringRef(category.c_str()), arr, d.GetAllocator());
 		}
 		for (intMap::iterator it2 = pIntMap->begin(); it2 != pIntMap->end(); ++it2) {
-			Value objValue;
+			rapidjson::Value objValue;
 			objValue.SetObject();
 			objValue.AddMember("id", it2->first, d.GetAllocator());
 			objValue.AddMember("value", it2->second, d.GetAllocator());
 
-			d["achievement"]["accumulation"].FindMember(StringRef(category))->value.PushBack(objValue, d.GetAllocator());
+			d["achievement"]["accumulation"].FindMember(rapidjson::StringRef(category.c_str()))->value.PushBack(objValue, d.GetAllocator());
 			//d["achievement"]["accumulation"][category].PushBack(objValue, d.GetAllocator());
 			
 		}
@@ -1455,8 +1478,8 @@ void logics::saveActor() {
 	saveFile(CONFIG_ACTOR, input);
 
 	while (gabages.size() > 0) {
-		char * p = gabages.front();
+		string p = gabages.front();
 		gabages.pop();
-		delete p;
+		//delete p;
 	}
 }

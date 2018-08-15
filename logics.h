@@ -1,5 +1,19 @@
 ﻿#pragma once
-#include "stdafx.h"
+
+#ifdef __WIN32
+    #include "stdafx.h"
+    #include "../rapidjson/document.h"
+    #include "../rapidjson/stringbuffer.h"
+    #include "../rapidjson/writer.h"
+#else
+    //#include "json/rapidjson.h"
+    #include "json/document.h"
+    #include "json/stringbuffer.h"
+    #include "json/writer.h"
+#endif
+
+//using namespace rapidjson;
+
 #include "library/farming.h"
 #include "library/inventory.h"
 #include "library/trade.h"
@@ -289,7 +303,8 @@ public:
 		hInst = NULL;
 	};
 	bool init(farmingFinshedNotiCallback
-		, tradeUpdatedCallback		
+			, tradeUpdatedCallback
+			, const string meta = "", const string actor = ""
 	);
 	void finalize();
 	void saveActor(); //현재 정보 저장
@@ -301,6 +316,16 @@ public:
 	_item getItem(int id) {
 		return mItems[id];
 	};
+
+	//get max exp
+	int getMaxExp();
+
+	//get HP
+	int getHP();
+
+	//get max HP
+	int getMaxHP();
+
 	bool isAvailableHP() {
 		return getHP() > 0 ? true : false;
 	}
@@ -417,17 +442,11 @@ private:
 	
 	//increment exp
 	bool increaseExp();
-	//get max exp
-	int getMaxExp();
 
-	//get max HP
-	int getMaxHP();
 	//increment HP
 	bool increaseHP(int);
 	//set Max HP
 	void setMaxHP();
-	//get HP
-	int getHP();
 	
 	//check traning time validation
 	bool isValidTraningTime(int id);
@@ -436,21 +455,21 @@ private:
 
 	inventoryType getInventoryType(int itemId);
 
-	bool initActor();
-	void insertInventory(Value &p, inventoryType type);
-	bool initErrorMessage(Value &p);
-	bool initItems(Value &p);
-	bool initSeed(Value &farming, Value &seed);
-	bool initTraining(Value &p);
-	bool initJobTitle(Value &p);
-	bool initRace(Value &p);
-	bool initAchievement(Value &p);
+	bool initActor(const string actor);
+	void insertInventory(rapidjson::Value &p, inventoryType type);
+	bool initErrorMessage(rapidjson::Value &p);
+	bool initItems(rapidjson::Value &p);
+	bool initSeed(rapidjson::Value &farming, rapidjson::Value &seed);
+	bool initTraining(rapidjson::Value &p);
+	bool initJobTitle(rapidjson::Value &p);
+	bool initRace(rapidjson::Value &p);
+	bool initAchievement(rapidjson::Value &p);
 
 	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallback(bool isDaily, int idx);
 	static void threadRun();
 	
-	void saveActorInventory(Document &d, Value &v, inventoryType type);
+	void saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type);
     //farming
     farming mFarming;
 	int mFarmingExtendFee;

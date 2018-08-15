@@ -11,18 +11,12 @@
 #include <codecvt>
 #include <cwchar>
 
-
-
-#include "../rapidjson/document.h"
-#include "../rapidjson/stringbuffer.h"
-#include "../rapidjson/writer.h"
 #include "util.h"
 
 #define SEC 1000
 #define _CRT_SECURE_NO_WARNINGS
 
 using namespace std;
-using namespace rapidjson;
 
 typedef map<int, int> intMap;
 typedef void(*farmingFinshedNotiCallback)(int fieldId);

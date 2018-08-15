@@ -282,7 +282,7 @@ Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, AL
 
     return label;
 }
-MenuItem * gui::addTextButtonAutoDimension(int x, int y, const char * text, Node *p, const ccMenuCallback &callback
+MenuItem * gui::addTextButtonAutoDimension(int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size grid
         , Size origin
@@ -292,7 +292,7 @@ MenuItem * gui::addTextButtonAutoDimension(int x, int y, const char * text, Node
 ){
     return addTextButton(x, y, text, p, callback, fontSize, align, color, p->getContentSize(), grid, origin, margin, img, isBGImg);
 }
-MenuItem * gui::addTextButton(int x, int y, const char * text, Node *p, const ccMenuCallback &callback
+MenuItem * gui::addTextButton(int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid

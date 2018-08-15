@@ -5,6 +5,7 @@
 #include "MainScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
+#include "logics.h"
 
 #include "ActionScene.h"
 
@@ -26,8 +27,21 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+    /*
+    ssize_t pSize = 0;
+    unsigned char* fileSrc = FileUtils::getInstance()->getFileData("res/meta.json", "r", &pSize);
+
+    delete[] fileSrc;
+    */
+
+    string meta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
+    string actor = FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR);
+
     hInst = this;
     mParitclePopup = NULL;
+	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, meta, actor))
+		return false;
+
     //////////////////////////////
     // 1. super init first
     if ( !Scene::init() )
@@ -135,7 +149,18 @@ bool MainScene::init()
     gui::inst()->addLabel(4,0,"EXP 1,024 / 2,048", this, 12, ALIGNMENT_CENTER);
 
     gui::inst()->addTextButton(7,0,"$ 172,820 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
-    gui::inst()->addTextButton(8,0,"♥ 80/117 +", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
+
+    int hp = logics::hInst->getHP();
+    int hpMax = logics::hInst->getMaxHP();
+
+    string szHP = "♥ ";
+    szHP += to_string(hp);
+    szHP += "/";
+    szHP += to_string(hpMax);
+    szHP += " +";
+
+    gui::inst()->addTextButton(8, 0, szHP , this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
+
 
     gui::inst()->addLabel(8,2,"S: 10,234\nI: 5,000\nA: 82,340", this, 10);
 
