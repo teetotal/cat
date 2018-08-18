@@ -1,17 +1,22 @@
 ﻿#include "logics.h"
+
+#ifndef WIN32
+    #include "cocos2d.h"
+    USING_NS_CC;
+#endif
+
 logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB
 	    , tradeUpdatedCallback tradeCB
-		, const string meta
-		, const string actor
 	) {
 
-	string szMeta;
-	if(meta.compare("") == 0)
+    string szMeta;
+#ifdef WIN32
 		szMeta = loadJsonString(CONFIG_META);
-	else
-		szMeta = meta;
+#else
+		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
+#endif
 
 	rapidjson::Document d;
 	d.Parse(szMeta.c_str());
@@ -35,7 +40,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 
 	mFarming.init(farmCB);
 
-	if (!initActor(actor))
+	if (!initActor())
 		return false;
 
 	//trade
@@ -57,13 +62,19 @@ void logics::insertInventory(rapidjson::Value &p, inventoryType type)
 	}
 }
 /* private initialize */
-bool logics::initActor(const string actorJson)
+bool logics::initActor()
 {
 	string sz;
-	if(actorJson.compare("") == 0)
+#ifdef WIN32
 		sz = loadJsonString(CONFIG_ACTOR);
-	else
-		sz = actorJson;
+#else
+    string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
+    if(!FileUtils::getInstance()->isFileExist(fileFullPath)){
+        //writable 경로에 파일 복사
+        FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
+    }
+    sz = FileUtils::getInstance()->getStringFromFile(fileFullPath);
+#endif
 
 	rapidjson::Document d;
 	d.Parse(sz.c_str());
@@ -623,6 +634,10 @@ errorCode logics::isValidTraining(int id) {
 }
 
 errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type) {
+    errorCode err = isValidTraining(id);
+    if (err != error_success) {
+        return err;
+    }
 	//hp
 	increaseHP(-1);
 	//pay point
@@ -1324,10 +1339,15 @@ void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inv
 }
 
 void logics::saveActor() {
-    return; //임시로 막아 놓음. 버그 있는것 같음.
 
-	string sz = loadJsonString(CONFIG_ACTOR);
-	rapidjson::Document d;
+    string sz;
+#ifdef WIN32
+    sz = loadJsonString(CONFIG_ACTOR);
+#else
+    sz = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
+#endif
+
+    rapidjson::Document d;
 	d.Parse(sz.c_str());
 	
 	string userName = wstring_to_utf8(mActor->userName);

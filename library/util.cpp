@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef WIN32
+	#include "cocos2d.h"
+	USING_NS_CC;
+#endif
 time_t getNow() {
 	return time(0);
 }
@@ -34,6 +38,15 @@ void saveFile(const char* path, string sz) {
 	std::ofstream out(path);
 	out << sz;
 	out.close();
+#else
+    string fullPath = FileUtils::getInstance()->getWritablePath() + path;
+
+	bool ret = FileUtils::getInstance()->writeStringToFile(sz
+            , fullPath
+    );
+	if(!ret)
+		CCLOG("failure save Actor");
+
 #endif
 }
 

@@ -58,6 +58,11 @@ private:
     bool mIsParticleFinished;
     LoadingBar * loadingBar;
 
+    Label * mName, * mJobTitle, * mExp, * mProperties;
+    MenuItemFont * mPoint, * mHP;
+    Layout * mAlertLayer;
+
+
     static void paricleCB(){
         //this->removeChild(mParitclePopupLayer);
     };
@@ -65,7 +70,7 @@ private:
     void callback0();
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
-
+    void callbackAction(Ref* pSender, int id);
 
     static void cultivationCB(int id){
         hInst->cultivationCBInner(id);
@@ -79,12 +84,11 @@ private:
 
     }
 
-
-
     virtual void onEnter();
     virtual void onEnterTransitionDidFinish();
     virtual void onExitTransitionDidStart();
     virtual void onExit();
+
 
     void store();
     void store2();
@@ -95,6 +99,12 @@ private:
     ui_cultivation c1, c2, c3;
 
     static MainScene * hInst;
+
+    //
+    void actionList(); //액션 목록
+    void updateState(); // hp, exp 등 업데이트
+    void alert(const string msg); //alert
+    void alertCloseCallback(Ref* pSender);
 };
 
 

@@ -282,7 +282,7 @@ Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, AL
 
     return label;
 }
-MenuItem * gui::addTextButtonAutoDimension(int x, int y, const string text, Node *p, const ccMenuCallback &callback
+MenuItemFont * gui::addTextButtonAutoDimension(int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size grid
         , Size origin
@@ -292,7 +292,7 @@ MenuItem * gui::addTextButtonAutoDimension(int x, int y, const string text, Node
 ){
     return addTextButton(x, y, text, p, callback, fontSize, align, color, p->getContentSize(), grid, origin, margin, img, isBGImg);
 }
-MenuItem * gui::addTextButton(int x, int y, const string text, Node *p, const ccMenuCallback &callback
+MenuItemFont * gui::addTextButton(int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid
@@ -307,6 +307,7 @@ MenuItem * gui::addTextButton(int x, int y, const string text, Node *p, const cc
 
     auto pItem = MenuItemFont::create(text, callback);
     pItem->setColor(color);
+
     auto pMenu = Menu::create(pItem, NULL);
 
     float pointX, pointY;
@@ -513,6 +514,13 @@ gui::addSpriteAutoDimension(int x, int y, const string img, Node *p, ALIGNMENT a
     return addSprite(x, y, img, p, align, p->getContentSize(), grid, origin, margin);
 }
 
+Sprite *
+gui::addSpriteFixedSize(const Size &spriteSize, int x, int y, const string img, Node *p, ALIGNMENT align, Size dimension, Size grid, Size origin,
+               Size margin){
+    Sprite * sprite = addSprite(x, y, img, p, align, dimension, grid, origin, margin);
+    sprite->setContentSize(spriteSize);
+    return sprite;
+}
 Sprite *
 gui::addSprite(int x, int y, const string img, Node *p, ALIGNMENT align, Size dimension, Size grid, Size origin,
                Size margin) {

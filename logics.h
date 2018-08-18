@@ -23,10 +23,10 @@
 #include <algorithm>
 
 //Config
-#define CONFIG_ACHIEVEMENT "resource/achievement.json"
-#define CONFIG_ACTOR "resource/actor.json"
-#define CONFIG_ACTOR_BACKUP "resource/actor_backup.json"
-#define CONFIG_META "resource/meta.json"
+#define CONFIG_ACHIEVEMENT "achievement.json"
+#define CONFIG_ACTOR "actor.json"
+#define CONFIG_ACTOR_BACKUP "actor_backup.json"
+#define CONFIG_META "meta.json"
 
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
@@ -288,6 +288,9 @@ struct _raceCurrent
 	int rewardItemQuantity; //보상 아이템 수량
 };
 
+typedef map<int, _item> __items;
+typedef map<int, _training> __training;
+
 class logics 
 {
 public:
@@ -304,7 +307,6 @@ public:
 	};
 	bool init(farmingFinshedNotiCallback
 			, tradeUpdatedCallback
-			, const string meta = "", const string actor = ""
 	);
 	void finalize();
 	void saveActor(); //현재 정보 저장
@@ -312,13 +314,27 @@ public:
 	bool insertTraining(_training);
 	
 	void print(int type = 0);
-	
+
+    const _actor * getActor() {
+      return (const _actor*)mActor;
+    };
+
+    //check traning time validation
+    bool isValidTraningTime(int id);
+
+    __training * getActionList(){
+        return &mTraining;
+    };
 	_item getItem(int id) {
 		return mItems[id];
 	};
 
 	//get max exp
 	int getMaxExp();
+
+    float getExpRatio(){
+        return (float)mActor->exp / (float)getMaxExp() * 100.0f;
+    };
 
 	//get HP
 	int getHP();
@@ -395,11 +411,8 @@ private:
 	//error messages
 	typedef vector<wstring> errorMessages;
 	errorMessages mErrorMessages;	
-	
-	typedef map<int, _item> __items; 
-	__items mItems;		//items
-	
-	typedef map<int, _training> __training; 
+
+    __items mItems;		//items
 	__training mTraining;//성장
 
 	//Actor
@@ -448,14 +461,13 @@ private:
 	//set Max HP
 	void setMaxHP();
 	
-	//check traning time validation
-	bool isValidTraningTime(int id);
+
 	//set jobTitle
 	void setJobTitle();
 
 	inventoryType getInventoryType(int itemId);
 
-	bool initActor(const string actor);
+	bool initActor();
 	void insertInventory(rapidjson::Value &p, inventoryType type);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p);
