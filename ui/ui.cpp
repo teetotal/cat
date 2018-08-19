@@ -472,7 +472,7 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
     if(innerSize.width > 0 && innerSize.height > 0)
         sv->setInnerContainerSize(innerSize);
 
-    ScrollView::Direction d;
+    ScrollView::Direction d = ScrollView::Direction::NONE;
 
     if(sv->getContentSize().width < sv->getInnerContainerSize().width
        && sv->getContentSize().height < sv->getInnerContainerSize().height)

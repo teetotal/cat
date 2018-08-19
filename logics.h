@@ -1,10 +1,10 @@
 ﻿#pragma once
 
-#ifdef __WIN32
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
     #include "stdafx.h"
-    #include "../rapidjson/document.h"
-    #include "../rapidjson/stringbuffer.h"
-    #include "../rapidjson/writer.h"
+    #include "./rapidjson/document.h"
+    #include "./rapidjson/stringbuffer.h"
+    #include "./rapidjson/writer.h"
 #else
     //#include "json/rapidjson.h"
     #include "json/document.h"
@@ -77,6 +77,7 @@ enum errorCode {
 	error_farming_gluttony
 };
 enum inventoryType {
+	inventoryType_all = -1,
 	inventoryType_growth=0,
 	inventoryType_HP,
 	inventoryType_race,
@@ -315,8 +316,8 @@ public:
 	
 	void print(int type = 0);
 
-    const _actor * getActor() {
-      return (const _actor*)mActor;
+    _actor * getActor() {
+      return mActor;
     };
 
     //check traning time validation
@@ -327,6 +328,11 @@ public:
     };
 	_item getItem(int id) {
 		return mItems[id];
+	};
+
+	//get Trade
+	trade * getTrade() {
+		return &mTrade;
 	};
 
 	//get max exp

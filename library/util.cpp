@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef WIN32
+#ifdef COCOS2D_DEBUG
 	#include "cocos2d.h"
 	USING_NS_CC;
 #endif
@@ -26,7 +26,9 @@ int rounding(float f) {
 
 string loadJsonString(const char *path) {
 	ifstream fileopen;
-	fileopen.open(path, ios::in | ios::binary);
+	string szPath = "resource/";
+	szPath += path;
+	fileopen.open(szPath.c_str(), ios::in | ios::binary);
 	string str((std::istreambuf_iterator<char>(fileopen)), std::istreambuf_iterator<char>());
 	fileopen.close();
 
@@ -34,7 +36,11 @@ string loadJsonString(const char *path) {
 }
 
 void saveFile(const char* path, string sz) {
-#ifdef WIN32
+#ifdef _WIN32
+#ifdef COCOS2D_DEBUG
+	return;
+#endif // COCOS2D_DEBUG
+
 	std::ofstream out(path);
 	out << sz;
 	out.close();
@@ -63,15 +69,40 @@ time_t getTime(int hour, int min, int sec) {
 tm * getLocalTm(time_t t) {
 	return localtime(&t);
 }
-string wstring_to_utf8(const wstring& str)
+
+string wstring_to_utf8(const wstring& str) {
+	return wstring_to_utf8(str, false);
+}
+string wstring_to_utf8(const wstring& str, bool isLabel)
 {
+#ifdef _WIN32
+	UINT type = CP_ACP;
+	if (isLabel)
+		type = CP_UTF8;
+
+	int len = WideCharToMultiByte(type, 0, &str[0], -1, NULL, 0, NULL, NULL);
+	string strMulti(len, 0); 
+	WideCharToMultiByte(type, 0, &str[0], -1, &strMulti[0], len, NULL, NULL);
+
+	return strMulti;
+
+#else
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	return myconv.to_bytes(str);
+#endif
 }
 
 wstring utf8_to_utf16(const string& str){
+#ifdef _WIN32
+	int nLen = MultiByteToWideChar(CP_UTF8, 0, &str[0], str.size(), NULL, NULL);
+	wstring strUnicode(nLen, 0);
+	MultiByteToWideChar(CP_UTF8, 0, &str[0], str.size(), &strUnicode[0], nLen);
+	return strUnicode;
+
+#else
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	return myconv.from_bytes(str);
+#endif
 }
 /*
 char* intToChar(int n) {

@@ -24,6 +24,7 @@ typedef void(*tradeUpdatedCallback)(time_t t);
 typedef void(*achievementCallback)(bool isDaily, int idx);
 wstring utf8_to_utf16(const string& utf8);
 string wstring_to_utf8(const wstring& str);
+string wstring_to_utf8(const wstring& str, bool isLabel);
 string loadJsonString(const char *path);
 void saveFile(const char* path, string sz);
 

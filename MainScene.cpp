@@ -5,11 +5,13 @@
 #include "MainScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
-#include "logics.h"
-
 #include "ActionScene.h"
 
 using namespace cocos2d::ui;
+
+#define INVENTORY_SIZE 	auto size = Size(400, 200); auto margin = Size(10, 10); auto nodeSize = Size(80, 50); auto gridSize = Size(1, 3);
+#define BUY_SIZE 	auto size = Size(400, 200); auto margin = Size(10, 10); auto nodeSize = Size(150, 50); auto gridSize = Size(1, 3);
+
 
 MainScene * MainScene::hInst = NULL;
 Scene* MainScene::createScene()
@@ -128,14 +130,14 @@ bool MainScene::init()
     gui::inst()->addSpriteFixedSize(Size(110, 140), 4, 3, "25.png", this);
 
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->userName);
+    string name = wstring_to_utf8(logics::hInst->getActor()->userName, true);
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
 
     mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE);
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
-    mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle), this, 12);
+    mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12);
 
     gui::inst()->addTextButton(0,6,"╈", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32);
     gui::inst()->addTextButton(1,6,"┲", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
@@ -157,7 +159,7 @@ bool MainScene::init()
 
     mPoint = gui::inst()->addTextButton(7,0,szPoint, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
     */
-    mPoint = gui::inst()->addTextButton(7, 0, "", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
+    mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
 
     /*
     int hp = logics::hInst->getHP();
@@ -171,7 +173,7 @@ bool MainScene::init()
 
     mHP = gui::inst()->addTextButton(8, 0, szHP , this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
     */
-    mHP = gui::inst()->addTextButton(8, 0, "", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
+    mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
 
     /*
     string properties;
@@ -201,7 +203,7 @@ bool MainScene::init()
 
     gui::inst()->addTextButton(6,6,"벼룩시장", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 14);
     gui::inst()->addTextButton(7,6,"상점", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 14);
-    gui::inst()->addTextButton(8,6,"가방", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 14);
+	mInventory = gui::inst()->addTextButton(8,6,"가방", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 14);
 
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
@@ -210,7 +212,8 @@ bool MainScene::init()
             , "particles/particle_magic.plist"
             , "particles/particle_finally.plist");
 
-    updateState();
+    updateState(false);
+	this->schedule(schedule_selector(MainScene::scheduleRecharge), 1); //HP recharge schedule
 
   	//cultivation test
     /*
@@ -270,13 +273,13 @@ void MainScene::alert(const string msg){
     this->addChild(mAlertLayer);
 }
 
-void MainScene::updateState() {
+void MainScene::updateState(bool isInventoryUpdated) {
 
     float raiseDuration = 0.3;
     float returnDuration = 0.1;
     float scale = 1.5f;
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->userName);
+    string name = wstring_to_utf8(logics::hInst->getActor()->userName, true);
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
     if(name.compare(mName->getString()) != 0 ){
@@ -286,7 +289,7 @@ void MainScene::updateState() {
     }
     mName->setString(name);
 
-    mJobTitle->setString(wstring_to_utf8(logics::hInst->getActor()->jobTitle));
+    mJobTitle->setString(wstring_to_utf8(logics::hInst->getActor()->jobTitle, true));
 
     string szExp;
     szExp += to_string(logics::hInst->getActor()->exp);
@@ -338,10 +341,15 @@ void MainScene::updateState() {
         ));
     }
     mPoint->setString(szPoint);
+
+	if(isInventoryUpdated)
+		mInventory->runAction(Sequence::create(
+			ScaleBy::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
+		));
 }
 
 void MainScene::callbackAction(Ref* pSender, int id){
-    CCLOG("callbackAction !!!!!!!! %d", id);
+    
     this->removeChild(layerGray);
     vector<_itemPair> rewards;
     _property property;
@@ -350,13 +358,26 @@ void MainScene::callbackAction(Ref* pSender, int id){
     errorCode err = logics::hInst->runTraining(id, rewards, &property, point, type);
     wstring sz = logics::hInst->getErrorMessage(err);
 
+	wstring szRewards = L"";
+	for (int n = 0; n < rewards.size(); n++) {
+		_item item = logics::hInst->getItem(rewards[n].itemId);
+		szRewards += item.name + L"-" + to_wstring(rewards[n].val) + L" ";
+	}
+
+	bool isInventory = false;
+	string szRewardsUTF8 = wstring_to_utf8(szRewards, true);
+	if (szRewardsUTF8.size() > 1) {
+		isInventory = true;
+		particleSample(szRewardsUTF8);
+	}
+
     switch(err){
         case error_success:
         case error_levelup:
-            updateState();
+            updateState(isInventory);
             break;
         default:
-            alert(wstring_to_utf8(sz));
+            alert(wstring_to_utf8(sz, true));
             break;
     }
 }
@@ -366,14 +387,17 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
     CCLOG("Callback !!!!!!!! %d", type);
 
     switch(type){
-        case SCENECODE_ACTION:
+        case SCENECODE_ACTION: //Action
             actionList();
             break;
+		case SCENECODE_RECHARGE: //HP 충전
+			showInventory(inventoryType_HP);
+			break;
         case SCENECODE_SELL:
-            particleSample();
+            //particleSample();
             break;
         case SCENECODE_BUY:
-            loadingBar->setPercent(loadingBar->getPercent() + 10.f);
+			showBuy();
             break;
         case SCENECODE_FARMING:
             Director::getInstance()->pushScene(ActionScene::createScene());
@@ -381,8 +405,9 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
         case SCENECODE_RACE:
             this->removeChild(layerGray);
             break;
-        case SCENECODE_INVENTORY:
-            store2();
+        case SCENECODE_INVENTORY: //inquiry inventory
+			showInventory();
+			//store2();
             break;
         case SCENECODE_POPUP_1:
             store();
@@ -407,7 +432,6 @@ void MainScene::callback0(){
 void MainScene::callback1(Ref* pSender){
     CCLOG("callback1");
 }
-
 
 void MainScene::onEnter(){
     Scene::onEnter();
@@ -560,6 +584,120 @@ void MainScene::dailyReward() {
     layer->addChild(sv, 1, 123);
 }
 
+void MainScene::showInventoryCategory(Ref* pSender, inventoryType code) {
+	INVENTORY_SIZE;
+	int nodeMargin = 5;
+	int newLine = 3;
+
+	vector<intPair> vec;
+	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
+	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(8, 1), size, margin, "", innerSize);
+
+	for (int n = 0; n < (int)vec.size(); n++) {
+		string img = "items/";
+		img += to_string(vec[n].key % 20);
+		img += ".png";
+		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
+		_item item = logics::hInst->getItem(vec[n].key);
+		string name = wstring_to_utf8(item.name, true);
+
+		gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+
+		auto sprite = gui::inst()->addSpriteAutoDimension(0, 1, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
+		sprite->setContentSize(Size(20, 20));
+
+		gui::inst()->addLabelAutoDimension(0, 2, "x " + to_string(vec[n].val), l, 10, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO		);
+
+		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
+	}
+	layer->removeChildByTag(CHILD_ID_INVENTORY, true);
+	layer->addChild(sv, 1, CHILD_ID_INVENTORY);
+}
+
+void MainScene::showInventory(inventoryType type) {
+#define __PARAMS(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showInventoryCategory, this, ID), 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	
+	INVENTORY_SIZE
+
+	this->removeChild(layerGray);
+	layer = gui::inst()->addPopup(layerGray, this, size, "Main2.png", Color4B::WHITE);
+
+	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
+		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+	int nMenuIdx = 0;
+	//tab
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Growth", inventoryType_growth));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farming", inventoryType_farming));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Adore", inventoryType_adorn));
+	
+	showInventoryCategory(this, type);
+	
+}
+
+void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
+	BUY_SIZE;
+	int nodeMargin = 5;
+	int newLine = 2;
+
+	trade::tradeMap * m = logics::hInst->getTrade()->get();
+	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((m->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(8, 1), size, margin, "", innerSize);
+
+	for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
+		int id = it->first;
+		_item item = logics::hInst->getItem(id);
+		if (item.type > itemType_max)
+			continue;		
+		
+		string img = "items/";
+		img += to_string(id % 20);
+		img += ".png";
+		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
+		
+		string name = wstring_to_utf8(item.name, true);
+
+		gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+
+		auto sprite = gui::inst()->addSpriteAutoDimension(0, 1, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
+		sprite->setContentSize(Size(20, 20));
+
+		gui::inst()->addLabelAutoDimension(0, 2, "$ " + to_string(logics::hInst->getTrade()->getPriceBuy(id)), l, 10, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
+	}
+
+	layer->removeChildByTag(CHILD_ID_BUY, true);
+	layer->addChild(sv, 1, CHILD_ID_BUY);
+}
+
+void MainScene::showBuy(inventoryType type) {
+#define __PARAMS(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showBuyCategory, this, ID), 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+
+	BUY_SIZE;
+	this->removeChild(layerGray);
+	layer = gui::inst()->addPopup(layerGray, this, size, "background.png", Color4B::WHITE);
+
+	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
+		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+	int nMenuIdx = 0;
+	//tab
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Growth", inventoryType_growth));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farming", inventoryType_farming));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Adore", inventoryType_adorn));
+
+	showBuyCategory(this, type);
+}
 
 void MainScene::actionList() {
     Size size = Size(300,200);
@@ -622,52 +760,58 @@ void MainScene::actionList() {
             }
         }
 
-        string pay = "비용 ";
+		string pay = "비용-";
         if(it->second.cost.point > 0){
             pay += "$ ";
             pay += to_string(it->second.cost.point);
+			pay += " ";
         }
 
         if(it->second.cost.strength > 0){
-            pay += " S: ";
+            pay += "S: ";
             pay += to_string(it->second.cost.strength);
+			pay += " ";
         }
 
         if(it->second.cost.intelligence > 0){
-            pay += " I: ";
+            pay += "I: ";
             pay += to_string(it->second.cost.intelligence);
+			pay += " ";
         }
 
         if(it->second.cost.appeal > 0){
-            pay += " A: ";
+            pay += "A: ";
             pay += to_string(it->second.cost.appeal);
+			pay += " ";
         }
-
-        pay += " " + wstring_to_utf8(costItems);
-
-
-        string reward = "보상 ";
+		pay += wstring_to_utf8(costItems);
+		
+		string reward = "보상-";
         if(it->second.reward.point > 0){
             reward += "$ ";
             reward += to_string(it->second.reward.point);
+			reward += " ";
         }
 
         if(it->second.reward.strength > 0){
-            reward += " S: ";
+            reward += "S: ";
             reward += to_string(it->second.reward.strength);
+			reward += " ";
         }
 
         if(it->second.reward.intelligence > 0){
-            reward += " I: ";
+            reward += "I: ";
             reward += to_string(it->second.reward.intelligence);
+			reward += " ";
         }
 
         if(it->second.reward.appeal > 0){
-            reward += " A: ";
+            reward += "A: ";
             reward += to_string(it->second.reward.appeal);
+			reward += " ";
         }
 
-        reward += " " + wstring_to_utf8(rewardItems);
+		reward += wstring_to_utf8(rewardItems);
 
         //대충 정해 놓고 나중에
         int type = it->second.type;
@@ -698,7 +842,7 @@ void MainScene::actionList() {
                 , innerMargin
         );
 
-        gui::inst()->addTextButtonAutoDimension(1,2
+		gui::inst()->addTextButtonAutoDimension(1,2
                 , pay
                 , l
                 , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
@@ -899,12 +1043,12 @@ void MainScene::store2() {
      */
 }
 
-void MainScene::particleSample(){
+void MainScene::particleSample(const string sz){
 
     auto layer = LayerColor::create();
     layer->setContentSize(Size(300, 225));
-    gui::inst()->addSpriteAutoDimension(0, 0, "gem.jpg", layer, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
-    gui::inst()->addTextButtonAutoDimension(0,5, "Close gacha"
+    gui::inst()->addLabelAutoDimension(0, 0, sz, layer, 14, ALIGNMENT_CENTER, Color3B::GREEN, Size(1, 1), Size::ZERO, Size::ZERO);
+    gui::inst()->addTextButtonAutoDimension(0,5, "CLOSE"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
             , 10
@@ -913,8 +1057,6 @@ void MainScene::particleSample(){
             , Size(1, 5)
     );
     mGacha.run("gem.jpg", layer);
-
-
 }
 
 void MainScene::scheduleCB(float f){
@@ -927,4 +1069,9 @@ void MainScene::scheduleCB(float f){
     }
 
 
+}
+
+void MainScene::scheduleRecharge(float f) {
+	if (logics::hInst->rechargeHP())
+		updateState(false);
 }

@@ -9,8 +9,14 @@
 #include "ui/ui.h"
 #include "ui/ui_gacha.h"
 #include "ui/ui_cultivation.h"
+#include "logics.h"
 
 USING_NS_CC;
+
+enum CHILD_ID {
+	CHILD_ID_INVENTORY = 1000,
+	CHILD_ID_BUY
+};
 
 enum SCENECODE{
     SCENECODE_MAIN = 0,
@@ -59,7 +65,7 @@ private:
     LoadingBar * loadingBar;
 
     Label * mName, * mJobTitle, * mExp, * mProperties;
-    MenuItemFont * mPoint, * mHP;
+    MenuItemFont * mPoint, * mHP, * mInventory;
     Layout * mAlertLayer;
 
 
@@ -92,7 +98,7 @@ private:
 
     void store();
     void store2();
-    void particleSample();
+    void particleSample(const string sz);
 
     void dailyReward();
 
@@ -102,9 +108,14 @@ private:
 
     //
     void actionList(); //액션 목록
-    void updateState(); // hp, exp 등 업데이트
+    void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
     void alert(const string msg); //alert
     void alertCloseCallback(Ref* pSender);
+	void showInventory(inventoryType type = inventoryType_all);	//가방조회
+	void showInventoryCategory(Ref* pSender, inventoryType code);
+	void scheduleRecharge(float f); // HP 충전 쓰레드
+	void showBuy(inventoryType type = inventoryType_all); //구매 
+	void showBuyCategory(Ref* pSender, inventoryType code);
 };
 
 

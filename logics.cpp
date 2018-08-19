@@ -1,6 +1,6 @@
 ﻿#include "logics.h"
 
-#ifndef WIN32
+#if !defined(_WIN32) || defined(COCOS2D_DEBUG)
     #include "cocos2d.h"
     USING_NS_CC;
 #endif
@@ -12,7 +12,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 	) {
 
     string szMeta;
-#ifdef WIN32
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
 #else
 		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
@@ -65,7 +65,7 @@ void logics::insertInventory(rapidjson::Value &p, inventoryType type)
 bool logics::initActor()
 {
 	string sz;
-#ifdef WIN32
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		sz = loadJsonString(CONFIG_ACTOR);
 #else
     string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
@@ -358,7 +358,8 @@ bool logics::initAchievement(rapidjson::Value & p)
 }
 
 void logics::finalize() {
-	mActor->lastLoginLogoutTime = getNow();
+	if(mActor)
+		mActor->lastLoginLogoutTime = getNow();
 	mIsFinalized = true;
 	saveActor();
 	mIsRunThread = false;
@@ -382,7 +383,7 @@ void logics::printInven(inventoryType type, wstring &sz) {
 	}
 }
 void logics::print(int type) {
-#ifdef WIN32
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 	if (type == 0) {
 		wstring sz, szGrowth, szHP, szRace, szAdorn;
 		vector<intPair> vec;
@@ -1341,7 +1342,7 @@ void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inv
 void logics::saveActor() {
 
     string sz;
-#ifdef WIN32
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
     sz = loadJsonString(CONFIG_ACTOR);
 #else
     sz = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
