@@ -302,30 +302,21 @@
   "training": [
     {
       "id": 1,
-      "name": "[기본 훈련] 쥐돌이 놀이",
+      "name": "쥐돌이 놀이",
       "type": 0,
       "level": 1,
       "reward": {
-        "strength": 3,
-        "intelligence": 0,
+        "strength": 10,
+        "intelligence": 10,
         "appeal": 0,
         "point": 0,
-        "items": [
-          {
-            "id": 1,
-            "quantity": 10
-          },
-          {
-            "id": 2,
-            "quantity": 3
-          }
-        ]
+        "items": []
       },
       "cost": {
         "strength": 0,
         "intelligence": 0,
-        "appeal": 0,
-        "point": 10,
+        "appeal": 10,
+        "point": 0,
         "items": [
           {
             "id": 2,
@@ -336,14 +327,14 @@
     },
     {
       "id": 2,
-      "name": "[기본 훈련] 정어리 낚시",
+      "name": "생선집 알바",
       "type": 1,
       "level": 1,
       "reward": {
         "strength": 0,
-        "intelligence": 3,
+        "intelligence": 0,
         "appeal": 0,
-        "point": 0,
+        "point": 10,
         "items": [
           {
             "id": 2,
@@ -354,39 +345,39 @@
       "cost": {
         "strength": 0,
         "intelligence": 0,
-        "appeal": 0,
-        "point": 12,
+        "appeal": 10,
+        "point": 0,
         "items": [ ]
       }
     },
     {
       "id": 3,
-      "name": "[기본 알바] 클럽 알바",
+      "name": "뒷동산 운동",
       "type": 2,
       "level": 1,
       "reward": {
-        "strength": 0,
+        "strength": 10,
         "intelligence": 0,
-        "appeal": 3,
-        "point": 10,
+        "appeal": 0,
+        "point": 0,
         "items": [ ]
       },
       "cost": {
-        "strength": 1,
-        "intelligence": 2,
-        "appeal": 0,
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
         "point": 0,
         "items": [ ]
       }
     },
     {
       "id": 4,
-      "name": "[기본 공부] 무사 수행",
+      "name": "고시공부",
       "type": 3,
       "level": 3,
       "reward": {
-        "strength": 20,
-        "intelligence": 0,
+        "strength": 0,
+        "intelligence": 10,
         "appeal": 0,
         "point": 0,
         "items": [ ]
@@ -394,19 +385,19 @@
       "cost": {
         "strength": 0,
         "intelligence": 0,
-        "appeal": 0,
-        "point": 20,
+        "appeal": 10,
+        "point": 0,
         "items": [ ]
       }
     },
     {
       "id": 5,
-      "name": "[기본 공부] 외국어 과외 - 강아지말 배우기",
+      "name": "무사수행",
       "type": 4,
       "level": 3,
       "reward": {
-        "strength": 0,
-        "intelligence": 20,
+        "strength": 10,
+        "intelligence": 10,
         "appeal": 0,
         "point": 0,
         "items": [ ]
@@ -414,14 +405,14 @@
       "cost": {
         "strength": 0,
         "intelligence": 0,
-        "appeal": 0,
-        "point": 20,
+        "appeal": 10,
+        "point": 10,
         "items": [ ]
       }
     },
     {
       "id": 6,
-      "name": "[특별 훈련] 태공냥 - 고래낚시",
+      "name": "그루밍",
       "type": 1,
       "level": 5,
       "moment": {
@@ -436,8 +427,8 @@
       },
       "reward": {
         "strength": 0,
-        "intelligence": 100,
-        "appeal": 0,
+        "intelligence": 0,
+        "appeal": 10,
         "point": 0,
         "items": [
           {
@@ -472,9 +463,369 @@
       },
       "cost": {
         "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 7,
+      "name": "나비 쫒아다니기",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
         "intelligence": 0,
         "appeal": 0,
-        "point": 20,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 8,
+      "name": "고양이 카페 알바",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 9,
+      "name": "강아지풀 놀이",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 10,
+      "name": "신장개업 댄스 알바",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 11,
+      "name": "고냥이 tv보기",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 12,
+      "name": "놀이동산",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 13,
+      "name": "황제케어",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
+        "intelligence": 10,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 14,
+      "name": "사교 파티",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 15,
+      "name": "과외 체력",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 16,
+      "name": "과외 외국어 강아지말 ",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 17,
+      "name": "정어리 낚시",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 18,
+      "name": "노가다",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 19,
+      "name": "개다래 술 담그기",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 20,
+      "name": "코딩",
+      "type": 4,
+      "level": 3,
+      "reward": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 21,
+      "name": "클럽알바",
+      "type": 4,
+      "level": 1,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 22,
+      "name": "식빵굽기",
+      "type": 4,
+      "level": 1,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 10,
+        "appeal": 0,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 23,
+      "name": "상하차 알바",
+      "type": 4,
+      "level": 1,
+      "reward": {
+        "strength": 0,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 10,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      }
+    },
+    {
+      "id": 24,
+      "name": "어학연수",
+      "type": 4,
+      "level": 1,
+      "reward": {
+        "strength": 0,
+        "intelligence": 10,
+        "appeal": 10,
+        "point": 0,
+        "items": [ ]
+      },
+      "cost": {
+        "strength": 10,
+        "intelligence": 0,
+        "appeal": 0,
+        "point": 10,
         "items": [ ]
       }
     }

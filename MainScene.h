@@ -114,8 +114,15 @@ private:
 	void showInventory(inventoryType type = inventoryType_all);	//가방조회
 	void showInventoryCategory(Ref* pSender, inventoryType code);
 	void scheduleRecharge(float f); // HP 충전 쓰레드
-	void showBuy(inventoryType type = inventoryType_all); //구매 
-	void showBuyCategory(Ref* pSender, inventoryType code);
+	void showBuy(inventoryType type = inventoryType_all); //구매 보기
+	void showBuyCategory(Ref* pSender, inventoryType code); // 카테고리
+	void buyCallback(Ref* pSender, int id); //구매
+	void invokeItem(Ref* pSender, int id); //아이템 발동
+
+
+	void closePopup() {
+		this->removeChild(layerGray);
+	};
 };
 
 

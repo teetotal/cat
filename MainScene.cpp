@@ -10,7 +10,7 @@
 using namespace cocos2d::ui;
 
 #define INVENTORY_SIZE 	auto size = Size(400, 200); auto margin = Size(10, 10); auto nodeSize = Size(80, 50); auto gridSize = Size(1, 3);
-#define BUY_SIZE 	auto size = Size(400, 200); auto margin = Size(10, 10); auto nodeSize = Size(150, 50); auto gridSize = Size(1, 3);
+#define BUY_SIZE 	auto size = Size(400, 200); auto margin = Size(10, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(1, 3);
 
 
 MainScene * MainScene::hInst = NULL;
@@ -143,67 +143,25 @@ bool MainScene::init()
     gui::inst()->addTextButton(1,6,"┲", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
     gui::inst()->addTextButton(2,6,"╁", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
 
-    /*
-    string szExp;
-    szExp += to_string(logics::hInst->getActor()->exp);
-    szExp += " / ";
-    szExp += to_string(logics::hInst->getMaxExp());
-    mExp = gui::inst()->addLabel(4,0,szExp, this, 12, ALIGNMENT_CENTER);
-    */
+
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
+    mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 12, ALIGNMENT_CENTER, Color3B::GREEN);
+    mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
+    mProperties = gui::inst()->addLabel(8, 2, "", this, 12);
 
-    /*
-    string szPoint = "$ ";
-    szPoint += to_string(logics::hInst->getActor()->point);
-    szPoint += " +";
-
-    mPoint = gui::inst()->addTextButton(7,0,szPoint, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
-    */
-    mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 10, ALIGNMENT_CENTER, Color3B::GREEN);
-
-    /*
-    int hp = logics::hInst->getHP();
-    int hpMax = logics::hInst->getMaxHP();
-
-    string szHP = "♥ ";
-    szHP += to_string(hp);
-    szHP += "/";
-    szHP += to_string(hpMax);
-    szHP += " +";
-
-    mHP = gui::inst()->addTextButton(8, 0, szHP , this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
-    */
-    mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 10, ALIGNMENT_CENTER, Color3B::ORANGE);
-
-    /*
-    string properties;
-
-    properties += "S: ";
-    properties += to_string(logics::hInst->getActor()->property.strength);
-
-
-    properties += "\nI: ";
-    properties += to_string(logics::hInst->getActor()->property.intelligence);
-
-    properties += "\nA: ";
-    properties += to_string(logics::hInst->getActor()->property.appeal);
-
-    mProperties = gui::inst()->addLabel(8, 2, properties, this, 10);
-     */
-    mProperties = gui::inst()->addLabel(8, 2, "", this, 10);
-
-    gui::inst()->addTextButton(0,3,"도감", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 14, ALIGNMENT_NONE, Color3B::GRAY
+    gui::inst()->addTextButton(0, 2,"┠", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 32, ALIGNMENT_NONE, Color3B::BLACK
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , "check.png"
-            , false);
-    gui::inst()->addTextButton(0,4,"업적", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 14);
+    //        , "check.png"
+    //        , false
+    );
+    gui::inst()->addTextButton(0, 4,"├", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
 
-    gui::inst()->addTextButton(6,6,"벼룩시장", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 14);
-    gui::inst()->addTextButton(7,6,"상점", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 14);
-	mInventory = gui::inst()->addTextButton(8,6,"가방", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 14);
+    gui::inst()->addTextButton(6, 6,"┞", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
+    gui::inst()->addTextButton(7, 6,"╅", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
+	mInventory = gui::inst()->addTextButton(8, 6,"╆", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32);
 
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
@@ -403,7 +361,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
             Director::getInstance()->pushScene(ActionScene::createScene());
             break;
         case SCENECODE_RACE:
-            this->removeChild(layerGray);
+			closePopup();
             break;
         case SCENECODE_INVENTORY: //inquiry inventory
 			showInventory();
@@ -584,6 +542,18 @@ void MainScene::dailyReward() {
     layer->addChild(sv, 1, 123);
 }
 
+void MainScene::invokeItem(Ref* pSender, int id) {
+	errorCode err = logics::hInst->runRecharge(id, 1);
+	if (err != error_success && err != error_levelup) {
+		wstring sz = logics::hInst->getErrorMessage(err);
+		alert(wstring_to_utf8(sz, true));
+	}
+	else {
+		closePopup();
+		updateState(true);
+	}	
+}
+
 void MainScene::showInventoryCategory(Ref* pSender, inventoryType code) {
 	INVENTORY_SIZE;
 	int nodeMargin = 5;
@@ -600,10 +570,19 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code) {
 		img += ".png";
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
 		_item item = logics::hInst->getItem(vec[n].key);
-		string name = wstring_to_utf8(item.name, true);
+		string name;
+		if (item.type == itemType_hp_meal) {
+			name = wstring_to_utf8(item.name);
+			gui::inst()->addTextButtonAutoDimension(0, 0, name, l
+				, CC_CALLBACK_1(MainScene::invokeItem, this, item.id)
+				, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		}
+		else {
+			name = wstring_to_utf8(item.name, true);
+			gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
-		gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-
+		}
+		
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 1, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(20, 20));
 
@@ -637,17 +616,28 @@ void MainScene::showInventory(inventoryType type) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Adore", inventoryType_adorn));
 	
 	showInventoryCategory(this, type);
-	
+}
+
+void MainScene::buyCallback(Ref* pSender, int id) {
+	errorCode err = logics::hInst->runTrade(true, id, 1);
+	if (err != error_success && err != error_levelup) {
+		wstring sz = logics::hInst->getErrorMessage(err);
+		alert(wstring_to_utf8(sz, true));
+	}
+	else {
+		closePopup();
+		updateState(true);
+	}
 }
 
 void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
 	BUY_SIZE;
 	int nodeMargin = 5;
-	int newLine = 2;
+	int newLine = 3;
 
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((m->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(8, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 
 	for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
 		int id = it->first;
@@ -660,9 +650,9 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
 		img += ".png";
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
 		
-		string name = wstring_to_utf8(item.name, true);
-
-		gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		string name = wstring_to_utf8(item.name, false);
+		gui::inst()->addTextButtonAutoDimension(0, 0, name, l, CC_CALLBACK_1(MainScene::buyCallback, this, id), 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		//gui::inst()->addLabelAutoDimension(0, 0, name, l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 1, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(20, 20));
@@ -700,17 +690,19 @@ void MainScene::showBuy(inventoryType type) {
 }
 
 void MainScene::actionList() {
-    Size size = Size(300,200);
-    Size margin = Size(0, 0);
+    Size margin = Size(10, 0);
     Size innerMargin = Size(0, 5);
-    Size nodeSize = Size(230, 90);
-    Size gridSize = Size(3, 5);
-    int layerMargin = 10;
+    Size nodeSize = Size(140, 50);
+    Size gridSize = Size(3, 3);
+
+    int layerMargin = 5;
+	int newLine = 2;
+    Size size = Size((nodeSize.width + layerMargin + margin.width)* newLine,200);
 
     this->removeChild(layerGray);
     layer = gui::inst()->addPopup(layerGray, this, size, "bg.png", Color4B::WHITE);
     gui::inst()->addTextButtonAutoDimension(8,0
-            ,"Close"
+            ,"CLOSE"
             , layer
             , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
             , 14
@@ -722,7 +714,7 @@ void MainScene::actionList() {
     );
 
     gui::inst()->addLabelAutoDimension(4,0
-            ,"Action"
+            ,"ACTION"
             , layer
             , 14
             , ALIGNMENT_CENTER
@@ -736,9 +728,10 @@ void MainScene::actionList() {
     //grid line
     //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
-
     __training * pTraining = logics::hInst->getActionList();
-    ScrollView * sv = gui::inst()->addScrollView(Vec2(1, 7), Vec2(9, 1), size, margin, "", Size(nodeSize.width, (nodeSize.height) * pTraining->size()));
+    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(10, 1), size, margin, ""
+		, Size(nodeSize.width, (nodeSize.height + layerMargin) * (pTraining->size() / newLine) + 1)
+	);
 
     for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {
         if (!logics::hInst->isValidTraningTime(it->first))
@@ -760,57 +753,18 @@ void MainScene::actionList() {
             }
         }
 
-		string pay = "비용-";
-        if(it->second.cost.point > 0){
-            pay += "$ ";
-            pay += to_string(it->second.cost.point);
-			pay += " ";
-        }
-
-        if(it->second.cost.strength > 0){
-            pay += "S: ";
-            pay += to_string(it->second.cost.strength);
-			pay += " ";
-        }
-
-        if(it->second.cost.intelligence > 0){
-            pay += "I: ";
-            pay += to_string(it->second.cost.intelligence);
-			pay += " ";
-        }
-
-        if(it->second.cost.appeal > 0){
-            pay += "A: ";
-            pay += to_string(it->second.cost.appeal);
-			pay += " ";
-        }
+		string pay = "비용 ";
+        if(it->second.cost.point > 0)           pay += "$ " + to_string(it->second.cost.point) + " ";
+        if(it->second.cost.strength > 0)        pay += "S: " + to_string(it->second.cost.strength) + " ";
+        if(it->second.cost.intelligence > 0)    pay += "I: " + to_string(it->second.cost.intelligence) + " ";
+        if(it->second.cost.appeal > 0)          pay += "A: " + to_string(it->second.cost.appeal) + " ";
 		pay += wstring_to_utf8(costItems);
 		
-		string reward = "보상-";
-        if(it->second.reward.point > 0){
-            reward += "$ ";
-            reward += to_string(it->second.reward.point);
-			reward += " ";
-        }
-
-        if(it->second.reward.strength > 0){
-            reward += "S: ";
-            reward += to_string(it->second.reward.strength);
-			reward += " ";
-        }
-
-        if(it->second.reward.intelligence > 0){
-            reward += "I: ";
-            reward += to_string(it->second.reward.intelligence);
-			reward += " ";
-        }
-
-        if(it->second.reward.appeal > 0){
-            reward += "A: ";
-            reward += to_string(it->second.reward.appeal);
-			reward += " ";
-        }
-
+		string reward = "보상 ";
+        if(it->second.reward.point > 0)         reward += "$ " + to_string(it->second.reward.point) + " ";
+        if(it->second.reward.strength > 0)      reward += "S: " + to_string(it->second.reward.strength) + " ";
+        if(it->second.reward.intelligence > 0)  reward += "I: "+ to_string(it->second.reward.intelligence) + " ";
+        if(it->second.reward.appeal > 0)        reward += "A: " + to_string(it->second.reward.appeal) + " ";
 		reward += wstring_to_utf8(rewardItems);
 
         //대충 정해 놓고 나중에
@@ -819,10 +773,10 @@ void MainScene::actionList() {
 
         Layout* l = gui::inst()->createLayout(nodeSize, "", true, bgColor);
 
-        gui::inst()->addLabelAutoDimension(0,2
+        gui::inst()->addLabelAutoDimension(0,1
                 , "`"
                 , l
-                , 32
+                , 24
                 , ALIGNMENT_CENTER
                 , Color3B::BLACK
                 , gridSize
@@ -842,11 +796,11 @@ void MainScene::actionList() {
                 , innerMargin
         );
 
-		gui::inst()->addTextButtonAutoDimension(1,2
+		gui::inst()->addTextButtonAutoDimension(1,1
                 , pay
                 , l
                 , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
-                , 12
+                , 9
                 , ALIGNMENT_NONE
                 , Color3B::BLACK
                 , gridSize
@@ -854,20 +808,20 @@ void MainScene::actionList() {
                 , innerMargin
         );
 
-        gui::inst()->addTextButtonAutoDimension(1,3
+        gui::inst()->addTextButtonAutoDimension(1,2
                 , reward
                 , l
                 , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
-                , 12
+                , 9
                 , ALIGNMENT_NONE
-                , Color3B::BLACK
+                , Color3B::BLUE
                 , gridSize
                 , Size::ZERO
                 , innerMargin
         );
 
 
-        gui::inst()->addLayoutToScrollView(sv, l, layerMargin, 1);
+        gui::inst()->addLayoutToScrollView(sv, l, layerMargin, newLine);
     }
 
     layer->addChild(sv, 1, 123);
