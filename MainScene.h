@@ -76,7 +76,7 @@ private:
     void callback0();
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
-    void callbackAction(Ref* pSender, int id);
+    
 
     static void cultivationCB(int id){
         hInst->cultivationCBInner(id);
@@ -118,7 +118,8 @@ private:
 	void showBuyCategory(Ref* pSender, inventoryType code); // 카테고리
 	void buyCallback(Ref* pSender, int id); //구매
 	void invokeItem(Ref* pSender, int id); //아이템 발동
-
+	void callbackAction(Ref* pSender, int id);
+	void callbackActionAnimation(Ref* pSender, int id);
 
 	void closePopup() {
 		this->removeChild(layerGray);

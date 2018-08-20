@@ -218,7 +218,7 @@ public:
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
 
-	
+	int mModalTouchCnt;
 
 private:
     float mOriginX, mOriginY;

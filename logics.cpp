@@ -634,7 +634,7 @@ errorCode logics::isValidTraining(int id) {
 	return error_success;
 }
 
-errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type) {
+errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type, float preservationRatio) {
     errorCode err = isValidTraining(id);
     if (err != error_success) {
         return err;
@@ -655,13 +655,34 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 			return error_not_enough_item;		
 	}
 
+	//preservationRaio만큼 보전해서 줌
 	//give point
+	int preservation = preservationRatio * mTraining[id].reward.point;
+	printf("point: %d \n" , preservation);
 	point = getRandValue(mTraining[id].reward.point);
+	if (point < preservation)
+		point = preservation;
+
 	mActor->point += point;
 	//give growth
+	preservation = preservationRatio * mTraining[id].reward.strength;
+	printf("strength: %d \n", preservation);
 	rewardProperty->strength = getRandValue(mTraining[id].reward.strength);
+	if (rewardProperty->strength < preservation)
+		rewardProperty->strength = preservation;
+
+	preservation = preservationRatio * mTraining[id].reward.intelligence;
+	printf("intelligence: %d \n", preservation);
 	rewardProperty->intelligence = getRandValue(mTraining[id].reward.intelligence);
+	if (rewardProperty->intelligence < preservation)
+		rewardProperty->intelligence = preservation;
+
+	preservation = preservationRatio * mTraining[id].reward.appeal;
+	printf("appeal: %d \n", preservation);
 	rewardProperty->appeal = getRandValue(mTraining[id].reward.appeal);
+	if (rewardProperty->appeal < preservation)
+		rewardProperty->appeal = preservation;
+
 	addProperty(rewardProperty->strength
 		, rewardProperty->intelligence
 		, rewardProperty->appeal);

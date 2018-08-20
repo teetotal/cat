@@ -367,6 +367,7 @@ MenuItemFont * gui::addTextButton(int x, int y, const string text, Node *p, cons
 
 LayerColor *
 gui::createModalLayer(LayerColor * &layerBG, Size size, const string bgImg, Color4B bgColor) {
+	mModalTouchCnt = 0;
     //layerBG = LayerColor::create(Color4B::BLACK);
     layerBG = new (std::nothrow) LayerColor();
     layerBG->initWithColor(Color4B::BLACK);
@@ -400,11 +401,12 @@ gui::createModalLayer(LayerColor * &layerBG, Size size, const string bgImg, Colo
 
     auto listener = EventListenerTouchOneByOne::create();
     listener->setSwallowTouches(true);
-    listener->onTouchBegan = [](Touch *touch,Event*event)->bool {
+    listener->onTouchBegan = [this](Touch *touch,Event*event)->bool {
         CCLOG("x %f, y: %f"
         , touch->getLocation().x
         , touch->getLocation().y
         );
+		mModalTouchCnt++;
         return true;
     };
 

@@ -106,11 +106,11 @@ enum itemType {
 };
 //training type
 enum trainingType {
-	trainingType_play = 0,		//놀이
-	trainingType_fishing,		//낚시
-	trainingType_entertainment,	//화류계
-	trainingType_improve,		//수련
-	trainingType_study,			//학습
+	trainingType_dance = 0,		//댄스
+	trainingType_walking_around,		//돌아다니기
+	trainingType_work_hard,	//열심히 일하기
+	trainingType_panic,		//멘붕
+	trainingType_lazy,			//게으르기
 	trainingType_max,
 };
 
@@ -386,7 +386,7 @@ public:
 
 	//Training 
 	errorCode isValidTraining(int id);
-	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type);
+	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type, float preservationRatio = 0.f);
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);

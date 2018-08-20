@@ -187,6 +187,7 @@ bool MainScene::init()
 
     this->schedule(schedule_selector(MainScene::scheduleCB), .5f);
     */
+
     return true;
 }
 
@@ -305,24 +306,23 @@ void MainScene::updateState(bool isInventoryUpdated) {
 			ScaleBy::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
 		));
 }
+void MainScene::callbackActionAnimation(Ref* pSender, int id) {
 
-void MainScene::callbackAction(Ref* pSender, int id){
+	this->removeChild(layerGray);
 
-	if (id == -1)
-		return;
-    
-    this->removeChild(layerGray);
-    vector<_itemPair> rewards;
-    _property property;
-    int point;
-    trainingType type;
-    errorCode err = logics::hInst->runTraining(id, rewards, &property, point, type);
-    wstring sz = logics::hInst->getErrorMessage(err);
+	vector<_itemPair> rewards;
+	_property property;
+	int point;
+	trainingType type;
+	float max = 40.f;
+	float ratioTouch = gui::inst()->mModalTouchCnt / max;
+	errorCode err = logics::hInst->runTraining(id, rewards, &property, point, type, ratioTouch);
+	wstring sz = logics::hInst->getErrorMessage(err);
 
 	wstring szRewards = L"";
 	for (int n = 0; n < rewards.size(); n++) {
 		_item item = logics::hInst->getItem(rewards[n].itemId);
-		szRewards += item.name + L"-" + to_wstring(rewards[n].val) + L" ";
+		szRewards += item.name + L"x" + to_wstring(rewards[n].val) + L" ";
 	}
 
 	bool isInventory = false;
@@ -330,17 +330,63 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	if (szRewardsUTF8.size() > 1) {
 		isInventory = true;
 		particleSample(szRewardsUTF8);
+		updateState(isInventory);
 	}
+	else {
+		string szResult;
+		if (point > 0)	szResult = "$ " + to_string(point);
+		if (property.strength > 0) szResult += " S:" + to_string(property.strength);
+		if (property.intelligence > 0) szResult += " I:" + to_string(property.intelligence);
+		if (property.appeal > 0) szResult += " A:" + to_string(property.appeal);
+		szResult += " (" + to_string(ratioTouch * 100) + "%)";
 
-    switch(err){
-        case error_success:
-        case error_levelup:
-            updateState(isInventory);
-            break;
-        default:
-            alert(wstring_to_utf8(sz, true));
-            break;
-    }
+		switch (err) {
+		case error_success:
+		case error_levelup:
+			alert(szResult);
+			updateState(isInventory);
+			break;
+		default:
+			alert(wstring_to_utf8(sz, true));
+			break;
+		}
+	}	
+}
+
+void MainScene::callbackAction(Ref* pSender, int id){
+	if (id == -1)
+		return;    
+	this->removeChild(layerGray);
+
+	auto size = Size(300, 200);
+	layer = gui::inst()->addPopup(layerGray, this, size);
+	int fontSize = 12;
+	auto l = gui::inst()->createLayout(size, "", true, Color3B::WHITE);
+	l->setPosition(Vec2(layerGray->getContentSize().width / 2, layerGray->getContentSize().height / 2));
+	l->setAnchorPoint(Vec2(0.5, 0.5));
+	
+	_training t = logics::hInst->getActionList()->at(id);
+	int type = t.type;
+	gui::inst()->addLabelAutoDimension(2, 1, wstring_to_utf8(t.name), l);
+
+	auto pMan = Sprite::create("action/" + to_string(type) + "/0.png");
+	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 2));
+	l->addChild(pMan);
+
+	auto animation = Animation::create();
+	animation->setDelayPerUnit(0.15f);
+	for (int n = 0; n <= 5; n++) {
+		animation->addSpriteFrameWithFile("action/" + to_string(type) + "/" + to_string(n) + ".png");
+	}
+		
+	auto cb = CallFuncN::create(CC_CALLBACK_1(MainScene::callbackActionAnimation, this, id));
+	auto animate = Sequence::create(Repeat::create(Animate::create(animation), 4), cb, NULL);
+	
+	pMan->runAction(animate);
+	
+	layerGray->addChild(l);
+
+	return;	
 }
 
 
@@ -878,176 +924,6 @@ void MainScene::actionList() {
     layer->addChild(sv, 1, 123);
 }
 
-void MainScene::store2() {
-    auto size = Size(400,200);
-    auto margin = Size(15, 15);
-    Size nodeSize = Size(100, 100);
-    Size gridSize = Size(1, 6);
-
-    this->removeChild(layerGray);
-    layer = gui::inst()->addPopup(layerGray, this, size, "bg.png", Color4B::WHITE);
-    gui::inst()->addTextButtonAutoDimension(8,0
-            ,"Close"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::RED
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    //grid line
-    //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
-
-    //tab
-    gui::inst()->addTextButtonAutoDimension(0,1
-            ,"성장"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_1)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    gui::inst()->addTextButtonAutoDimension(1,1
-            ,"경묘"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-    gui::inst()->addTextButtonAutoDimension(2,1
-            ,"농사"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_3)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    gui::inst()->addTextButtonAutoDimension(3,1
-            ,"체력"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_4)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    gui::inst()->addTextButtonAutoDimension(4,1
-            ,"꾸밈"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_5)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    gui::inst()->addTextButtonAutoDimension(5,1
-            ,"전체"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
-
-    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 2), size, margin, "", Size(1050, 110));
-
-    for(int n=0; n < 10; n++){
-
-        Layout* l = gui::inst()->createLayout(nodeSize, "element.png", true, Color3B::WHITE);
-
-        gui::inst()->addLabelAutoDimension(0,1
-                , "`"
-                , l
-                , 24
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , gridSize
-                , Size::ZERO
-                , Size::ZERO
-        );
-
-        gui::inst()->addTextButtonAutoDimension(0,2
-                , "[초급] 정어리 낚시"
-                , l
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                , 12
-                , ALIGNMENT_CENTER
-                , Color3B::BLACK
-                , gridSize
-                , Size::ZERO
-                , Size::ZERO
-        );
-
-        gui::inst()->addTextButtonAutoDimension(0,3
-                , "$10 S0 I0 A0"
-                , l
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                , 12
-                , ALIGNMENT_CENTER
-                , Color3B::GRAY
-                , gridSize
-                , Size::ZERO
-                , Size::ZERO
-        );
-
-        gui::inst()->addTextButtonAutoDimension(0,4
-                , "$0 S10 I12 A0"
-                , l
-                , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
-                , 12
-                , ALIGNMENT_CENTER
-                , Color3B::BLUE
-                , gridSize
-                , Size::ZERO
-                , Size::ZERO
-        );
-
-        gui::inst()->addLayoutToScrollView(sv, l, 10);
-    }
-
-    layer->addChild(sv, 1, 123);
-
-
-
-    /*
-    gui::inst()->addLabel(4,5
-            ,"┲"
-            , layer
-            , 50
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , size
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(0,0)
-            , Size(0,0)
-    );
-     */
-}
-
 void MainScene::particleSample(const string sz){
 
     auto layer = LayerColor::create();
@@ -1072,8 +948,6 @@ void MainScene::scheduleCB(float f){
         this->unschedule( schedule_selector(MainScene::scheduleCB));
         c1.setDecay(true);
     }
-
-
 }
 
 void MainScene::scheduleRecharge(float f) {
