@@ -139,9 +139,9 @@ bool MainScene::init()
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
     mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12);
 
-    gui::inst()->addTextButton(0,6,"╈", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32);
-    gui::inst()->addTextButton(1,6,"┲", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
-    gui::inst()->addTextButton(2,6,"╁", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
+    gui::inst()->addTextButton(0,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32);
+    gui::inst()->addTextButton(1,6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
+    gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
 
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
@@ -149,7 +149,7 @@ bool MainScene::init()
     mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12);
 
-    gui::inst()->addTextButton(0, 2,"┠", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 32, ALIGNMENT_NONE, Color3B::BLACK
+    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"┠"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 32, ALIGNMENT_NONE, Color3B::BLACK
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
@@ -157,11 +157,11 @@ bool MainScene::init()
     //        , "check.png"
     //        , false
     );
-    gui::inst()->addTextButton(0, 4,"├", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
+    gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
 
-    gui::inst()->addTextButton(6, 6,"┞", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
-    gui::inst()->addTextButton(7, 6,"╅", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
-	mInventory = gui::inst()->addTextButton(8, 6,"╆", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32);
+    gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
+    gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
+	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"╆"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32);
 
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
@@ -278,11 +278,11 @@ void MainScene::updateState(bool isInventoryUpdated) {
     int hp = logics::hInst->getHP();
     int hpMax = logics::hInst->getMaxHP();
 
-    string szHP = "♥ ";
-    szHP += to_string(hp);
-    szHP += "/";
-    szHP += to_string(hpMax);
-    szHP += " +";
+    wstring szwHP = L"♥ ";
+    szwHP += to_wstring(hp) + L"/" + to_wstring(hpMax) + L" +";
+	
+	string szHP = wstring_to_utf8(szwHP);
+
     if(szHP.compare(mHP->getString()) != 0 ){
         mHP->runAction(Sequence::create(
                 ScaleBy::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
@@ -307,6 +307,9 @@ void MainScene::updateState(bool isInventoryUpdated) {
 }
 
 void MainScene::callbackAction(Ref* pSender, int id){
+
+	if (id == -1)
+		return;
     
     this->removeChild(layerGray);
     vector<_itemPair> rewards;
@@ -692,8 +695,8 @@ void MainScene::showBuy(inventoryType type) {
 void MainScene::actionList() {
     Size margin = Size(10, 0);
     Size innerMargin = Size(0, 5);
-    Size nodeSize = Size(140, 50);
-    Size gridSize = Size(3, 3);
+    Size nodeSize = Size(140, 70);
+    Size gridSize = Size(3, 5);
 
     int layerMargin = 5;
 	int newLine = 2;
@@ -733,8 +736,10 @@ void MainScene::actionList() {
 		, Size(nodeSize.width, (nodeSize.height + layerMargin) * (pTraining->size() / newLine) + 1)
 	);
 
-    for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {
-        if (!logics::hInst->isValidTraningTime(it->first))
+    for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {        
+		int id = it->first;
+
+		if (!logics::hInst->isValidTraningTime(id))
             continue;
 
         wstring rewardItems;
@@ -752,15 +757,30 @@ void MainScene::actionList() {
                 costItems += to_wstring(p->val) + L") ";
             }
         }
+		bool isNotEnough = false;
 
-		string pay = "비용 ";
-        if(it->second.cost.point > 0)           pay += "$ " + to_string(it->second.cost.point) + " ";
-        if(it->second.cost.strength > 0)        pay += "S: " + to_string(it->second.cost.strength) + " ";
-        if(it->second.cost.intelligence > 0)    pay += "I: " + to_string(it->second.cost.intelligence) + " ";
-        if(it->second.cost.appeal > 0)          pay += "A: " + to_string(it->second.cost.appeal) + " ";
+		string pay;
+		if (it->second.cost.point > 0) {
+			pay += "$ " + to_string(it->second.cost.point) + " ";
+		}
+		if (it->second.cost.strength > 0) {
+			if (it->second.cost.strength > logics::hInst->getActor()->property.strength)
+				isNotEnough = true;
+			pay += "S: " + to_string(it->second.cost.strength) + " ";
+		}
+		if (it->second.cost.intelligence > 0) {
+			if (it->second.cost.intelligence > logics::hInst->getActor()->property.intelligence)
+				isNotEnough = true;
+			pay += "I: " + to_string(it->second.cost.intelligence) + " ";
+		}
+		if (it->second.cost.appeal > 0) {
+			if (it->second.cost.appeal > logics::hInst->getActor()->property.appeal)
+				isNotEnough = true;
+			pay += "A: " + to_string(it->second.cost.appeal) + " ";
+		}
 		pay += wstring_to_utf8(costItems);
 		
-		string reward = "보상 ";
+		string reward;
         if(it->second.reward.point > 0)         reward += "$ " + to_string(it->second.reward.point) + " ";
         if(it->second.reward.strength > 0)      reward += "S: " + to_string(it->second.reward.strength) + " ";
         if(it->second.reward.intelligence > 0)  reward += "I: "+ to_string(it->second.reward.intelligence) + " ";
@@ -769,12 +789,17 @@ void MainScene::actionList() {
 
         //대충 정해 놓고 나중에
         int type = it->second.type;
-        Color3B bgColor = Color3B(255- type * 5, 255- type * 10, 255);
+		int level = it->second.level;
+		const wchar_t c[] = {L'`' , L'─', L'┌', L'┐', L'┘', L'└', L'├', L'┬'};
+        Color3B bgColor = Color3B(255 - type * 5, 255 - level * 10, 255);
 
         Layout* l = gui::inst()->createLayout(nodeSize, "", true, bgColor);
 
-        gui::inst()->addLabelAutoDimension(0,1
-                , "`"
+		wstring szC = L" ";
+		szC[0] = c[type];
+
+        gui::inst()->addLabelAutoDimension(0,2
+                , wstring_to_utf8(szC)
                 , l
                 , 24
                 , ALIGNMENT_CENTER
@@ -782,36 +807,63 @@ void MainScene::actionList() {
                 , gridSize
                 , Size::ZERO
                 , innerMargin
-        );
+        );		
 
-        gui::inst()->addTextButtonAutoDimension(1,0
+		Color3B fontColor = Color3B::BLACK;
+		if (isNotEnough) {
+			id = -1;
+			gui::inst()->addLabelAutoDimension(1, 4
+				, wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_property))
+				, l				
+				, 10
+				, ALIGNMENT_NONE
+				, Color3B::RED
+				, gridSize
+				, Size::ZERO
+				, innerMargin
+			);
+			fontColor = Color3B::GRAY;
+		}
+			
+		gui::inst()->addLabelAutoDimension(1, 0
+			, "Lv. " + to_string(level)
+			, l
+			, 8
+			, ALIGNMENT_NONE
+			, fontColor
+			, gridSize
+			, Size::ZERO
+			, innerMargin
+		);
+
+        gui::inst()->addTextButtonAutoDimension(1,1
                 , wstring_to_utf8(it->second.name)
                 , l
-                , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
+                , CC_CALLBACK_1(MainScene::callbackAction, this, id)
                 , 12
                 , ALIGNMENT_NONE
-                , Color3B::BLACK
+                , fontColor
                 , gridSize
                 , Size::ZERO
                 , innerMargin
         );
 
-		gui::inst()->addTextButtonAutoDimension(1,1
+		gui::inst()->addTextButtonAutoDimension(1,2
                 , pay
                 , l
-                , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
+                , CC_CALLBACK_1(MainScene::callbackAction, this, id)
                 , 9
                 , ALIGNMENT_NONE
-                , Color3B::BLACK
+                , fontColor
                 , gridSize
                 , Size::ZERO
                 , innerMargin
         );
 
-        gui::inst()->addTextButtonAutoDimension(1,2
+        gui::inst()->addTextButtonAutoDimension(1,3
                 , reward
                 , l
-                , CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
+                , CC_CALLBACK_1(MainScene::callbackAction, this, id)
                 , 9
                 , ALIGNMENT_NONE
                 , Color3B::BLUE
@@ -819,7 +871,6 @@ void MainScene::actionList() {
                 , Size::ZERO
                 , innerMargin
         );
-
 
         gui::inst()->addLayoutToScrollView(sv, l, layerMargin, newLine);
     }

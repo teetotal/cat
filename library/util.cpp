@@ -76,7 +76,7 @@ string wstring_to_utf8(const wstring& str) {
 string wstring_to_utf8(const wstring& str, bool isLabel)
 {
 #ifdef _WIN32
-	UINT type = CP_ACP;
+	UINT type = CP_UTF8;
 	if (isLabel)
 		type = CP_UTF8;
 
