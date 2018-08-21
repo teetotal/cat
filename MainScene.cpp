@@ -129,7 +129,7 @@ bool MainScene::init()
     loadingBar = gui::inst()->addProgressBar(4, 0, "LoadingBarFile.png", this, 10);
     //loadingBar->setPercent(logics::hInst->getExpRatio());
 
-    gui::inst()->addSpriteFixedSize(Size(110, 140), 4, 3, "25.png", this);
+    gui::inst()->addSpriteFixedSize(Size(110, 80), 4, 3, "21.png", this);
 
 
     string name = wstring_to_utf8(logics::hInst->getActor()->userName, true);
@@ -150,16 +150,10 @@ bool MainScene::init()
     mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 12, ALIGNMENT_CENTER, Color3B::GREEN);
     mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12);
+	   
+    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
 
-    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"┠"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 32, ALIGNMENT_NONE, Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-            , Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-    //        , "check.png"
-    //        , false
-    );
-    gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
+	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16);
 
     gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
     gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
@@ -379,16 +373,46 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	
 	_training t = logics::hInst->getActionList()->at(id);
 	int type = t.type;
-	gui::inst()->addLabelAutoDimension(2, 1, wstring_to_utf8(t.name), l);
+	wstring rewardItems;
+	int rewardItemCnt = 0;
+	for (int n = 0; n < maxTrainingItems; n++) {
+		_itemPair* p = t.reward.items[n];
+		if (p != NULL) {
+			if (n == 0)
+				rewardItems = logics::hInst->getItem(p->itemId).name;
+			rewardItemCnt++;
+		}
+        else
+            break;
+	}
+	if (rewardItemCnt > 1)
+		rewardItems += L" 외 " + to_wstring(rewardItemCnt - 1);
 
-	auto pMan = Sprite::create("action/" + to_string(type) + "/0.png");
-	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 2));
+	string reward;
+	if (t.reward.point > 0)         reward += "$ " + to_string(t.reward.point) + " ";
+	if (t.reward.strength > 0)      reward += "S: " + to_string(t.reward.strength) + " ";
+	if (t.reward.intelligence > 0)  reward += "I: " + to_string(t.reward.intelligence) + " ";
+	if (t.reward.appeal > 0)        reward += "A: " + to_string(t.reward.appeal) + " ";
+	
+	gui::inst()->addLabelAutoDimension(2, 1, wstring_to_utf8(t.name), l, 14, ALIGNMENT_NONE);
+
+	int idx = 2;
+	if(reward.size() > 1)
+		gui::inst()->addLabelAutoDimension(idx++, 2, reward, l, 10, ALIGNMENT_NONE);
+	string szRewardItem = wstring_to_utf8(rewardItems);
+	if(szRewardItem.size() > 1)
+		gui::inst()->addLabelAutoDimension(idx++, 2, szRewardItem, l, 10, ALIGNMENT_NONE);
+
+    string path = "action/" + to_string(type) + "/0.png";
+	auto pMan = Sprite::create(path);
+	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
 	l->addChild(pMan);
 
 	auto animation = Animation::create();
 	animation->setDelayPerUnit(0.15f);
 	for (int n = 0; n <= 5; n++) {
-		animation->addSpriteFrameWithFile("action/" + to_string(type) + "/" + to_string(n) + ".png");
+        path = "action/" + to_string(type) + "/" + to_string(n) + ".png";
+		animation->addSpriteFrameWithFile(path);
 	}
 		
 	auto cb = CallFuncN::create(CC_CALLBACK_1(MainScene::callbackActionAnimation, this, id));
@@ -640,7 +664,9 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 
 	vector<intPair> vec;
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
-	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
+	Size innerSize = Size(sizeOfScrollView.width, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
 	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
@@ -739,9 +765,13 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
 	int newLine = 3;
 
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
-	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((m->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
+	Size innerSize = Size(sizeOfScrollView.width, ((m->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	
 	for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
 		int id = it->first;
 		_item item = logics::hInst->getItem(id);
@@ -803,7 +833,10 @@ void MainScene::showAchievementCategory(Ref* pSender, bool isDaily) {
 	int newLine = 2;
 
 	int cnt = logics::hInst->getAchievementSize(isDaily);
-	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
+
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;	
+	Size innerSize = Size(sizeOfScrollView.width, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
 	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 	
 	for (int n = 0; n < cnt; n++) {
@@ -860,15 +893,8 @@ void MainScene::showAchievement() {
 }
 
 void MainScene::actionList() {
-	ACTION_SIZE;
-	/*
-    Size margin = Size(10, 0);
-    Size innerMargin = Size(10, 10);
-    Size nodeSize = Size(180, 70);
-    Size gridSize = Size(3, 5);
-	*/    
-	int newLine = 2;
-    //Size size = Size(385, 200);
+	ACTION_SIZE;	
+	int newLine = 2;   
 
     this->removeChild(layerGray);
     layer = gui::inst()->addPopup(layerGray, this, size, "bg_action.png", Color4B::WHITE);
@@ -900,7 +926,10 @@ void MainScene::actionList() {
     //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
     __training * pTraining = logics::hInst->getActionList();
-	Size innerSize = Size((nodeSize.width + nodeMargin) * newLine, ((pTraining->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+	
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
+	Size innerSize = Size(sizeOfScrollView.width, ((pTraining->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
     ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 
     for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {        
@@ -930,19 +959,21 @@ void MainScene::actionList() {
 			rewardItems += L" 외 " + to_wstring(rewardItemCnt - 1);
 		
 
-		string pay;
+		string pay = " ";
 		if (it->second.cost.point > 0) pay += "$ " + to_string(it->second.cost.point) + " ";		
 		if (it->second.cost.strength > 0) pay += "S: " + to_string(it->second.cost.strength) + " ";
 		if (it->second.cost.intelligence > 0) pay += "I: " + to_string(it->second.cost.intelligence) + " ";
 		if (it->second.cost.appeal > 0) pay += "A: " + to_string(it->second.cost.appeal) + " ";
-		pay += wstring_to_utf8(costItems);
+		//pay += wstring_to_utf8(costItems);
 		
+		/*
 		string reward;
         if(it->second.reward.point > 0)         reward += "$ " + to_string(it->second.reward.point) + " ";
         if(it->second.reward.strength > 0)      reward += "S: " + to_string(it->second.reward.strength) + " ";
         if(it->second.reward.intelligence > 0)  reward += "I: "+ to_string(it->second.reward.intelligence) + " ";
         if(it->second.reward.appeal > 0)        reward += "A: " + to_string(it->second.reward.appeal) + " ";
 		reward += wstring_to_utf8(rewardItems);
+		*/
 
         //대충 정해 놓고 나중에
         int type = it->second.type;
@@ -979,9 +1010,10 @@ void MainScene::actionList() {
 			
 		gui::inst()->addLabelAutoDimension(0, 1, "Lv. " + to_string(level), l, 8, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
         gui::inst()->addTextButtonAutoDimension(1,1, wstring_to_utf8(it->second.name), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-		gui::inst()->addTextButtonAutoDimension(1,2, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-        gui::inst()->addTextButtonAutoDimension(1,3, reward, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColorReward, gridSize, Size::ZERO, Size::ZERO);
-        gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
+		gui::inst()->addTextButtonAutoDimension(1,2, wstring_to_utf8(costItems), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+        gui::inst()->addTextButtonAutoDimension(1,3, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+        
+		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
     }
 
     layer->addChild(sv, 1, 123);

@@ -110,7 +110,9 @@ enum trainingType {
 	trainingType_walking_around,		//돌아다니기
 	trainingType_work_hard,	//열심히 일하기
 	trainingType_panic,		//멘붕
-	trainingType_lazy,			//게으르기
+	trainingType_lazy,		//게으르기
+	trainingType_fight,		//무사 수련
+	trainingType_fishing,	//낚시
 	trainingType_max,
 };
 

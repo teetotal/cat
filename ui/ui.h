@@ -196,6 +196,9 @@ public:
             , float margin
             , int newlineInterval = 0
     );
+
+	Size getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin);
+
     ScrollView * addScrollView(Vec2 p1
             , Vec2 p2
             , Size size

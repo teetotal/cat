@@ -443,15 +443,23 @@ void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int ne
     float x, y;
 
     if(newlineInterval == 0) {
-        x = nCount * (e->getContentSize().width + margin);
+        x = nCount * (e->getContentSize().width + margin)  + (margin / 2);
         y = (p->getInnerContainerSize().height) - (e->getContentSize().height + margin);
     } else {
-        x = (nCount % newlineInterval) * (e->getContentSize().width + margin);
+        x = (nCount % newlineInterval) * (e->getContentSize().width + margin) + (margin / 2);
         y = (p->getInnerContainerSize().height) - ((nCount / newlineInterval) + 1) * (e->getContentSize().height + margin);
 
     }
     e->setPosition(Vec2(x, y));
     p->addChild(e);
+}
+
+Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin) {
+	float svX1, svY1, svX2, svY2;
+	getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+	getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+
+	return Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2));
 }
 
 ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize){
