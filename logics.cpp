@@ -610,15 +610,18 @@ errorCode logics::isValidTraining(int id) {
 	if (mTraining.find(id) == mTraining.end() || isValidTraningTime(id) == false) {
 		return error_invalid_id;
 	}
-	else if (getHP() <= 0) {
+	_training t = mTraining[id];
+	if (getHP() <= 0) {
 		return error_not_enough_hp;
 	}
-	else if (mTraining[id].cost.point > mActor->point)
+	else if (t.cost.point > mActor->point)
 		return error_not_enough_point;
+	else if (t.cost.strength > mActor->property.strength || t.cost.intelligence > mActor->property.intelligence || t.cost.appeal > mActor->property.appeal)
+		return error_not_enough_property;
 
 	//check item validation
 	for (int n = 0; n < maxTrainingItems; n++) {
-		_itemPair * p = mTraining[id].cost.items[n];
+		_itemPair * p = t.cost.items[n];
 		if (p == NULL)
 			break;
 
