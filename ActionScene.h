@@ -37,6 +37,7 @@ private:
 	RepeatForever * getRunningAnimation();
 
 	bool mSufferState[raceParticipantNum + 1];
+	float mGoalLength;
 };
 
 

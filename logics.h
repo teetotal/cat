@@ -40,10 +40,10 @@
 #define raceParticipantNum 4
 //한번 race에서 사용가능한 아이템 수
 #define raceItemSlot 3
-//speed up 아이템이 증가시키는 거리
-#define raceSpeedUp 50
+//speed up 아이템이 증가시키는 거리 비율 += total * raceSpeedUp
+#define raceSpeedUp 0.1
 //race rand(매력 * x)
-#define raceAppealRatio 2
+#define raceAppealRatio 0.8
 //race AI advantage ratio
 #define raceAIAdvantageRatio 0.1
 //race 경묘에서 지력이 차지하는 비율
@@ -51,7 +51,7 @@
 //race level에 따른 아이템 quantity
 #define raceItemQuantityPerLevel 2
 //race 스퍼트 구간
-#define raceSpurt 70 
+#define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
 #define raceInvokeThreshold 50
 //race AI 스킬발동 랜덤 확률 1/raceAIRandom 

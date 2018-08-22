@@ -20,33 +20,31 @@ bool ActionScene::init() {
 		return false;
 	mRaceCurrent = logics::hInst->getRaceResult();
 	
-
-    //Director::getInstance()->setClearColor(Color4F::BLACK);
+	mGoalLength = Director::getInstance()->getVisibleSize().width * 2 - 50;
 
     gui::inst()->addBGScrolling("layers/sky.png", this, 3000);
 
     gui::inst()->addBGScrolling("layers/clouds_1.png", this, 25);
-    gui::inst()->addBGScrolling("layers/rocks.png", this, 30);
+    gui::inst()->addBGScrolling("layers/rocks.png", this, 100);
     gui::inst()->addBGScrolling("layers/clouds_2.png", this, 20);
 
-    gui::inst()->addBGScrolling("layers/plant.png", this, 20);
-    gui::inst()->addBGScrolling("layers/ground_1.png", this, 30);
+    gui::inst()->addBGScrolling("layers/plant.png", this, 100);
+    gui::inst()->addBGScrolling("layers/ground_1.png", this, 100);
+	gui::inst()->addBGScrolling("layers/ground_2.png", this, 200);
+	gui::inst()->addBGScrolling("layers/ground_3.png", this, 300);
 
-	gui::inst()->addBGScrolling("layers/ground_2.png", this, 100);
-	gui::inst()->addBGScrolling("layers/ground_3.png", this, 30);
+	auto finishLine = gui::inst()->addSprite(0, 0, "finish.png", this);
+	finishLine->setPosition(Vec2(mGoalLength, 120));
 
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		//float fast = mRaceParticipants->at(n).appeal / mRaceParticipants->at(n).strength;
 		mRunner[n] = createRunner(n);
 	}
 
-	
-
-	/*
 	this->runAction(Follow::create(mRunner[raceParticipantNum]
 		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * 2, Director::getInstance()->getVisibleSize().height * 2)
 	));
-	*/
+	
 
 	//rank
 	mRankLabel = gui::inst()->addLabel(4, 0, "0", this, 24, ALIGNMENT_CENTER, Color3B::WHITE);
@@ -64,7 +62,8 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 
 RepeatForever * ActionScene::getRunningAnimation() {
 	auto animation = Animation::create();
-	animation->setDelayPerUnit(0.03);
+	int ranValue = getRandValue(9);
+	animation->setDelayPerUnit(0.03 + (ranValue * 0.001) );
 
 	string path;
 	for (int n = 0; n <= 8; n++) {
@@ -81,13 +80,13 @@ Sprite* ActionScene::createRunner(int idx) {
     Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
 		
 	auto p = gui::inst()->addSprite(0, 7, RACE_DEFAULT_IMG, this);
-	p->setPosition(Vec2(0, p->getPosition().y + p->getContentSize().height / 2));
+	p->setPosition(Vec2(0, p->getPosition().y + p->getContentSize().height / 2 + ((raceParticipantNum - idx) * 10)));
 	//gui::inst()->setScale(p, RUNNER_WIDTH);
     p->runAction(getRunningAnimation());
 
     Color3B color = txtColors[idx];
 	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
-	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
+	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 15);
 
 	return p;
 }
@@ -97,7 +96,8 @@ void ActionScene::timer(float f) {
 	int itemIdx = -1;
 	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx);
 	if(!ret){
-		unschedule(schedule_selector(ActionScene::timer));				
+		unschedule(schedule_selector(ActionScene::timer));		
+		mRunner[raceParticipantNum]->setPosition(Vec2(100, mRunner[raceParticipantNum]->getPosition().y));
 		result();
 		return;
 	}
@@ -105,7 +105,8 @@ void ActionScene::timer(float f) {
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		_raceParticipant p = mRaceParticipants->at(n);
 		if (p.ratioLength >= 100) {
-			mRunner[n]->stopAllActions();
+			if(n != raceParticipantNum)
+				mRunner[n]->stopAllActions();
 			continue;
 		}
 
@@ -145,7 +146,7 @@ void ActionScene::timer(float f) {
 				mRunner[n]->runAction(getRunningAnimation());				
 				mSufferState[n] = true;
 			}
-			float x = mRaceParticipants->at(n).ratioLength / 100 * Director::getInstance()->getVisibleSize().width * 0.9;
+			float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
 			Vec2 position = mRunner[n]->getPosition();
 			position.x = x;
 			mRunner[n]->runAction(MoveTo::create(0.3, position));
@@ -158,22 +159,7 @@ void ActionScene::timer(float f) {
 }
 
 void ActionScene::result() {
-	/*
-	for (int n = 0; n <= raceParticipantNum; n++) {
-		printf("%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
-			, mRaceParticipants->at(n).rank
-			, mRaceParticipants->at(n).idx
-			, 27
-			, mRaceParticipants->at(n).strength
-			, mRaceParticipants->at(n).intelligence
-			, mRaceParticipants->at(n).appeal
-			, 27
-			, mRaceParticipants->at(n).shootItemCount
-		);
-		sleepThisThread(1000);
-	}
-	*/
-
+	
 	//결과처리
 	wstring sz;
 	sz += L"순위: ";
@@ -185,7 +171,7 @@ void ActionScene::result() {
 	sz += L"(";
 	sz += to_wstring(mRaceCurrent->rewardItemQuantity);
 	sz += L")";
-	auto l = gui::inst()->createLayout(Size(300, 200), "", true);
+	auto l = gui::inst()->createLayout(Size(250, 150), "", true);
 	Vec2 point;
 	gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
 	l->setPosition(point);

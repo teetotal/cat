@@ -129,7 +129,7 @@ bool MainScene::init()
     gui::inst()->addSpriteFixedSize(Size(110, 80), 4, 3, "21.png", this);
 
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->userName, true);
+    string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
 
@@ -270,7 +270,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
     float returnDuration = 0.1;
     float scale = 1.5f;
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->userName, true);
+    string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
     if(name.compare(mName->getString()) != 0 ){
@@ -472,7 +472,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 
 void MainScene::runRace() {
 	
-	if (logics::hInst->getActor()->property.total() <= 30) {
+	if (logics::hInst->getActor()->property.total() < 30) {
 		alert(wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_property)));
 		return;
 	}

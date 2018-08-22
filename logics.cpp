@@ -756,8 +756,7 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 		mAchievement.push(achievement_category_trade_sell, id, quantity * -1);
 	}
 
-	if (increaseExp())
-		return error_levelup;
+	//if (increaseExp())	return error_levelup;
 	return error_success;
 }
 
@@ -971,14 +970,23 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
+	sum += (int)((float)sum * raceAIAdvantageRatio);
 	//참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
-		p.strength = getRandValue(sum);	
-		p.strength == 0 ? p.strength = 1: p.strength= p.strength;
-		p.intelligence = getRandValue(sum - p.strength);
-		p.appeal = sum - p.strength - p.intelligence;
+		if (n == 0) { //0번은 완전 동일한 능력치
+			p.strength = mActor->property.strength;
+			p.intelligence = mActor->property.intelligence;
+			p.appeal = mActor->property.appeal;
+		}
+		else {
+			p.strength = getRandValue(sum);
+			p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
+			p.intelligence = getRandValue(sum - p.strength);
+			p.appeal = sum - p.strength - p.intelligence;
+		}
+		
 		//AI advantage
 		//p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);
 		/*
@@ -1123,7 +1131,8 @@ int logics::getBaseSpeed(int s, int i, int a) {
 
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 int lastRank = 0;
-	 int raceLength = mRace[mRaceCurrent.id].length;
+	 //int raceLength = mRace[mRaceCurrent.id].length;
+	 int raceLength = (int)((float)mActor->property.total() / 2.f * 0.5f * 30.f * 5.f);
 	 //순위 산정용 벡터
 	 vector<_raceParticipant> orderedVector;
 
@@ -1185,8 +1194,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 				 }
 			 }
 			 break;
-		 case itemType_race_speedUp:
-			 length += (int)raceSpeedUp;
+		 case itemType_race_speedUp:			 
+			 length += (int)((float)mRaceParticipants->at(n).total() * raceSpeedUp);
 			 break;
 		 case itemType_race_attactFront:
 		 case itemType_race_attactFirst:
