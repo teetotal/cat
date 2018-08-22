@@ -328,6 +328,10 @@ public:
     __training * getActionList(){
         return &mTraining;
     };
+
+	__items * getItems() {
+		return &mItems;
+	};
 	_item getItem(int id) {
 		return mItems[id];
 	};

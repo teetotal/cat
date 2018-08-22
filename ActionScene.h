@@ -8,6 +8,7 @@
 #include "MainScene.h"
 #include "cocos2d.h"
 #include "ui/ui.h"
+#include "logics.h"
 
 USING_NS_CC;
 
@@ -25,6 +26,17 @@ public:
 
 private:
     void callback2(Ref* pSender, SCENECODE type);
+	Sprite* createRunner(int idx);
+	Sprite * mRunner[5];
+	Label* mRankLabel;
+	void timer(float f);
+
+	raceParticipants* mRaceParticipants;
+	_raceCurrent* mRaceCurrent;
+	void result();
+	RepeatForever * getRunningAnimation();
+
+	bool mSufferState[raceParticipantNum + 1];
 };
 
 

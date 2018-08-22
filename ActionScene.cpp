@@ -3,56 +3,56 @@
 //
 
 #include "ActionScene.h"
-
-
 #include "SimpleAudioEngine.h"
 
-
+#define RACE_UPDATE_INTERVAL 0.3
+#define RACE_DEFAULT_IMG "race/0.png"
+//#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene()
 {
     return ActionScene::create();
 }
 
-bool ActionScene::init() {
+bool ActionScene::init() {		
+	bool ret;
+	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, -1);
+	if(!ret)
+		return false;
+	mRaceCurrent = logics::hInst->getRaceResult();
+	
+
     //Director::getInstance()->setClearColor(Color4F::BLACK);
 
     gui::inst()->addBGScrolling("layers/sky.png", this, 3000);
 
     gui::inst()->addBGScrolling("layers/clouds_1.png", this, 25);
-    gui::inst()->addBGScrolling("layers/rocks.png", this, 40);
+    gui::inst()->addBGScrolling("layers/rocks.png", this, 30);
     gui::inst()->addBGScrolling("layers/clouds_2.png", this, 20);
 
-    gui::inst()->addBGScrolling("layers/plant.png", this, 30);
-    gui::inst()->addBGScrolling("layers/ground_1.png", this, 20);
+    gui::inst()->addBGScrolling("layers/plant.png", this, 20);
+    gui::inst()->addBGScrolling("layers/ground_1.png", this, 30);
 
-    auto zombie = gui::inst()->addSprite(0, 5, "zombie.png", this);
+	gui::inst()->addBGScrolling("layers/ground_2.png", this, 100);
+	gui::inst()->addBGScrolling("layers/ground_3.png", this, 30);
 
-    float duration = 5;
-    auto seq1 = RepeatForever::create(Sequence::create(
-            MoveBy::create(duration, Vec2(Director::getInstance()->getVisibleSize().width /2 , 0))
-            , MoveBy::create(duration, Vec2(Director::getInstance()->getVisibleSize().width * -0.5, 0))
-            , NULL
-    ));
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		//float fast = mRaceParticipants->at(n).appeal / mRaceParticipants->at(n).strength;
+		mRunner[n] = createRunner(n);
+	}
 
-    zombie->runAction(seq1);
+	
 
-    gui::inst()->addBGScrolling("layers/ground_2.png", this, 10);
-    gui::inst()->addBGScrolling("layers/ground_3.png", this, 5);
+	/*
+	this->runAction(Follow::create(mRunner[raceParticipantNum]
+		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * 2, Director::getInstance()->getVisibleSize().height * 2)
+	));
+	*/
 
-    gui::inst()->addTextButton(0,6,"╈", this, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, Color3B::WHITE);
-
-
-    Vec2 center = Vec2(Director::getInstance()->getVisibleSize().width / 2, Director::getInstance()->getVisibleSize().height / 2);
-    //zombie->setPosition(center);
-
-    //this->addChild(ParticleRain::create());
-
-    Vec2 point;
-    gui::inst()->getPoint(15, 3, point, ALIGNMENT_CENTER);
-
-    this->runAction(Follow::create(zombie, Rect(0, 0, Director::getInstance()->getVisibleSize().width * 2, Director::getInstance()->getVisibleSize().height * 1)    ));
-    //this->runAction(Follow::create(zombie));
-
+	//rank
+	mRankLabel = gui::inst()->addLabel(4, 0, "0", this, 24, ALIGNMENT_CENTER, Color3B::WHITE);
+	
+	this->schedule(schedule_selector(ActionScene::timer), RACE_UPDATE_INTERVAL);
+	
     return true;
 }
 
@@ -60,4 +60,139 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
     //auto pScene = MainScene::createScene();
     //Director::getInstance()->replaceScene(pScene);
     Director::getInstance()->popScene();
+}
+
+RepeatForever * ActionScene::getRunningAnimation() {
+	auto animation = Animation::create();
+	animation->setDelayPerUnit(0.03);
+
+	string path;
+	for (int n = 0; n <= 8; n++) {
+		path = "race/" + to_string(n) + ".png";
+		animation->addSpriteFrameWithFile(path);
+	}
+
+	return RepeatForever::create(Animate::create(animation));
+}
+
+Sprite* ActionScene::createRunner(int idx) {
+	mSufferState[idx] = false;
+	wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , logics::hInst->getActor()->name };
+    Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
+		
+	auto p = gui::inst()->addSprite(0, 7, RACE_DEFAULT_IMG, this);
+	p->setPosition(Vec2(0, p->getPosition().y + p->getContentSize().height / 2));
+	//gui::inst()->setScale(p, RUNNER_WIDTH);
+    p->runAction(getRunningAnimation());
+
+    Color3B color = txtColors[idx];
+	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
+	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
+
+	return p;
+}
+
+void ActionScene::timer(float f) {	
+	bool ret;
+	int itemIdx = -1;
+	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx);
+	if(!ret){
+		unschedule(schedule_selector(ActionScene::timer));				
+		result();
+		return;
+	}
+
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		_raceParticipant p = mRaceParticipants->at(n);
+		if (p.ratioLength >= 100) {
+			mRunner[n]->stopAllActions();
+			continue;
+		}
+
+		if (p.currentSuffer != itemType_max) {
+			switch (p.currentSuffer)
+			{
+			case itemType_race_speedUp:
+				//printf("달려라!! 스피드 업!! \n");
+				break;
+			case itemType_race_shield:
+				//printf("모두 없던 일로~ \n");
+				//isSleep = true;
+				break;
+			default:
+				//isSleep = true;
+				if (mSufferState[n]) {
+					mRunner[n]->stopAllActions();
+					auto animation = Animation::create();
+					animation->setDelayPerUnit(0.1);
+					animation->addSpriteFrameWithFile("action/99/0.png");
+					animation->addSpriteFrameWithFile("action/99/1.png");
+					animation->addSpriteFrameWithFile("action/99/2.png");
+					animation->addSpriteFrameWithFile("action/99/3.png");
+					animation->addSpriteFrameWithFile("action/99/4.png");
+					animation->addSpriteFrameWithFile("action/99/5.png");
+					animation->addSpriteFrameWithFile("action/99/6.png");
+					animation->addSpriteFrameWithFile("action/99/7.png");					
+					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
+					mSufferState[n] = false;
+				}				
+				break;
+			}
+		}
+		else {
+			if (!mSufferState[n]) {			
+				mRunner[n]->stopAllActions();
+				mRunner[n]->runAction(getRunningAnimation());				
+				mSufferState[n] = true;
+			}
+			float x = mRaceParticipants->at(n).ratioLength / 100 * Director::getInstance()->getVisibleSize().width * 0.9;
+			Vec2 position = mRunner[n]->getPosition();
+			position.x = x;
+			mRunner[n]->runAction(MoveTo::create(0.3, position));
+		}		
+	}
+
+	mRankLabel->setString(to_string(mRaceParticipants->at(raceParticipantNum).currentRank));
+	
+	//mMe->setPosition(point);
+}
+
+void ActionScene::result() {
+	/*
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		printf("%d등 idx: %d ( %c[1;32m  S:%d, I: %d, A: %d  %c[0m ) item cnt: %d  \n"
+			, mRaceParticipants->at(n).rank
+			, mRaceParticipants->at(n).idx
+			, 27
+			, mRaceParticipants->at(n).strength
+			, mRaceParticipants->at(n).intelligence
+			, mRaceParticipants->at(n).appeal
+			, 27
+			, mRaceParticipants->at(n).shootItemCount
+		);
+		sleepThisThread(1000);
+	}
+	*/
+
+	//결과처리
+	wstring sz;
+	sz += L"순위: ";
+	sz += to_wstring(mRaceCurrent->rank);
+	sz += L"\n상금: ";
+	sz += to_wstring(mRaceCurrent->prize);
+	sz += L"\n상품: ";
+	sz += logics::hInst->getItem(mRaceCurrent->rewardItemId).name;
+	sz += L"(";
+	sz += to_wstring(mRaceCurrent->rewardItemQuantity);
+	sz += L")";
+	auto l = gui::inst()->createLayout(Size(300, 200), "", true);
+	Vec2 point;
+	gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
+	l->setPosition(point);
+	l->setAnchorPoint(Vec2(0.5, 0.5));
+
+	gui::inst()->addLabelAutoDimension(0, 1, wstring_to_utf8(sz), l, 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
+	this->addChild(l);
+	gui::inst()->addTextButtonAutoDimension(0, 3, "OK", l
+		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 5), Size::ZERO, Size::ZERO);
 }

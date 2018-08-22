@@ -428,7 +428,7 @@ Layout * gui::createLayout(Size size, const string bgImg, bool hasBGColor, Color
     if(hasBGColor){
         l->setBackGroundColor(bgColor);
         l->setBackGroundColorType(Layout::BackGroundColorType::SOLID);
-    }
+    }	
 
     if(bgImg.compare("") != 0)
         l->setBackGroundImage(bgImg);
@@ -566,7 +566,7 @@ void gui::addBGScrolling(const string img, Node * p, float duration){
     auto sprite2 = Sprite::create(img);
     auto sprite3 = Sprite::create(img); // 카메라 전환시 빈공간 메꿔주기 위해 추가
 
-    Vec2 point = Vec2(mVisibleX / 2, mVisibleY / 2);
+    Vec2 point = Vec2(mVisibleX / 2 + mOriginX, mVisibleY / 2 + mOriginY);
     sprite1->setContentSize(Size(mVisibleX, mVisibleY));
     sprite1->setAnchorPoint(Vec2(0.5, 0.5));
     sprite1->setPosition(point);
@@ -583,7 +583,7 @@ void gui::addBGScrolling(const string img, Node * p, float duration){
     sprite3->setPosition(point3);
 
 
-    Vec2 finishPoint = Vec2((mVisibleX / 2) * -1, mVisibleY / 2);
+    Vec2 finishPoint = Vec2(point.x * -1, point.y);
     auto seq1 = RepeatForever::create(Sequence::create(
             MoveTo::create(duration, finishPoint)
             , Place::create(point)

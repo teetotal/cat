@@ -16,7 +16,8 @@ USING_NS_CC;
 enum CHILD_ID {
 	CHILD_ID_INVENTORY = 1000,
 	CHILD_ID_BUY,
-	CHILD_ID_ACHIEVEMENT
+	CHILD_ID_ACHIEVEMENT,
+	CHILD_ID_COLLECTION
 };
 
 enum SCENECODE{
@@ -31,6 +32,7 @@ enum SCENECODE{
     SCENECODE_PURCHASE,
     SCENECODE_COLLECTION,
     SCENECODE_ACHIEVEMENT,
+	SCENECODE_CLOSEPOPUP,
     SCENECODE_NONE,
     SCENECODE_POPUP_1,
     SCENECODE_POPUP_2,
@@ -111,6 +113,7 @@ private:
     void actionList(); //액션 목록
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
     void alert(const string msg); //alert
+	void showResult(const string msg, bool enableParticle); //결과 보기
     void alertCloseCallback(Ref* pSender);
 	void showInventory(inventoryType type = inventoryType_all, bool isSell = false);	//가방조회
 	void showInventoryCategory(Ref* pSender, inventoryType code, bool isSell); //가방조회 카테고리
@@ -124,6 +127,8 @@ private:
 	void callbackActionAnimation(Ref* pSender, int id);	
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender, bool isDaily); //업적 카테고리
+	void runRace(); //Race
+	void showCollection(); //도감 보기
 
 	void closePopup() {
 		this->removeChild(layerGray);

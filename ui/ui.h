@@ -218,6 +218,11 @@ public:
 			, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
     );
 
+	void setScale(Node * p, float targetWidth) {
+		float ratio = targetWidth / p->getContentSize().width;
+		p->setScale(ratio);
+	};
+
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
 
