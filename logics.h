@@ -28,6 +28,8 @@
 #define CONFIG_ACTOR_BACKUP "actor_backup.json"
 #define CONFIG_META "meta.json"
 
+//levelup bonus $
+#define bonusCashPerLevel 100
 //HP 추가 간격
 #define HPIncreaseInterval	60 * 5
 //최대 아이템 보상/비용
@@ -41,15 +43,15 @@
 //한번 race에서 사용가능한 아이템 수
 #define raceItemSlot 3
 //speed up 아이템이 증가시키는 거리 비율 += total * raceSpeedUp
-#define raceSpeedUp 0.4
+#define raceSpeedUp 1.2f
 //race rand(매력 * x)
 #define raceAppealRatio 0.8
 //race AI advantage ratio
-#define raceAIAdvantageRatio 0.1
+#define raceAIAdvantageRatio 0.05
 //race 경묘에서 지력이 차지하는 비율
 #define raceIntelligenceRatio 0.5
-//race level에 따른 아이템 quantity
-#define raceItemQuantityPerLevel 2
+//race AI item 추가 등급 ????
+#define raceItemQuantityPerLevel 0
 //race 스퍼트 구간
 #define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
@@ -114,6 +116,7 @@ enum trainingType {
 	trainingType_lazy,		//게으르기
 	trainingType_fight,		//무사 수련
 	trainingType_fishing,	//낚시
+	trainingType_study,		//공부하기
 	trainingType_max,
 };
 
@@ -406,6 +409,8 @@ public:
 
 	//Race
 	errorCode runRace(int id, itemsVector &items);
+	errorCode runRaceValidate(int id);
+
 	//race 진행
 	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx);
 	//race 결과

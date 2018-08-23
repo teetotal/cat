@@ -472,9 +472,9 @@ void MainScene::callbackAction(Ref* pSender, int id){
 }
 
 void MainScene::runRace(Ref* pSender, int raceId) {
-	
-	if (logics::hInst->getActor()->property.total() < 30) {
-		alert(wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_property)));
+	errorCode err = logics::hInst->runRaceValidate(raceId);
+	if (err != error_success) {
+		alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
 		return;
 	}
 

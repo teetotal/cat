@@ -806,7 +806,8 @@ bool logics::increaseExp() {
 		mActor->level++;
 		mActor->exp = 0;
 		setMaxHP();
-
+		//give $
+		mActor->point += mActor->level * bonusCashPerLevel;
 		//set job title
 		setJobTitle();
 		
@@ -944,6 +945,23 @@ void logics::setJobTitle() {
 
 void logics::addRaceMeta(_race & race) {
 	mRace[race.id] = race;
+}
+
+errorCode logics::runRaceValidate(int id) {
+	if (mRace.find(id) == mRace.end())
+		return error_invalid_id;
+
+	if (mActor->property.total() <= 0) {
+		return error_not_enough_strength;
+	}
+	if (getHP() < 1) {
+		return error_not_enough_hp;
+	}
+
+	if (mActor->point < mRace[id].fee)
+		return error_not_enough_point;
+
+	return error_success;
 }
 
 errorCode logics::runRace(int id, itemsVector &items) {
@@ -1099,24 +1117,24 @@ void logics::invokeRaceItemAI() {
 			case itemType_race_speedUp:
 				break;
 			default:
-				invokeRaceItem(i, itemType_race_shield, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_shield, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 				return;
 			}
 		}
 		switch (mRaceParticipants->at(i).currentRank) {
 		case 1: // 1등이면 50%이상 왔을때 스피드 업
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
 		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트		
-			invokeRaceItem(i, itemType_race_attactFront, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_attactFront, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
 		case 3: //3, 4, 5등이면 스피드 업 50% 이상 부터 1등 공격
 		case 4: 
 		case 5:
-			invokeRaceItem(i, itemType_race_attactFirst, level * raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_attactFirst, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
 			break;
 		}
 	}
@@ -1198,7 +1216,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 }
 			 break;
 		 case itemType_race_speedUp:			 
-			 length += (int)((float)mRaceParticipants->at(n).total() * raceSpeedUp);
+			 length = (int)((float)mRaceParticipants->at(n).total() * raceSpeedUp);
 			 break;
 		 case itemType_race_attactFront:
 		 case itemType_race_attactFirst:

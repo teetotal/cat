@@ -190,22 +190,23 @@ void ActionScene::timer(float f) {
 				}
 				break;
 			case itemType_race_shield:
-				//printf("모두 없던 일로~ \n");
-				//isSleep = true;
+				if (mSufferState[n] != SUFFER_STATE_SHIELD) {
+					mRunner[n]->stopAllActions();
+					auto animation = Animation::create();
+					animation->setDelayPerUnit(0.1);
+					for(int n=0; n < 8; n++)
+						animation->addSpriteFrameWithFile("action/98/"+ to_string(n) +".png");
+					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
+					mSufferState[n] = SUFFER_STATE_SHIELD;
+				}
 				break;
 			default:				
 				if (mSufferState[n] != SUFFER_STATE_ATTACK) {
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
-					animation->addSpriteFrameWithFile("action/99/0.png");
-					animation->addSpriteFrameWithFile("action/99/1.png");
-					animation->addSpriteFrameWithFile("action/99/2.png");
-					animation->addSpriteFrameWithFile("action/99/3.png");
-					animation->addSpriteFrameWithFile("action/99/4.png");
-					animation->addSpriteFrameWithFile("action/99/5.png");
-					animation->addSpriteFrameWithFile("action/99/6.png");
-					animation->addSpriteFrameWithFile("action/99/7.png");					
+					for (int n = 0; n < 8; n++)
+						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");							
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_ATTACK;
 				}				
