@@ -41,7 +41,7 @@
 //한번 race에서 사용가능한 아이템 수
 #define raceItemSlot 3
 //speed up 아이템이 증가시키는 거리 비율 += total * raceSpeedUp
-#define raceSpeedUp 0.1
+#define raceSpeedUp 0.4
 //race rand(매력 * x)
 #define raceAppealRatio 0.8
 //race AI advantage ratio
@@ -74,7 +74,8 @@ enum errorCode {
 	error_not_enough_hp,
 	error_not_enough_strength,
 	error_farming_failure,
-	error_farming_gluttony
+	error_farming_gluttony,
+	error_full_hp
 };
 enum inventoryType {
 	inventoryType_all = -1,
@@ -293,6 +294,7 @@ struct _raceCurrent
 
 typedef map<int, _item> __items;
 typedef map<int, _training> __training;
+typedef map<int, _race> raceMeta;
 
 class logics 
 {
@@ -353,6 +355,11 @@ public:
 
 	//get max HP
 	int getMaxHP();
+
+	//get race info
+	raceMeta * getRace() {
+		return &mRace;
+	};
 
 	bool isAvailableHP() {
 		return getHP() > 0 ? true : false;
@@ -442,8 +449,7 @@ private:
 	jobTitle mJobTitle;
 
 	//경묘
-	raceParticipants* mRaceParticipants;
-	typedef map<int, _race> raceMeta;
+	raceParticipants* mRaceParticipants;	
 	raceMeta mRace;		
 	_raceCurrent mRaceCurrent;	
 	//경묘용 아이템만 따로 모아논 벡터

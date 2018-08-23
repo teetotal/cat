@@ -24,20 +24,46 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(ActionScene);
 
+	void setRaceId(int id) {
+		mRaceId = id;
+	};
+
 private:
+	enum SUFFER_STATE {
+		SUFFER_STATE_NONE,
+		SUFFER_STATE_SPEEDUP,
+		SUFFER_STATE_SHIELD,
+		SUFFER_STATE_ATTACK,
+	};
+	LayerColor * mPopupLayer, *mPopupLayerBackground;
+	void initRace();
+	void showItemSelect();
+	void selectItem(Ref* pSender, int id); //아이템 선택
+	void updateSelectItem(); //선택한 아이템 정보 갱신
     void callback2(Ref* pSender, SCENECODE type);
+	void invokeItem(Ref* pSender, int idx);
+	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
 	Sprite * mRunner[5];
 	Label* mRankLabel;
+	MenuItemFont * mSelectedItem[raceItemSlot];
+	MenuItemFont * mSkillItem[raceItemSlot];
+	Layout * mFullLayer;
+
 	void timer(float f);
 
 	raceParticipants* mRaceParticipants;
 	_raceCurrent* mRaceCurrent;
 	void result();
-	RepeatForever * getRunningAnimation();
+	RepeatForever * getRunningAnimation(bool isSpeedUp = false);
 
-	bool mSufferState[raceParticipantNum + 1];
+	SUFFER_STATE mSufferState[raceParticipantNum + 1];
 	float mGoalLength;
+	itemsVector mSelectItems;
+	map<int, int> mSelectedItemQuantity;
+
+	int mRaceId;
+	queue<int> mInvokeItemQueue;
 };
 
 

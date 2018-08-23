@@ -762,11 +762,13 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 
 errorCode logics::runRecharge(int id, int quantity) {
 	
+	if (getHP() == getMaxHP())
+		return error_full_hp;
 	if (getInventoryType(id) != inventoryType_HP)
 		return error_invalid_id;
-	if (!addInventory(id, quantity * -1)) {
+	if (!addInventory(id, quantity * -1)) 
 		return error_not_enough_item;
-	}
+	
 	int val = mItems[id].value * quantity;
 	increaseHP(val);
 	mAchievement.push(achievement_category_recharge, 0, quantity);
@@ -849,9 +851,10 @@ int logics::getHP() {
 
 bool logics::rechargeHP() {
 	time_t now = time(0);
-	if (now - mActor->lastHPUpdateTime >= HPIncreaseInterval) {
+	time_t waitTime = now - mActor->lastHPUpdateTime;
+	if (waitTime >= HPIncreaseInterval) {		
 		mActor->lastHPUpdateTime = now;
-		return increaseHP(1);
+		return increaseHP((waitTime / HPIncreaseInterval));
 	}
 	return false;
 }
@@ -961,7 +964,8 @@ errorCode logics::runRace(int id, itemsVector &items) {
 		if(!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
 			return error_not_enough_item;
 	}
-	mActor->point -= mRace[id].fee;
+	_race race = mRace[id];
+	mActor->point -= race.fee;
 	mRaceCurrent.id = id;
 	mRaceCurrent.prize = 0;
 	mRaceCurrent.rewardItemId = 0;
@@ -970,7 +974,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
-	sum += (int)((float)sum * raceAIAdvantageRatio);
+	sum += (int)((float)sum * raceAIAdvantageRatio * race.level); // 레벨 * raceAIAdvantageRatio 만큼 능력치 올라감
 	//참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
@@ -1013,8 +1017,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	}
 	mRaceParticipants->push_back(p);
 	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);
-	if (increaseExp())
-		return error_levelup;
+	//if (increaseExp())		return error_levelup;
 
 	return error_success;
 }

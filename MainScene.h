@@ -17,7 +17,8 @@ enum CHILD_ID {
 	CHILD_ID_INVENTORY = 1000,
 	CHILD_ID_BUY,
 	CHILD_ID_ACHIEVEMENT,
-	CHILD_ID_COLLECTION
+	CHILD_ID_COLLECTION,
+	CHILD_ID_RACE
 };
 
 enum SCENECODE{
@@ -33,6 +34,7 @@ enum SCENECODE{
     SCENECODE_COLLECTION,
     SCENECODE_ACHIEVEMENT,
 	SCENECODE_CLOSEPOPUP,
+	SCENECODE_RACE_RUN, //Action 에서 사용됨
     SCENECODE_NONE,
     SCENECODE_POPUP_1,
     SCENECODE_POPUP_2,
@@ -61,8 +63,7 @@ public:
 private:
     gui mGrid;
     ui_gacha  mGacha;
-    cocos2d::LayerColor * layer;
-    cocos2d::LayerColor * layerGray;
+    LayerColor * layer, *layerGray;    
     cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
     bool mIsParticleFinished;
     LoadingBar * loadingBar;
@@ -127,8 +128,9 @@ private:
 	void callbackActionAnimation(Ref* pSender, int id);	
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender, bool isDaily); //업적 카테고리
-	void runRace(); //Race
+	void runRace(Ref* pSender, int raceId); //Race
 	void showCollection(); //도감 보기
+	void showRace(); //Race 보기
 
 	void closePopup() {
 		this->removeChild(layerGray);
