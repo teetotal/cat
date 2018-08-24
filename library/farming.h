@@ -31,7 +31,8 @@ public:
 
 	struct crop { //작물		
 		int seedId;
-		farming_status status;	//상태		
+		farming_status status;	//상태	
+		float percent; //성장한 %
 		time_t timePlant;	 //심은 시간
 		int cntCare;	//돌본 횟수
 		time_t timeLastGrow; //지난 돌봄 시간
@@ -111,7 +112,7 @@ private:
 	static void threadRun(farming * inst) {
 		while (inst->mIsThreadRun)
 		{
-			sleepThisThread(1000);
+			sleepThisThread(500);
 			inst->setStatus();
 		}		
 	}

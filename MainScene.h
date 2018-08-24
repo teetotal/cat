@@ -34,7 +34,9 @@ enum SCENECODE{
     SCENECODE_COLLECTION,
     SCENECODE_ACHIEVEMENT,
 	SCENECODE_CLOSEPOPUP,
+	SCENECODE_CLOSESCENE,
 	SCENECODE_RACE_RUN, //Action 에서 사용됨
+	SCENECODE_FARMING_SEED, //Farm 에서 사용됨
     SCENECODE_NONE,
     SCENECODE_POPUP_1,
     SCENECODE_POPUP_2,
@@ -59,6 +61,8 @@ public:
     void cultivationCBInner(int id){
         CCLOG("cultivationCBInner %d", id);
     };
+
+	static Sprite * getIdle(int id = 100);
 
 private:
     gui mGrid;
@@ -105,8 +109,6 @@ private:
     void particleSample(const string sz);
 
     void dailyReward();
-
-    ui_cultivation c1, c2, c3;
 
     static MainScene * hInst;
 

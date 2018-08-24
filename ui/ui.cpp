@@ -584,28 +584,29 @@ void gui::addBGScrolling(const string img, Node * p, float duration){
 
 
     Vec2 finishPoint = Vec2(point.x * -1, point.y);
-    auto seq1 = RepeatForever::create(Sequence::create(
-            MoveTo::create(duration, finishPoint)
-            , Place::create(point)
-            , NULL
-    ));
+	if (duration > 0) {
+		auto seq1 = RepeatForever::create(Sequence::create(
+			MoveTo::create(duration, finishPoint)
+			, Place::create(point)
+			, NULL
+		));
 
-    auto seq2 = RepeatForever::create(Sequence::create(
-            MoveTo::create(duration, point)
-            , Place::create(point2)
-            , NULL
-    ));
+		auto seq2 = RepeatForever::create(Sequence::create(
+			MoveTo::create(duration, point)
+			, Place::create(point2)
+			, NULL
+		));
 
-    auto seq3 = RepeatForever::create(Sequence::create(
-            MoveTo::create(duration, point2)
-            , Place::create(point3)
-            , NULL
-    ));
+		auto seq3 = RepeatForever::create(Sequence::create(
+			MoveTo::create(duration, point2)
+			, Place::create(point3)
+			, NULL
+		));
 
-    sprite1->runAction(seq1);
-    sprite2->runAction(seq2);
-    sprite3->runAction(seq3);
-
+		sprite1->runAction(seq1);
+		sprite2->runAction(seq2);
+		sprite3->runAction(seq3);
+	}
     p->addChild(sprite1);
     p->addChild(sprite2);
     p->addChild(sprite3);

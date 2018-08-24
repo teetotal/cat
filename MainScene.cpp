@@ -6,6 +6,7 @@
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
 #include "ActionScene.h"
+#include "FarmingScene.h"
 
 using namespace cocos2d::ui;
 
@@ -65,6 +66,7 @@ bool MainScene::init()
             "CloseNormal.png",
             "CloseSelected.png",
             CC_CALLBACK_1(MainScene::menuCloseCallback, this));
+	closeItem->setScale(2);
 
     if (closeItem == nullptr ||
         closeItem->getContentSize().width <= 0 ||
@@ -129,7 +131,10 @@ bool MainScene::init()
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 10);
     //loadingBar->setPercent(logics::hInst->getExpRatio());
 
-    gui::inst()->addSpriteFixedSize(Size(110, 80), 4, 3, "21.png", this);
+    //gui::inst()->addSpriteFixedSize(Size(110, 80), 4, 3, "21.png", this);
+	auto pCharacter = getIdle();
+	pCharacter->setPosition(gui::inst()->getPointVec2(4, 4));
+	this->addChild(pCharacter);
 
 
     string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
@@ -169,23 +174,25 @@ bool MainScene::init()
     updateState(false);
 	this->schedule(schedule_selector(MainScene::scheduleRecharge), 1); //HP recharge schedule
 
-  	//cultivation test
-    /*
-    c1.addLevel("plant1.png", 10, "새싹");
-    c1.addLevel("plant2.png", 90, "");
-    c1.addLevel("plant3.png", 100, "다 큰 묘목");
-    c1.init(123, cultivationCB, 10, "plant_decay.png", "timeBar.png", Size(25, 35), this, Vec2(3,3), false);
-
-    c2.addLevel("plant1.png", 10, "새싹");
-    c2.addLevel("plant2.png", 90, "");
-    c2.addLevel("plant3.png", 100, "다 큰 묘목");
-    c2.init(124, cultivationCB, 10, "plant_decay.png", "timeBar.png", Size(25, 35), this, Vec2(3,4), false);
-
-    this->schedule(schedule_selector(MainScene::scheduleCB), .5f);
-    */
-
+  	
     return true;
 }
+//get Idle
+Sprite * MainScene::getIdle(int id) {
+	string prefix = "action/" + to_string(id) + "/";
+	auto p = Sprite::create(prefix + "0.png");
+	auto animation = Animation::create();
+	animation->setDelayPerUnit(0.05);
+
+	string path;
+	for (int n = 0; n < 37; n++) {
+		path = prefix + to_string(n) + ".png";
+		animation->addSpriteFrameWithFile(path);
+	}
+	p->runAction(RepeatForever::create(Animate::create(animation)));
+
+	return p;
+};
 
 
 void MainScene::menuCloseCallback(Ref* pSender)
@@ -485,9 +492,7 @@ void MainScene::runRace(Ref* pSender, int raceId) {
 }
 
 void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
-    CCLOG("Callback !!!!!!!! %d", type);
-
-	switch (type) {
+   	switch (type) {
 	case SCENECODE_CLOSEPOPUP:
 		closePopup();
 		break;
@@ -500,13 +505,14 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	case SCENECODE_SELL: //아이템 판매
 		showInventory(inventoryType_all, true);
 		break;
-	case SCENECODE_ACHIEVEMENT:
+	case SCENECODE_ACHIEVEMENT: // 업적
 		showAchievement();
 		break;
-	case SCENECODE_BUY:
+	case SCENECODE_BUY: //구매
 		showBuy();
 		break;
-	case SCENECODE_FARMING: 		
+	case SCENECODE_FARMING: //farming		
+		Director::getInstance()->pushScene(FarmingScene::createScene());
 		break;
 	case SCENECODE_RACE://RACE
 		showRace();
@@ -1155,7 +1161,7 @@ void MainScene::particleSample(const string sz){
     );
     mGacha.run("gem.jpg", layer);
 }
-
+/*
 void MainScene::scheduleCB(float f){
     float p =c1.getPercent() + 5;
     c1.update(p);
@@ -1165,7 +1171,7 @@ void MainScene::scheduleCB(float f){
         c1.setDecay(true);
     }
 }
-
+*/
 void MainScene::scheduleRecharge(float f) {
 	if (logics::hInst->rechargeHP())
 		updateState(false);

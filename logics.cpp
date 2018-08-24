@@ -1106,7 +1106,7 @@ void logics::invokeRaceItemAI() {
 		if (r != 0)
 			continue;
 		//아이템 사용 횟수 초과시 
-		if (mRaceParticipants->at(i).shootItemCount >= raceItemSlot) {
+		if (mRaceParticipants->at(i).shootItemCount + (raceItemQuantityPerLevel * level) >= raceItemSlot) {
 			continue;
 		}
 		//사용
@@ -1117,24 +1117,24 @@ void logics::invokeRaceItemAI() {
 			case itemType_race_speedUp:
 				break;
 			default:
-				invokeRaceItem(i, itemType_race_shield, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_shield, level, mRaceParticipants->at(i).currentRank);
 				return;
 			}
 		}
 		switch (mRaceParticipants->at(i).currentRank) {
 		case 1: // 1등이면 50%이상 왔을때 스피드 업
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, level, mRaceParticipants->at(i).currentRank);
 			break;
 		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트		
-			invokeRaceItem(i, itemType_race_attactFront, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_attactFront, level, mRaceParticipants->at(i).currentRank);
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, level, mRaceParticipants->at(i).currentRank);
 			break;
 		case 3: //3, 4, 5등이면 스피드 업 50% 이상 부터 1등 공격
 		case 4: 
 		case 5:
-			invokeRaceItem(i, itemType_race_attactFirst, level + raceItemQuantityPerLevel, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_attactFirst, level, mRaceParticipants->at(i).currentRank);
 			break;
 		}
 	}
@@ -1292,11 +1292,12 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 };
 
 errorCode logics::farmingPlant(int idx, int seedId) {
-	if (!mFarming.plant(idx, seedId))
-		return error_farming_failure;
 	if (!mActor->inven.popItem(inventoryType_farming, seedId, 1))
 		return error_not_enough_item;
 
+	if (!mFarming.plant(idx, seedId))
+		return error_farming_failure;
+	
 	mAchievement.push(achievement_category_farming, achievement_farming_id_plant, 1);
 	return error_success;
 };

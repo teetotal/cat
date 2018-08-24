@@ -13,8 +13,8 @@ typedef void(*cultivationCB)(int id);
 
 class ui_cultivation {
 public:
-    ui_cultivation() : mIsDecay(false) {
-
+    ui_cultivation() : mIsDecay(false){
+		mSize = Size(0, 0);
     };
     virtual ~ui_cultivation(){
         CCLOG("ui_cultivation released");
@@ -27,9 +27,9 @@ public:
             int id
             , cultivationCB cb
             , float fontSize
+			//, const string seedImg
             , const string decayImg
             , const string progressBarImg
-            , Size size
             , Node * p
             , Vec2 position
             , bool isAutoDimension
@@ -39,7 +39,7 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE));
 
 	void finalize();
-	void update(float percent);
+	void update(float percent, const string comment);
 	float getPercent(){
         return mCurrentPercent;
     }
@@ -57,7 +57,7 @@ private:
 
     Sprite * mImg;
     LoadingBar * mProgressBar;
-    Label * mLabel;
+    Label * mLabel, * mComment;
 
     float mFontSize;
     int mCurrentIdx;

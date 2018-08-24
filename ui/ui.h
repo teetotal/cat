@@ -60,6 +60,12 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
     );
 
+	Vec2 getPointVec2(int x, int y, ALIGNMENT align = ALIGNMENT_CENTER) {
+		Vec2 p;
+		gui::inst()->getPoint(x, y, p, align);
+		return p;
+	};
+
     bool getPoint(int x, int y, float &pointX, float &pointY, ALIGNMENT align = ALIGNMENT_NONE
                   , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
                   , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)

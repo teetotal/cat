@@ -29,9 +29,9 @@ bool ActionScene::init() {
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
 
-	gui::inst()->addBGScrolling("layers/race/1.png", mFullLayer, 3000);
-	gui::inst()->addBGScrolling("layers/race/2.png", mFullLayer, 3000);
-	gui::inst()->addBGScrolling("layers/race/3.png", mFullLayer, 3000);
+	gui::inst()->addBGScrolling("layers/race/1.png", mFullLayer, 0);
+	gui::inst()->addBGScrolling("layers/race/2.png", mFullLayer, 0);
+	gui::inst()->addBGScrolling("layers/race/3.png", mFullLayer, 0);
 	//gui::inst()->addBGScrolling("layers/race/4.png", this, 3000);
 	//gui::inst()->addBGScrolling("layers/race/5.png", this, 3000);
 	
@@ -306,7 +306,7 @@ void ActionScene::showItemSelect() {
 		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_RUN)
 		, 16, ALIGNMENT_CENTER, Color3B::YELLOW, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
-	//Go!
+	//CANCEL!
 	gui::inst()->addTextButtonAutoDimension(5, 6, "CANCEL", mPopupLayer
 		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 16, ALIGNMENT_CENTER, Color3B::ORANGE, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin

@@ -47,8 +47,9 @@ void farming::setStatus(int fieldIdx) {
 		mLock.unlock();
 		return;
 	}
-
+	
 	time_t finishedTime = mFields[fieldIdx]->timePlant + mSeed[seedId]->timeGrow;
+	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)mSeed[seedId]->timeGrow * 100.0f;
 
 	if (finishedTime + mSeed[seedId]->maxOvertime < now) {
 		if(mFields[fieldIdx]->status != farming_status_decay)

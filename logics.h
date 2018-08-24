@@ -50,8 +50,8 @@
 #define raceAIAdvantageRatio 0.05
 //race 경묘에서 지력이 차지하는 비율
 #define raceIntelligenceRatio 0.5
-//race AI item 추가 등급 ????
-#define raceItemQuantityPerLevel 0
+//race AI item 등급별 추가 지급
+#define raceItemQuantityPerLevel 1
 //race 스퍼트 구간
 #define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
@@ -62,6 +62,8 @@
 #define farmGluttonyIntelThreshold 30
 //farming 식탐
 #define farmGluttony 2
+//farming 최대 밭개수
+#define farmMaxField 3
 //Actor save interval
 #define actorSaveInterval	10
 
@@ -390,6 +392,12 @@ public:
 		return mAchievement.getDetail(isDaily, idx, p);
 	};
     
+
+	//farming
+	farming * getFarm() {
+		return &mFarming;
+	};
+
     //farming
     void addSeed(farming::seed * p){
         mFarming.addSeed(p);
@@ -484,7 +492,6 @@ private:
 	//set Max HP
 	void setMaxHP();
 	
-
 	//set jobTitle
 	void setJobTitle();
 
@@ -507,6 +514,7 @@ private:
 	void saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type);
     //farming
     farming mFarming;
+	
 	int mFarmingExtendFee;
 	//Trade
 	trade mTrade;
