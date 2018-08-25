@@ -75,14 +75,14 @@ private:
     LoadingBar * loadingBar;
 
     Label * mName, * mJobTitle, * mExp, * mProperties;
-    MenuItemFont * mPoint, * mHP, * mInventory;
+    MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy;
     Layout * mAlertLayer;
 
 
     static void paricleCB(){
         //this->removeChild(mParitclePopupLayer);
     };
-    void scheduleCB(float f);
+    //void scheduleCB(float f);
     void callback0();
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
@@ -92,12 +92,24 @@ private:
         hInst->cultivationCBInner(id);
     };
 
-    static void farmingCB(int fieldId){
+	static void noticeEffect(MenuItemFont * p) {
+		if (p) {
+			p->stopAllActions();
+			p->runAction(
+				RepeatForever::create(
+					Sequence::create(ScaleTo::create(0.5, 1.2), ScaleTo::create(0.5, 1), NULL)
+				)
+			);
+		}
+	};
 
-    }
+    static void farmingCB(int fieldId){
+		noticeEffect(hInst->mFarming);
+	};
 
     static void tradeCB(time_t t){
-
+		noticeEffect(hInst->mSell);
+		//noticeEffect(hInst->mBuy);
     }
 
     virtual void onEnter();

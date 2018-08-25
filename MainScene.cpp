@@ -150,7 +150,7 @@ bool MainScene::init()
 
 	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
     gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32);    
-    gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
+    mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
 
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
@@ -162,10 +162,13 @@ bool MainScene::init()
 
 	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16);
 
-    gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
-    gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
+    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
+    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
 	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"╆"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32);
 
+	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
+	//EaseBackOut::create
+	
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
             , this
@@ -343,9 +346,13 @@ void MainScene::updateState(bool isInventoryUpdated) {
 	string szHP = wstring_to_utf8(szwHP);
 
     if(szHP.compare(mHP->getString()) != 0 ){
-        mHP->runAction(Sequence::create(
-                ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-        ));
+		
+        mHP->runAction(
+			Sequence::create(ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL)
+		);
+		
+		//mHP->runAction(RepeatForever::create(Sequence::create(Blink::create(1, 1), NULL)));
+
     }
     mHP->setString(szHP);
 
@@ -521,15 +528,18 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		showInventory(inventoryType_HP);
 		break;
 	case SCENECODE_SELL: //아이템 판매
+		mSell->stopAllActions();
 		showInventory(inventoryType_all, true);
 		break;
 	case SCENECODE_ACHIEVEMENT: // 업적
 		showAchievement();
 		break;
 	case SCENECODE_BUY: //구매
+		mBuy->stopAllActions();
 		showBuy();
 		break;
 	case SCENECODE_FARMING: //farming		
+		mFarming->stopAllActions();
 		Director::getInstance()->pushScene(FarmingScene::createScene());
 		break;
 	case SCENECODE_RACE://RACE

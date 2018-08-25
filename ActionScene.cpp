@@ -42,11 +42,11 @@ bool ActionScene::init() {
 	finishLine->setPosition(Vec2(mGoalLength, 120));
 
 	//구간 표시
-	auto label0 = gui::inst()->addLabelAutoDimension(0, 2, "75%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	auto label0 = gui::inst()->addLabelAutoDimension(0, 2, "75%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label0->setPosition(Vec2(mGoalLength / 4, label0->getPosition().y));
-	auto label1 = gui::inst()->addLabelAutoDimension(0, 2, "50%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	auto label1 = gui::inst()->addLabelAutoDimension(0, 2, "50%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label1->setPosition(Vec2(mGoalLength/2, label1->getPosition().y));
-	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
 
 	for (int n = 0; n <= raceParticipantNum; n++) {
@@ -85,6 +85,10 @@ void ActionScene::initRace() {
 	_race race = logics::hInst->getRace()->at(mRaceCurrent->id);
 	gui::inst()->addLabel(0, 0, "Lv." + to_string(race.level), this, 12);
 	gui::inst()->addLabel(4, 0, wstring_to_utf8(race.title), this, 12);
+
+	//timer
+	mTimeDisplayValue = 0;
+	mTimeDisplay = gui::inst()->addLabel(8, 0, to_string(mTimeDisplayValue), this, 10);
 		
 	//아이템 설정
 	for (int i = 0; i < mSelectItems.size(); i++) {
@@ -163,6 +167,10 @@ Sprite* ActionScene::createRunner(int idx) {
 void ActionScene::timer(float f) {	
 	bool ret;
 	int itemIdx = -1;
+
+	mTimeDisplayValue ++;
+	mTimeDisplay->setString("Time: " + to_string(mTimeDisplayValue));
+
 	if (mInvokeItemQueue.size() > 0) {
 		itemIdx = mInvokeItemQueue.front();
 		mInvokeItemQueue.pop();
@@ -239,12 +247,17 @@ void ActionScene::result() {
 	wstring sz;
 	sz += L"순위: ";
 	sz += to_wstring(mRaceCurrent->rank);
-	sz += L"\n상금: $";
-	sz += to_wstring(mRaceCurrent->prize);
-	sz += L"\n상품: ";
-	sz += logics::hInst->getItem(mRaceCurrent->rewardItemId).name;
-	sz += L"x";
-	sz += to_wstring(mRaceCurrent->rewardItemQuantity);
+	if (mRaceCurrent->prize > 0) {
+		sz += L"\n상금: $";
+		sz += to_wstring(mRaceCurrent->prize);
+	}
+
+	if (mRaceCurrent->rewardItemQuantity > 0) {
+		sz += L"\n상품: ";
+		sz += logics::hInst->getItem(mRaceCurrent->rewardItemId).name;
+		sz += L"x";
+		sz += to_wstring(mRaceCurrent->rewardItemQuantity);
+	}
 	
 	auto l = gui::inst()->createLayout(Size(250, 150), "", true);
 	Vec2 point;

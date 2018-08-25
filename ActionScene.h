@@ -45,7 +45,8 @@ private:
 	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
 	Sprite * mRunner[5];
-	Label* mRankLabel;
+	Label* mRankLabel, * mTimeDisplay;
+	int mTimeDisplayValue;
 	MenuItemFont * mSelectedItem[raceItemSlot];
 	MenuItemFont * mSkillItem[raceItemSlot];
 	Layout * mFullLayer;
