@@ -41,7 +41,14 @@ bool ActionScene::init() {
 	
 	finishLine->setPosition(Vec2(mGoalLength, 120));
 
-	
+	//구간 표시
+	auto label0 = gui::inst()->addLabelAutoDimension(0, 2, "75%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	label0->setPosition(Vec2(mGoalLength / 4, label0->getPosition().y));
+	auto label1 = gui::inst()->addLabelAutoDimension(0, 2, "50%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	label1->setPosition(Vec2(mGoalLength/2, label1->getPosition().y));
+	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::BLUE);
+	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
+
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		mRunner[n] = createRunner(n);
 	}

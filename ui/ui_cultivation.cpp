@@ -71,11 +71,18 @@ Layout * ui_cultivation::init(int id
         return true;
     };
     Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, l);
-
+	//progress backgroung image
+	auto bgProgress = Sprite::create(progressBarImg);
+	bgProgress->setOpacity(50);
+	Vec2 pos;
+	gui::inst()->getPoint(0, 0, pos, ALIGNMENT_CENTER, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
+	bgProgress->setPosition(pos);
+	l->addChild(bgProgress);
+	//progress
     mProgressBar = gui::inst()->addProgressBar(0, 0, progressBarImg, l, mCurrentPercent, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
 		
     mLabel = gui::inst()->addLabelAutoDimension(0, 3
-		, mVec[mCurrentIdx].text, l, mFontSize, ALIGNMENT_CENTER, Color3B::GRAY, GRID_SIZE, Size::ZERO, Size::ZERO);
+		, mVec[mCurrentIdx].text, l, mFontSize, ALIGNMENT_CENTER, Color3B::BLACK, GRID_SIZE, Size::ZERO, Size::ZERO);
 
 	mComment = gui::inst()->addLabelAutoDimension(0, 5
 		, "    ", l, mFontSize, ALIGNMENT_CENTER, Color3B::ORANGE, GRID_SIZE, Size::ZERO, Size::ZERO);

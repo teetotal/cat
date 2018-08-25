@@ -997,17 +997,10 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
-		if (n == 0) { //0번은 완전 동일한 능력치
-			p.strength = mActor->property.strength;
-			p.intelligence = mActor->property.intelligence;
-			p.appeal = mActor->property.appeal;
-		}
-		else {
-			p.strength = getRandValue(sum);
-			p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
-			p.intelligence = getRandValue(sum - p.strength);
-			p.appeal = sum - p.strength - p.intelligence;
-		}
+		p.strength = getRandValue(sum);
+		p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
+		p.intelligence = getRandValue(sum - p.strength);
+		p.appeal = sum - p.strength - p.intelligence;
 		
 		//AI advantage
 		//p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);

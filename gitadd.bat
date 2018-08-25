@@ -1,1 +1,1 @@
-git add *.cpp *.h *.json *.vcxproj *.filters
+git add *.cpp *.h *.json *.vcxproj *.filters *.txt

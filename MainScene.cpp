@@ -39,6 +39,8 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+	layerGray = NULL;
+	layer = NULL;
 	mAlertLayer = NULL;
     hInst = this;
     mParitclePopup = NULL;
@@ -178,9 +180,8 @@ bool MainScene::init()
     return true;
 }
 //get Idle
-Sprite * MainScene::getIdle(int id) {
+RepeatForever * MainScene::getIdleAnimation(int id) {
 	string prefix = "action/" + to_string(id) + "/";
-	auto p = Sprite::create(prefix + "0.png");
 	auto animation = Animation::create();
 	animation->setDelayPerUnit(0.05);
 
@@ -189,7 +190,13 @@ Sprite * MainScene::getIdle(int id) {
 		path = prefix + to_string(n) + ".png";
 		animation->addSpriteFrameWithFile(path);
 	}
-	p->runAction(RepeatForever::create(Animate::create(animation)));
+	return RepeatForever::create(Animate::create(animation));
+}
+Sprite * MainScene::getIdle(int id) {
+	string prefix = "action/" + to_string(id) + "/";
+	auto p = Sprite::create(prefix + "0.png");
+	
+	p->runAction(getIdleAnimation(id));
 
 	return p;
 };
@@ -216,38 +223,47 @@ void MainScene::alertCloseCallback(Ref* pSender){
 	mAlertLayer = NULL;
 }
 
-void MainScene::showResult(const string msg, bool enableParticle) {
+LayerColor * MainScene::createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle) {
 
-	if (mAlertLayer != NULL)
-		this->removeChild(mAlertLayer);
+	if (layerBG != NULL)
+		parent->removeChild(layerBG);
 
 	int fontSize = 12;
-	mAlertLayer = gui::inst()->createLayout(DEFAULT_LAYER_SIZE, "bg_temp.png");
-	Vec2 point;
-	gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
-	mAlertLayer->setPosition(point);
-	mAlertLayer->setAnchorPoint(Vec2(0.5, 0.5));	
-	gui::inst()->addLabelAutoDimension(0, 0, "RESULT", mAlertLayer, 16, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
-	gui::inst()->addLabelAutoDimension(0, 1, msg, mAlertLayer, fontSize, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(0, 3, "CLOSE", mAlertLayer
-		, CC_CALLBACK_1(MainScene::alertCloseCallback, this)
-		, fontSize
+	Size grid = Size(1, 5);
+	LayerColor * layer = gui::inst()->addPopup(layerBG, parent, Size(240, 150)
+			, "bg_temp.png"
+			, Color4B::WHITE);
+	
+	gui::inst()->addLabelAutoDimension(0, 0, title, layer, 16, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(0, 2, msg, layer, fontSize, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	
+	//particle
+	if (enableParticle) {		
+		Vec2 pos;
+		pos.x = Director::getInstance()->getVisibleSize().width / 2;
+		pos.y = Director::getInstance()->getVisibleSize().height / 2;
+
+		auto particle = ParticleSystemQuad::create(PARTICLE_FINAL);
+		particle->setPosition(pos);
+		particle->setAutoRemoveOnFinish(true);
+		layerBG->addChild(particle);
+	}
+
+	return layer;
+}
+
+void MainScene::showResult(const string msg, bool enableParticle) {
+
+	layer = createMessagePopup(layerGray, this, wstring_to_utf8(L"결과"), msg, enableParticle);
+	gui::inst()->addTextButtonAutoDimension(0, 4, "CLOSE", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12
 		, ALIGNMENT_CENTER
 		, Color3B::BLUE
 		, Size(1, 5)
 		, Size::ZERO
 		, Size::ZERO
-	);
-	this->addChild(mAlertLayer);
-
-	//particle
-	if (enableParticle) {
-		auto particle = ParticleSystemQuad::create(PARTICLE_FINAL);
-		particle->setPosition(point);		
-		particle->setAutoRemoveOnFinish(true);
-		this->addChild(particle);
-	}
-	
+	);	
 }
 
 void MainScene::alert(const string msg){
@@ -350,7 +366,8 @@ void MainScene::updateState(bool isInventoryUpdated) {
 }
 void MainScene::callbackActionAnimation(Ref* pSender, int id) {
 
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 
 	vector<_itemPair> rewards;
 	_property property;
@@ -381,7 +398,7 @@ void MainScene::callbackActionAnimation(Ref* pSender, int id) {
 		isInventory = true;	
 		szResult += "\n" + szRewardsUTF8;
 	}	
-
+	closePopup();
 	switch (err) {
 	case error_success:
 	case error_levelup:
@@ -398,7 +415,8 @@ void MainScene::callbackActionAnimation(Ref* pSender, int id) {
 void MainScene::callbackAction(Ref* pSender, int id){
 	if (id == -1)
 		return;    
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 	errorCode err = logics::hInst->isValidTraining(id);
 	if (err != error_success) {
 		alert(wstring_to_utf8(logics::hInst->getErrorMessage(err), true));
@@ -793,9 +811,9 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 void MainScene::showInventory(inventoryType type, bool isSell) {
 #define __PARAMS(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showInventoryCategory, this, ID, isSell), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	
-	INVENTORY_SIZE
-
-	this->removeChild(layerGray);
+	INVENTORY_SIZE;
+	closePopup();
+	//this->removeChild(layerGray);
 	layer = gui::inst()->addPopup(layerGray, this, size
 		, isSell ? "bg_sell.png" : "bg_inventory.png"
 		, Color4B::WHITE);
@@ -807,11 +825,11 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Growth", inventoryType_growth));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farming", inventoryType_farming));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Adore", inventoryType_adorn));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
 	
 	showInventoryCategory(this, type, isSell);
 }
@@ -878,7 +896,8 @@ void MainScene::showBuy(inventoryType type) {
 #define __PARAMS_BUY(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showBuyCategory, this, ID), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 
 	BUY_SIZE;
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, "bg_buy.png", Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
@@ -888,11 +907,11 @@ void MainScene::showBuy(inventoryType type) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Growth", inventoryType_growth));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farming", inventoryType_farming));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Adore", inventoryType_adorn));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
 
 	showBuyCategory(this, type);
 }
@@ -946,7 +965,8 @@ void MainScene::showAchievementCategory(Ref* pSender, bool isDaily) {
 void MainScene::showAchievement() {
 #define __PARAMS_ACHIEVEMENT(STR, ISDAILY) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showAchievementCategory, this, ISDAILY), 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	ACHIEVEMENT_SIZE;
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, "bg_achievement.png", Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
@@ -964,7 +984,8 @@ void MainScene::showAchievement() {
 void MainScene::showCollection() {
 #define __PARAMS_COLLECTION(STR, ISDAILY) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showAchievementCategory, this, ISDAILY), 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	ACHIEVEMENT_SIZE;
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, "bg_collection.png", Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
@@ -1023,7 +1044,8 @@ void MainScene::actionList() {
 	ACTION_SIZE;	
 	int newLine = 2;   
 
-    this->removeChild(layerGray);
+    //this->removeChild(layerGray);
+	closePopup();
     layer = gui::inst()->addPopup(layerGray, this, size, "bg_action.png", Color4B::WHITE);
     gui::inst()->addTextButtonAutoDimension(8,0
             ,"CLOSE"
@@ -1179,7 +1201,8 @@ void MainScene::scheduleRecharge(float f) {
 
 void MainScene::showRace() {
 	RACE_SIZE;
-	this->removeChild(layerGray);
+	//this->removeChild(layerGray);
+	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, "bg_race.png", Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer

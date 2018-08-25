@@ -63,7 +63,9 @@ public:
     };
 
 	static Sprite * getIdle(int id = 100);
+	static RepeatForever * getIdleAnimation(int id = 100);
 
+	static LayerColor * createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle);
 private:
     gui mGrid;
     ui_gacha  mGacha;
@@ -105,7 +107,7 @@ private:
 
 
     void store();
-    void store2();
+    //void store2();
     void particleSample(const string sz);
 
     void dailyReward();
@@ -135,7 +137,16 @@ private:
 	void showRace(); //Race 보기
 
 	void closePopup() {
-		this->removeChild(layerGray);
+		if (layerGray != NULL) {
+			layerGray->removeChild(layer);
+			this->removeChild(layerGray);
+
+			delete layer;
+			delete layerGray;
+		}
+
+		layer = NULL;
+		layerGray = NULL;
 	};
 };
 
