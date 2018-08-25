@@ -1,4 +1,4 @@
-
+ï»¿
 #ifndef PROJ_ANDROID_FARMINGSCENE_H
 #define PROJ_ANDROID_FARMINGSCENE_H
 
@@ -25,7 +25,7 @@ private:
 	void callbackActionAnimation(Ref* pSender);
 	void showItemSelect(int idx);
 	void callbackSeed(Ref* pSender, int idx, int itemId);
-	void updateFarming(float f); // ¼öÈ®»óÅÂ ¾÷µ¥ÀÌÆ®
+	void updateFarming(float f); // ìˆ˜í™•ìƒíƒœ ì—…ë°ì´íŠ¸
 	LayerColor * mPopupLayer, *mPopupLayerBackground;
 
 	void messagePopup(string msg);
@@ -44,9 +44,9 @@ private:
 
 	Sprite * mCharacter;
 	gui mGui;
-	Label * mLabel; // ÈÉÃÄ¸ÔÀº°Å ¸Ş¼¼Áö ¶§¹®¿¡
+	Label * mLabel; // í›”ì³ë¨¹ì€ê±° ë©”ì„¸ì§€ ë•Œë¬¸ì—
 	Layout * mFullLayer;
-	MenuItemFont * mSeedButton[farmMaxField]; //½É±â ¹öÆ° 
+	MenuItemFont * mSeedButton[farmMaxField]; //ì‹¬ê¸° ë²„íŠ¼ 
 	
 	static FarmingScene * hInst;
 

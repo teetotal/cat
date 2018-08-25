@@ -1,4 +1,4 @@
-//
+ï»¿//
 // Created by Jung, DaeChun on 24/08/2018.
 //
 
@@ -28,7 +28,7 @@ bool FarmingScene::init()
 	this->addChild(bg);
 	gui::inst()->addTextButton(8, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::callback, this, SCENECODE_CLOSESCENE), 0, ALIGNMENT_CENTER, Color3B::RED);
 
-	//field ±âº» 3°³
+	//field ê¸°ë³¸ 3ê°œ
 	int cntFarm = logics::hInst->getFarm()->countField();
 	if (cntFarm == 0) {
 		for (int n = 0; n < 3; n++) {
@@ -40,7 +40,7 @@ bool FarmingScene::init()
 	for (int n = 0; n < cntFarm; n++) {
 		farming::field * pField = logics::hInst->getFarm()->getFields()->at(n);
 
-		mCultivation[n].addLevel("plant0.png", 0, wstring_to_utf8(L"½É±â"));
+		mCultivation[n].addLevel("plant0.png", 0, wstring_to_utf8(L"ì‹¬ê¸°"));
 		mCultivation[n].addLevel("plant0.png", 10, "");
 		mCultivation[n].addLevel("plant1.png", 40, "");
 		mCultivation[n].addLevel("plant2.png", 70, "");
@@ -50,7 +50,7 @@ bool FarmingScene::init()
 	
 	//gui::inst()->drawGrid(this);
 
-	//Ä³¸¯ÅÍ
+	//ìºë¦­í„°
 	mCharacter = MainScene::getIdle();
 	mCharacter->setPosition(gui::inst()->getPointVec2(_characterInitPosition.x, _characterInitPosition.y));
 	mCharacter->setAnchorPoint(Vec2(0.5 , 0));
@@ -58,7 +58,7 @@ bool FarmingScene::init()
 		
 	mLabel = gui::inst()->addLabel(4, 2, " ", this, 9);
 	//schedule
-	updateFarming(0.f);//ÀÛ¹° Å°¿ì´Ù°¡ Àá±ñ ³ª°¬´Ù ¿ÔÀ» ‹š È­¸é ÀÌ»óÇÑ°Å ¸·±â À§ÇØ
+	updateFarming(0.f);//ìž‘ë¬¼ í‚¤ìš°ë‹¤ê°€ ìž ê¹ ë‚˜ê°”ë‹¤ ì™”ì„ Â‹Âš í™”ë©´ ì´ìƒí•œê±° ë§‰ê¸° ìœ„í•´
 	this->schedule(schedule_selector(FarmingScene::updateFarming), 0.3f);
 	
 	return true;
@@ -92,17 +92,17 @@ void FarmingScene::updateFarming(float f) {
 				mCultivation[n].update(0, "");
 			continue;
 			break;
-		case farming::farming_status_sprout://»õ½Ï
-		case farming::farming_status_good:	 //°Ç°­
+		case farming::farming_status_sprout://ìƒˆì‹¹
+		case farming::farming_status_good:	 //ê±´ê°•
 			break;
-		case farming::farming_status_grown:	//´Ù ÀÚ¶÷
-			szComment = L"´Ù ÀÚ¶÷";
+		case farming::farming_status_grown:	//ë‹¤ ìžëžŒ
+			szComment = L"ë‹¤ ìžëžŒ";
 			break;
-		case farming::farming_status_week: //µ¹º½ ÇÊ¿ä
-			szComment = L"µ¹º½ ÇÊ¿ä!";
+		case farming::farming_status_week: //ëŒë´„ í•„ìš”
+			szComment = L"ëŒë´„ í•„ìš”!";
 			break;
-		case farming::farming_status_decay:	 //½âÀ½
-			szComment = L"½âÀ½";
+		case farming::farming_status_decay:	 //ì©ìŒ
+			szComment = L"ì©ìŒ";
 			break;
 		}
 		mCultivation[n].update(pField->percent, wstring_to_utf8(szComment));
@@ -144,7 +144,7 @@ void FarmingScene::callback(Ref* pSender, SCENECODE type) {
 
 void FarmingScene::cultivationCB(int idx) {
 	
-	FARM_CREATE_CB; //¾µµ¥¾ø´Â °´Ã¼ »ý¼ºÀ» ¾ø¾Ö°í ½ÍÁö¸¸ ·ÎÁ÷À» ¹Ù²ã¾ß ÇØ¼­ °Á ³ÀµÐ´Ù.
+	FARM_CREATE_CB; //ì“¸ë°ì—†ëŠ” ê°ì²´ ìƒì„±ì„ ì—†ì• ê³  ì‹¶ì§€ë§Œ ë¡œì§ì„ ë°”ê¿”ì•¼ í•´ì„œ ê± ëƒ…ë‘”ë‹¤.
 	farming::field* pField = logics::hInst->getFarm()->getFields()->at(idx);
 	intPair earn;
 	earn.key = 0;
@@ -153,10 +153,10 @@ void FarmingScene::cultivationCB(int idx) {
 	case farming::farming_status_max:
 		hInst->showItemSelect(idx);
 		break;
-	case farming::farming_status_decay:	 //½âÀ½
-	case farming::farming_status_grown:	//´Ù ÀÚ¶÷
+	case farming::farming_status_decay:	 //ì©ìŒ
+	case farming::farming_status_grown:	//ë‹¤ ìžëžŒ
 		err = logics::hInst->farmingHarvest(idx, earn.key, earn.val);
-		//ÃÊ±âÈ­
+		//ì´ˆê¸°í™”
 		hInst->mCharacter->stopAllActions();		
 		hInst->mCharacter->runAction(hInst->getFarmingAnimation(cb));
 		hInst->mCharacter->setPosition(gui::inst()->getPointVec2(pField->x, pField->y));
@@ -170,14 +170,14 @@ void FarmingScene::cultivationCB(int idx) {
 			hInst->mHarvestQ.push(earn);
 		}
 		break;
-	case farming::farming_status_week: //µ¹º½ ÇÊ¿ä
+	case farming::farming_status_week: //ëŒë´„ í•„ìš”
 		
 		err = logics::hInst->farmingCare(idx);
 		hInst->mCharacter->stopAllActions();
 		hInst->mCharacter->setPosition(gui::inst()->getPointVec2(pField->x, pField->y));
 		if (err == error_farming_gluttony) {
 			hInst->mCharacter->runAction(hInst->getFarmingMistakeAnimation(cb));
-			//¿¡·¯ ¸Þ¼¼Áö
+			//ì—ëŸ¬ ë©”ì„¸ì§€
 			hInst->mLabel->setString(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
 		}
 		else {
@@ -191,7 +191,7 @@ void FarmingScene::cultivationCB(int idx) {
 };
 void FarmingScene::messagePopup(string msg) {
 	closePopup();
-	mPopupLayer = MainScene::createMessagePopup(mPopupLayerBackground, this, wstring_to_utf8(L"Â¦Â¦Â¦! ³óÀÛ¹°À» ¼öÈ® Çß¾î¿ä~"), msg, false);
+	mPopupLayer = MainScene::createMessagePopup(mPopupLayerBackground, this, wstring_to_utf8(L"ì§ì§ì§! ë†ìž‘ë¬¼ì„ ìˆ˜í™• í–ˆì–´ìš”~"), msg, false);
 	gui::inst()->addTextButtonAutoDimension(0, 4, "CLOSE", mPopupLayer
 		, CC_CALLBACK_1(FarmingScene::callback, this, SCENECODE_CLOSEPOPUP)
 		, 12
