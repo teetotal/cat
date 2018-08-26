@@ -51,11 +51,11 @@
 //race 경묘에서 지력이 차지하는 비율
 #define raceIntelligenceRatio 0.5
 //race AI item 등급별 추가 지급
-#define raceItemQuantityPerLevel 1
+//#define raceItemQuantityPerLevel 1
 //race 스퍼트 구간
 #define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
-#define raceInvokeThreshold 50
+#define raceInvokeThreshold 70
 //race AI 스킬발동 랜덤 확률 1/raceAIRandom 
 #define raceAIRandom 10
 //farming 식탐 방지 지능 threshold
@@ -468,6 +468,8 @@ private:
 	raceParticipants* mRaceParticipants;	
 	raceMeta mRace;		
 	_raceCurrent mRaceCurrent;	
+	vector<_raceParticipant> mRaceOrderedVector;
+
 	//경묘용 아이템만 따로 모아논 벡터
 	typedef vector<int> intVector;
 	intVector mItemRace;

@@ -1105,15 +1105,15 @@ void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
 void logics::invokeRaceItemAI() {
 	int level = mRace[mRaceCurrent.id].level;
 	for (int i = 0; i < raceParticipantNum; i++) {
-		//내가 raceInvokeThreshold 이상 달리고 나서 부터 아이템 사용
-		if (mRaceParticipants->at(i).ratioLength < raceInvokeThreshold)
+		//1등이 raceInvokeThreshold 이상 달리고 나서 부터 아이템 사용
+		if (mRaceOrderedVector.size() > 0 && mRaceParticipants->at(mRaceOrderedVector[0].idx).ratioLength < raceInvokeThreshold)
 			return;
 		//아이템 사용할지 않할지 판단
 		int r = getRandValue(raceAIRandom);
 		if (r != 0)
 			continue;
 		//아이템 사용 횟수 초과시 
-		if (mRaceParticipants->at(i).shootItemCount + (raceItemQuantityPerLevel * level) >= raceItemSlot) {
+		if (mRaceParticipants->at(i).shootItemCount >= raceItemSlot) {
 			continue;
 		}
 		//사용
@@ -1128,20 +1128,20 @@ void logics::invokeRaceItemAI() {
 				return;
 			}
 		}
+		int quantity = level + getRandValue(3);
 		switch (mRaceParticipants->at(i).currentRank) {
 		case 1: // 1등이면 50%이상 왔을때 스피드 업
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level, mRaceParticipants->at(i).currentRank);
+				invokeRaceItem(i, itemType_race_speedUp, quantity, mRaceParticipants->at(i).currentRank);
 			break;
-		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트		
-			invokeRaceItem(i, itemType_race_attactFront, level, mRaceParticipants->at(i).currentRank);
-			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
-				invokeRaceItem(i, itemType_race_speedUp, level, mRaceParticipants->at(i).currentRank);
+		case 2: //2, 3등이면 앞 고냥이 공격. 50%이상 왔을 부터 스퍼트	
+		case 3:
+			invokeRaceItem(i, itemType_race_attactFront, quantity, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_speedUp, quantity, mRaceParticipants->at(i).currentRank);
 			break;
-		case 3: //3, 4, 5등이면 스피드 업 50% 이상 부터 1등 공격
-		case 4: 
+		case 4:  //4, 5등이면 1등 공격
 		case 5:
-			invokeRaceItem(i, itemType_race_attactFirst, level, mRaceParticipants->at(i).currentRank);
+			invokeRaceItem(i, itemType_race_attactFirst, quantity, mRaceParticipants->at(i).currentRank);
 			break;
 		}
 	}
@@ -1162,11 +1162,11 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 //int raceLength = mRace[mRaceCurrent.id].length;
 	 int raceLength = (int)((float)mActor->property.total() / 2.f * 0.5f * 30.f * 5.f);
 	 //순위 산정용 벡터
-	 vector<_raceParticipant> orderedVector;
+	 mRaceOrderedVector.clear();
 
 	 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 		 if (mRaceParticipants->at(n).rank == 0) {
-			 orderedVector.push_back(mRaceParticipants->at(n));
+			 mRaceOrderedVector.push_back(mRaceParticipants->at(n));
 		 }
 		 else {
 			 mRaceParticipants->at(n).currentRank = 0;
@@ -1177,9 +1177,9 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 }
 
 	 //현재 순위 산정
-	 sort(orderedVector.begin(), orderedVector.end());
-	 for (int n = 0; n < (int)orderedVector.size(); n++) {		 
-		 mRaceParticipants->at(orderedVector[n].idx).currentRank = n + 1;
+	 sort(mRaceOrderedVector.begin(), mRaceOrderedVector.end());
+	 for (int n = 0; n < (int)mRaceOrderedVector.size(); n++) {
+		 mRaceParticipants->at(mRaceOrderedVector[n].idx).currentRank = n + 1;
 	 }
 
 	 //내가 사용한 아이템 발동

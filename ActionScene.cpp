@@ -169,7 +169,7 @@ void ActionScene::timer(float f) {
 	int itemIdx = -1;
 
 	mTimeDisplayValue ++;
-	mTimeDisplay->setString("Time: " + to_string(mTimeDisplayValue));
+	mTimeDisplay->setString(to_string(mTimeDisplayValue));
 
 	if (mInvokeItemQueue.size() > 0) {
 		itemIdx = mInvokeItemQueue.front();
@@ -182,6 +182,10 @@ void ActionScene::timer(float f) {
 		mRunner[raceParticipantNum]->stopAllActions();
 		mRunner[raceParticipantNum]->runAction(getRunningAnimation());
 		mRunner[raceParticipantNum]->setPosition(Vec2(100, mRunner[raceParticipantNum]->getPosition().y));
+		for (int n = 0; n < mRaceParticipants->size(); n++) {
+			_raceParticipant p = mRaceParticipants->at(n);
+			CCLOG("%d-%d", n, p.shootItemCount);
+		}
 		result();
 		return;
 	}
@@ -242,7 +246,8 @@ void ActionScene::timer(float f) {
 	}
 }
 
-void ActionScene::result() {	
+void ActionScene::result() {
+	
 	//결과처리
 	wstring sz;
 	sz += L"순위: ";
