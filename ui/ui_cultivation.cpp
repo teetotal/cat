@@ -71,21 +71,18 @@ Layout * ui_cultivation::init(int id
         return true;
     };
     Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, l);
-	//progress backgroung image
-	auto bgProgress = Sprite::create(progressBarImg);
-	bgProgress->setOpacity(50);
-	Vec2 pos;
-	gui::inst()->getPoint(0, 0, pos, ALIGNMENT_CENTER, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
-	bgProgress->setPosition(pos);
-	l->addChild(bgProgress);
+	
 	//progress
     mProgressBar = gui::inst()->addProgressBar(0, 0, progressBarImg, l, mCurrentPercent, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
-		
-    mLabel = gui::inst()->addLabelAutoDimension(0, 3
-		, mVec[mCurrentIdx].text, l, mFontSize, ALIGNMENT_CENTER, Color3B::BLACK, GRID_SIZE, Size::ZERO, Size::ZERO);
+	
+	mRemain = gui::inst()->addLabelAutoDimension(0, 0
+		, "          ", l, 8, ALIGNMENT_CENTER, Color3B::WHITE, GRID_SIZE, Size::ZERO, Size::ZERO);
+
+	mLabel = gui::inst()->addLabelAutoDimension(0, 2
+		, "          ", l, mFontSize, ALIGNMENT_CENTER, Color3B::BLACK, GRID_SIZE, Size::ZERO, Size::ZERO);
 
 	mComment = gui::inst()->addLabelAutoDimension(0, 5
-		, "    ", l, mFontSize, ALIGNMENT_CENTER, Color3B::ORANGE, GRID_SIZE, Size::ZERO, Size::ZERO);
+		, "    ", l, mFontSize, ALIGNMENT_CENTER, Color3B::GREEN, GRID_SIZE, Size::ZERO, Size::ZERO);
 
 
     p->addChild(l);
@@ -93,7 +90,7 @@ Layout * ui_cultivation::init(int id
     return l;
 }
 
-void ui_cultivation::update(float percent, const string comment){
+void ui_cultivation::update(float percent, int remain, const string comment){
     if(mIsDecay)
         return;
 
@@ -102,20 +99,22 @@ void ui_cultivation::update(float percent, const string comment){
 
 	mComment->setString(comment);
 
+	bool isDone = true;
 	for(int n=0; n < mVec.size(); n++){
-        if(mVec[n].maxLevel >= percent){
-            if(mCurrentIdx != n){
-                mImg->setTexture(mVec[n].img);
-                mLabel->setString(mVec[n].text);
-                mCurrentIdx = n;
-            }
-            return;
+		int nPre = (n == 0) ? 0 : n - 1;
+        if(percent >= mVec[nPre].maxLevel  && mVec[n].maxLevel >= percent){
+            mCurrentIdx = n;
+			isDone = false;
+			break;
         }
     }
 
-	mImg->setTexture(mVec[mVec.size() - 1].img);
-	mLabel->setString(mVec[mVec.size() - 1].text);
+	if (isDone)
+		mCurrentIdx = mVec.size() - 1;
 
+	mImg->setTexture(mVec[mCurrentIdx].img);
+	mLabel->setString(mVec[mCurrentIdx].text);
+	mRemain->setString((remain > 0) ? to_string(remain) : " ");
 }
 
 void ui_cultivation::setDecay(bool b){

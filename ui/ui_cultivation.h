@@ -39,7 +39,7 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE));
 
 	void finalize();
-	void update(float percent, const string comment);
+	void update(float percent, int remain, const string comment);
 	float getPercent(){
         return mCurrentPercent;
     }
@@ -57,7 +57,7 @@ private:
 
     Sprite * mImg;
     LoadingBar * mProgressBar;
-    Label * mLabel, * mComment;
+    Label *mRemain, * mLabel, * mComment;
 
     float mFontSize;
     int mCurrentIdx;

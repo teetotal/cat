@@ -48,6 +48,7 @@ public:
 			cntCare = 0;	//돌본 횟수
 			timeLastGrow = 0; //지난 돌봄 시간
 			boost = 0;		// 추가 output
+			percent = 0;
 
 		}
 		void plant(int seedId) {
@@ -63,10 +64,11 @@ public:
 		int id;		
 		int x;
 		int y;	
-
+		time_t finishTime; // 다 자라는 시간
 		field(int x, int y) {			
 			this->x = x;
 			this->y = y;
+			finishTime = 0;
 		}
 	};
 	//소유중인 밭

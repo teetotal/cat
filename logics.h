@@ -414,6 +414,7 @@ public:
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
+	int getTradeInvenTypeCnt(inventoryType type); //Trade 인벤타입 갯수
 
 	//Race
 	errorCode runRace(int id, itemsVector &items);
@@ -433,6 +434,7 @@ public:
 	
 	//add inventory
 	bool addInventory(int itemId, int quantity);
+	inventoryType getInventoryType(int itemId);
 
 	//achievement
 	achievement mAchievement;
@@ -443,6 +445,7 @@ private:
 	//error messages
 	typedef vector<wstring> errorMessages;
 	errorMessages mErrorMessages;	
+	map<inventoryType, int> mInvenTypeCntMap;
 
     __items mItems;		//items
 	__training mTraining;//성장
@@ -494,9 +497,7 @@ private:
 	
 	//set jobTitle
 	void setJobTitle();
-
-	inventoryType getInventoryType(int itemId);
-
+		
 	bool initActor();
 	void insertInventory(rapidjson::Value &p, inventoryType type);
 	bool initErrorMessage(rapidjson::Value &p);

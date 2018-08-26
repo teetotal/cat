@@ -57,6 +57,15 @@ bool MainScene::init()
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
+	Color3B fontColor = Color3B::BLACK;
+	//BG
+	auto bg = Sprite::create(BG_HOME);
+	bg->setContentSize(Director::getInstance()->getVisibleSize());
+	bg->setAnchorPoint(Vec2(0, 0));
+	//bg->setOpacity(50);
+	bg->setPosition(Director::getInstance()->getVisibleOrigin());
+	this->addChild(bg);
+
     mGrid.init("fonts/Goyang.ttf", 14);
 
     /////////////////////////////
@@ -131,11 +140,10 @@ bool MainScene::init()
     //gui::inst()->drawGrid(this);
 
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 10);
-    //loadingBar->setPercent(logics::hInst->getExpRatio());
-
-    //gui::inst()->addSpriteFixedSize(Size(110, 80), 4, 3, "21.png", this);
+   
+	//Character
 	auto pCharacter = getIdle();
-	pCharacter->setPosition(gui::inst()->getPointVec2(4, 4));
+	pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
 	this->addChild(pCharacter);
 
 
@@ -143,28 +151,28 @@ bool MainScene::init()
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
 
-    mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE);
+    mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE, fontColor);
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
-    mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12);
+    mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
 
-	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32);
-    gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32);    
-    mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32);
+	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
+    gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, fontColor);
+    mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32, ALIGNMENT_CENTER, fontColor);
 
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
     mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 12, ALIGNMENT_CENTER, Color3B::GREEN);
     mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
-    mProperties = gui::inst()->addLabel(8, 2, "", this, 12);
+    mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
-    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32);
+    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
 
-	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16);
+	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16, ALIGNMENT_CENTER, fontColor);
 
-    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32);
-    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32);
-	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"╆"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32);
+    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32, ALIGNMENT_CENTER, fontColor);
+    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32, ALIGNMENT_CENTER, fontColor);
+	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"╆"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32, ALIGNMENT_CENTER, fontColor);
 
 	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
 	//EaseBackOut::create
@@ -517,6 +525,8 @@ void MainScene::runRace(Ref* pSender, int raceId) {
 }
 
 void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
+	mCurrentScene = type;
+
    	switch (type) {
 	case SCENECODE_CLOSEPOPUP:
 		closePopup();
@@ -529,6 +539,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		break;
 	case SCENECODE_SELL: //아이템 판매
 		mSell->stopAllActions();
+		mSell->setScale(1);
 		showInventory(inventoryType_all, true);
 		break;
 	case SCENECODE_ACHIEVEMENT: // 업적
@@ -536,6 +547,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		break;
 	case SCENECODE_BUY: //구매
 		mBuy->stopAllActions();
+		mBuy->setScale(1);
 		showBuy();
 		break;
 	case SCENECODE_FARMING: //farming		
@@ -579,6 +591,7 @@ void MainScene::onEnter(){
     Scene::onEnter();
     CCLOG("onEnter!!!!!!!!!!!!!!!!!!!!!!!");
 	updateState(false);
+	mCurrentScene = SCENECODE_MAIN;
 }
 void MainScene::onEnterTransitionDidFinish(){
     Scene::onEnterTransitionDidFinish();
@@ -825,7 +838,7 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	closePopup();
 	//this->removeChild(layerGray);
 	layer = gui::inst()->addPopup(layerGray, this, size
-		, isSell ? "bg_sell.png" : "bg_inventory.png"
+		, isSell ? BG_SELL : BG_INVENTORY
 		, Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
@@ -835,16 +848,32 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
+	
+	if (isSell) {
+		auto time = gui::inst()->addLabelAutoDimension(nMenuIdx, 0, getTradeRemainTime(), layer, 8, ALIGNMENT_NONE, Color3B::GRAY
+			, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+		time->setAnchorPoint(Vec2(0, 0));
+		time->setPosition(Vec2(margin.width, 0));
+	}
 	
 	showInventoryCategory(this, type, isSell);
 }
 
 void MainScene::buyCallback(Ref* pSender, int id) {
+	/*
+	//quantity modal
+	LayerColor * bg, *l2;
+	l2 = gui::inst()->createModalLayer(bg, Size(100, 100));
+	gui::inst()->addLabelAutoDimension(0, 0, "modal", l2, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 1), Size::ZERO, Size::ZERO);
+	this->addChild(bg);
+	return;
+	*/
+
 	errorCode err = logics::hInst->runTrade(true, id, 1);
 	if (err != error_success && err != error_levelup) {
 		wstring sz = logics::hInst->getErrorMessage(err);
@@ -856,7 +885,7 @@ void MainScene::buyCallback(Ref* pSender, int id) {
 	}
 }
 
-void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
+void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 	BUY_SIZE;
 	//int nodeMargin = 2;
 	int newLine = 2;
@@ -865,13 +894,17 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
-	Size innerSize = Size(sizeOfScrollView.width, ((m->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
+	//inventype 별 갯수 
+	int nCnt = (type == inventoryType_all) ? m->size() - logics::hInst->getTradeInvenTypeCnt(inventoryType_collection): logics::hInst->getTradeInvenTypeCnt(type);
+	Size innerSize = Size(sizeOfScrollView.width, ((nCnt / newLine) + 1) * (nodeSize.height + nodeMargin));
 
 	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 	
 	for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
 		int id = it->first;
 		_item item = logics::hInst->getItem(id);
+		if (type != inventoryType_all && logics::hInst->getInventoryType(id) != type)
+			continue;
 		if (item.type > itemType_max)
 			continue;		
 		
@@ -897,9 +930,9 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType code) {
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
 	}
-
+	
 	layer->removeChildByTag(CHILD_ID_BUY, true);
-	layer->addChild(sv, 1, CHILD_ID_BUY);
+	layer->addChild(sv, 1, CHILD_ID_BUY);	
 }
 
 void MainScene::showBuy(inventoryType type) {
@@ -908,7 +941,7 @@ void MainScene::showBuy(inventoryType type) {
 	BUY_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, "bg_buy.png", Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, BG_BUY, Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -917,12 +950,17 @@ void MainScene::showBuy(inventoryType type) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
 
+	auto time = gui::inst()->addLabelAutoDimension(nMenuIdx, 0, getTradeRemainTime(), layer, 8, ALIGNMENT_NONE, Color3B::GRAY
+		, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+	time->setAnchorPoint(Vec2(0, 0));
+	time->setPosition(Vec2(margin.width, 0));
+	
 	showBuyCategory(this, type);
 }
 void MainScene::showAchievementCategory(Ref* pSender, bool isDaily) {
@@ -977,7 +1015,7 @@ void MainScene::showAchievement() {
 	ACHIEVEMENT_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, "bg_achievement.png", Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, BG_ACHIEVEMENT, Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -996,7 +1034,7 @@ void MainScene::showCollection() {
 	ACHIEVEMENT_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, "bg_collection.png", Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, BG_COLLECTION, Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -1213,7 +1251,7 @@ void MainScene::showRace() {
 	RACE_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, "bg_race.png", Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -1280,3 +1318,17 @@ void MainScene::showRace() {
 	layer->removeChildByTag(CHILD_ID_RACE, true);
 	layer->addChild(sv, 1, CHILD_ID_RACE);
 }
+
+void MainScene::closePopup() {
+	if (layerGray != NULL) {
+		layerGray->removeChild(layer);
+		this->removeChild(layerGray);
+
+		delete layer;
+		delete layerGray;
+	}
+
+	layer = NULL;
+	layerGray = NULL;
+	mCurrentScene = SCENECODE_MAIN;
+};

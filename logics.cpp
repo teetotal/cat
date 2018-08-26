@@ -552,10 +552,24 @@ void logics::print(int type) {
     }
 #endif
 }
+int logics::getTradeInvenTypeCnt(inventoryType type) {
+	if (mInvenTypeCntMap.find(type) == mInvenTypeCntMap.end())
+		return 0;
+	else
+		return mInvenTypeCntMap[type];
 
+}
 bool logics::insertItem(_item item) {
 	mItems[item.id] = item;
-	if (getInventoryType(item.id) == inventoryType_race)
+	
+	//inventype별로 카운팅
+	inventoryType invenType = getInventoryType(item.id);
+	if (mInvenTypeCntMap.find(invenType) == mInvenTypeCntMap.end())
+		mInvenTypeCntMap[invenType] = 1;
+	else
+		mInvenTypeCntMap[invenType]++;
+
+	if (invenType == inventoryType_race)
 		mItemRace.push_back(item.id);
     //trade 정보 
 	trade::tradeProduct * p = new trade::tradeProduct;

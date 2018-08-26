@@ -231,6 +231,11 @@ public:
 		p->setScale(ratio);
 	};
 
+	//정 중앙 포인트 가져오기
+	Vec2 getCenterFromSize(Size size) {
+		return Vec2(size.width / 2, size.height / 2);
+	};
+
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
 

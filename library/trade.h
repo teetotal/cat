@@ -34,6 +34,12 @@ public:
 	int getPriceBuy(int itemId);	//price at buy	
 	int getPriceSell(int itemId);	//price at sell
 
+	//다음 update까지 남은 초
+	int getRemainTimeUpdate() {
+		return mLastUpdate + mUpdateInterval - getNow();
+	};
+
+
 private:
 	int mlevelWeight; //level에 따른 금액 가중치
 	float mTradeMargin; //마진율

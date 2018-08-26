@@ -13,6 +13,15 @@
 
 USING_NS_CC;
 
+#define BG_HOME "bg_home.png"
+#define BG_FARM "bg_farming.jpg"
+#define BG_ACHIEVEMENT "bg_achievement.png"
+#define BG_BUY	"bg_buy.png"
+#define BG_COLLECTION "bg_collection.png"
+#define BG_INVENTORY "bg_inventory.png"
+#define BG_SELL "bg_sell.png"
+#define BG_RACE "bg_race.png"
+
 enum CHILD_ID {
 	CHILD_ID_INVENTORY = 1000,
 	CHILD_ID_BUY,
@@ -78,6 +87,8 @@ private:
     MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy;
     Layout * mAlertLayer;
 
+	SCENECODE mCurrentScene; //현재 Scene 정보
+	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
 
     static void paricleCB(){
         //this->removeChild(mParitclePopupLayer);
@@ -95,19 +106,17 @@ private:
 	static void noticeEffect(MenuItemFont * p) {
 		if (p) {
 			p->stopAllActions();
-			p->runAction(
-				RepeatForever::create(
-					Sequence::create(ScaleTo::create(0.5, 1.2), ScaleTo::create(0.5, 1), NULL)
-				)
-			);
+			p->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.3, 1.2), ScaleTo::create(0.3, 1), NULL)));
 		}
 	};
 
     static void farmingCB(int fieldId){
-		noticeEffect(hInst->mFarming);
+		if(hInst->mCurrentScene != SCENECODE_FARMING)
+			noticeEffect(hInst->mFarming);
 	};
 
     static void tradeCB(time_t t){
+		hInst->mLastUpdateTrade = t;
 		noticeEffect(hInst->mSell);
 		//noticeEffect(hInst->mBuy);
     }
@@ -147,18 +156,12 @@ private:
 	void runRace(Ref* pSender, int raceId); //Race
 	void showCollection(); //도감 보기
 	void showRace(); //Race 보기
+	void closePopup(); //팝업 닫으면 메인
 
-	void closePopup() {
-		if (layerGray != NULL) {
-			layerGray->removeChild(layer);
-			this->removeChild(layerGray);
-
-			delete layer;
-			delete layerGray;
-		}
-
-		layer = NULL;
-		layerGray = NULL;
+	string getTradeRemainTime() {
+		int remain = logics::hInst->getTrade()->getRemainTimeUpdate();
+		string sz = "Update after " + to_string((int)(remain / 60)) + ":" + to_string((int)(remain % 60));
+		return sz;
 	};
 };
 

@@ -20,7 +20,7 @@ bool FarmingScene::init()
 	mSleepCnt = 0;
 	hInst = this;
 	
-	auto bg = Sprite::create("bg_farming.jpg");
+	auto bg = Sprite::create(BG_FARM);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
 	//bg->setOpacity(200);
@@ -85,13 +85,10 @@ void FarmingScene::updateFarming(float f) {
 	for (int n = 0; n < cnt; n++)
 	{
 		farming::field * pField = logics::hInst->getFarm()->getFields()->at(n);
+	
 		wstring szComment = L" ";
 		switch (pField->status) {
 		case farming::farming_status_max:
-			if (mCultivation[n].getPercent() != 0)
-				mCultivation[n].update(0, "");
-			continue;
-			break;
 		case farming::farming_status_sprout://새싹
 		case farming::farming_status_good:	 //건강
 			break;
@@ -105,7 +102,15 @@ void FarmingScene::updateFarming(float f) {
 			szComment = L"썩음";
 			break;
 		}
-		mCultivation[n].update(pField->percent, wstring_to_utf8(szComment));
+		/*
+		(지금 - 심은시간): percent = (x - 심은시간) : 100;
+		-> 100 * (지금 - 심은시간) / percent = x - 심은시간
+		-> (100 / percent * now - plant) + 심은시간 = 언제
+		-> 언제 - now 
+		*/
+		time_t now = getNow();
+		int remain = (pField->percent == 0.f || pField->percent >= 100.f) ? 0 : pField->finishTime - now;
+		mCultivation[n].update(pField->percent, remain, wstring_to_utf8(szComment));
 
 	}
 }
@@ -156,6 +161,7 @@ void FarmingScene::cultivationCB(int idx) {
 	case farming::farming_status_decay:	 //썩음
 	case farming::farming_status_grown:	//다 자람
 		err = logics::hInst->farmingHarvest(idx, earn.key, earn.val);
+		
 		//초기화
 		hInst->mCharacter->stopAllActions();		
 		hInst->mCharacter->runAction(hInst->getFarmingAnimation(cb));

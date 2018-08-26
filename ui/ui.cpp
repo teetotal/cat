@@ -507,13 +507,21 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
 
 LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float defaultVal, Size dimension, Size grid, Size origin, Size margin)
 {
+	
     Vec2 point;
     getPoint(x, y, point, ALIGNMENT_CENTER, dimension, grid, origin, margin);
     LoadingBar * loadingBar = LoadingBar::create(img);
     loadingBar->setDirection(LoadingBar::Direction::LEFT);
     loadingBar->setPosition(point);
     loadingBar->setPercent(defaultVal);
-    p->addChild(loadingBar);
+
+	//progress backgroung image
+	auto bgProgress = Sprite::create(img);
+	bgProgress->setOpacity(50);
+	bgProgress->setPosition(point);
+	
+	p->addChild(bgProgress);
+	p->addChild(loadingBar);
 
     return loadingBar;
 }
