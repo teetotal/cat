@@ -10,6 +10,11 @@
 #define RACE_GOAL_DISTANCE 2.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 5);
 #define POPUP_NODE_MARGIN  4
+
+wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , L""};
+Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
+
+
 //#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene()
 {
@@ -19,6 +24,7 @@ Scene* ActionScene::createScene()
 bool ActionScene::init() {		
 
 	//초기화
+	names[raceParticipantNum] = logics::hInst->getActor()->name;
 	mPopupLayer = NULL;
 	mPopupLayerBackground = NULL;
 
@@ -83,17 +89,21 @@ void ActionScene::initRace() {
 
 	//title
 	_race race = logics::hInst->getRace()->at(mRaceCurrent->id);
-	gui::inst()->addLabel(0, 0, "Lv." + to_string(race.level), this, 12);
-	gui::inst()->addLabel(4, 0, wstring_to_utf8(race.title), this, 12);
+	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
 
-	//timer
-	mTimeDisplayValue = 0;
-	mTimeDisplay = gui::inst()->addLabel(8, 0, to_string(mTimeDisplayValue), this, 10);
+	//rank
+	/*
+	for (int n = 0; n <= raceParticipantNum; n++) {
+		mRankLabel[n] = gui::inst()->addLabel(8, 0, to_string(n+1) + "0" + wstring_to_utf8(names[n]), this, 8, ALIGNMENT_NONE);
+		mRankLabel[n]->setColor(txtColors[n]);
+		mRankLabel[n]->setPosition(Vec2(mRankLabel[n]->getPosition().x, mRankLabel[n]->getPosition().y - n * 10));
+	}
+	*/
 		
 	//아이템 설정
 	for (int i = 0; i < mSelectItems.size(); i++) {
 		_item item = logics::hInst->getItem(mSelectItems[i].itemId);
-		string sz = "Lv." + to_string(item.grade) + "\n" + wstring_to_utf8(item.name);
+		string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
 		mSkillItem[i] = gui::inst()->addTextButton(0, 3 + i, sz, this,
 			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 12, ALIGNMENT_NONE, Color3B::BLACK);
 		
@@ -145,8 +155,6 @@ RepeatForever * ActionScene::getRunningAnimation(bool isSpeedUp) {
 
 Sprite* ActionScene::createRunner(int idx) {
 	mSufferState[idx] = SUFFER_STATE_NONE;
-	wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , logics::hInst->getActor()->name };
-    Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
 		
 	auto p = gui::inst()->addSprite(0, 7, RACE_DEFAULT_IMG, mFullLayer);
 	p->setPosition(Vec2(0
@@ -159,10 +167,10 @@ Sprite* ActionScene::createRunner(int idx) {
 
     Color3B color = txtColors[idx];
 	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
-	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 15);
+	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 10);
 
-	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, "!", p, 10, ALIGNMENT_CENTER, color);
-	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 30);
+	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 10, ALIGNMENT_CENTER, color);
+	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
 
 	return p;
 }
@@ -170,9 +178,6 @@ Sprite* ActionScene::createRunner(int idx) {
 void ActionScene::timer(float f) {	
 	bool ret;
 	int itemIdx = -1;
-
-	mTimeDisplayValue ++;
-	mTimeDisplay->setString(to_string(mTimeDisplayValue));
 
 	if (mInvokeItemQueue.size() > 0) {
 		itemIdx = mInvokeItemQueue.front();
@@ -185,19 +190,24 @@ void ActionScene::timer(float f) {
 		mRunner[raceParticipantNum]->stopAllActions();
 		mRunner[raceParticipantNum]->runAction(getRunningAnimation());
 		mRunner[raceParticipantNum]->setPosition(Vec2(100, mRunner[raceParticipantNum]->getPosition().y));
+		/*
 		for (int n = 0; n < mRaceParticipants->size(); n++) {
 			_raceParticipant p = mRaceParticipants->at(n);
 			CCLOG("%d-%d", n, p.shootItemCount);
 		}
+		*/
 		result();
 		return;
 	}
-
+	
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		_raceParticipant p = mRaceParticipants->at(n);
+		//rank
+		//mRankLabel[n]->setString(to_string(p.rank));
 
 		if (p.ratioLength >= 100.f) {			
 			mRunner[n]->stopAllActions();
+			mRunnerLabel[n]->setString(to_string(p.rank));
 			continue;
 		}
 
@@ -208,7 +218,7 @@ void ActionScene::timer(float f) {
 				if (mSufferState[n] != SUFFER_STATE_SPEEDUP) {
 					mRunner[n]->stopAllActions();
 					mRunner[n]->runAction(getRunningAnimation(true));
-					mSufferState[n] = SUFFER_STATE_ATTACK;
+					mSufferState[n] = SUFFER_STATE_SPEEDUP;
 				}
 				break;
 			case itemType_race_shield:
@@ -246,7 +256,7 @@ void ActionScene::timer(float f) {
 		Vec2 position = mRunner[n]->getPosition();
 		position.x = x;
 		mRunner[n]->runAction(MoveTo::create(0.3, position));
-		mRunnerLabel[n]->setString(to_string(p.currentLength));
+		//mRunnerLabel[n]->setString(to_string(p.currentLength) + "-" + to_string(p.sufferItems.size()) + "," + to_string(p.currentSuffer));
 	}
 }
 
@@ -379,8 +389,8 @@ void ActionScene::showItemSelect() {
 		//item name
 		string name = wstring_to_utf8(item.name);
 		
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "Lv." + to_string(item.grade), l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, getRomeNumber(item.grade), l
+			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
 			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		//item quantity

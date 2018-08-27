@@ -1006,7 +1006,8 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
-	sum += (int)((float)sum * raceAIAdvantageRatio * race.level); // 레벨 * raceAIAdvantageRatio 만큼 능력치 올라감
+	//sum += (int)((float)sum * raceAIAdvantageRatio * race.level); // 레벨 * raceAIAdvantageRatio 만큼 능력치 올라감
+	sum += sum * raceAIAdvantageRatio; // 레벨에 상관없이 raceAIAdvantageRatio만 올림
 	//참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
@@ -1159,13 +1160,14 @@ int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 
 	float s1 = (float)s / 2.f;
 	float i1 = (float)i;
 	float a1 = (float)getRandValue(a * raceAppealRatio);
+
+	int length = (int)(s1 + i1 + a1);
+
 	//지침 정도. 체력 100% = 0
 	float tiredRatio = 1.f - ((float)s / total);
-	int decrease = total / 3.f * tiredRatio * ranPercent / 100.f;
+	int decrease = length / 3.f * tiredRatio * ranPercent / 100.f;
 
-	int length = (int)(s1 + i1 + a1 - decrease);
-
-	return length;
+	return length - decrease;
 }
 
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {

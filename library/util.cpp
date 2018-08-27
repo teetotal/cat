@@ -10,6 +10,11 @@ time_t getNow() {
 	return time(0);
 }
 
+string getRomeNumber(int n) {
+	string sz[] = { "0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV" };
+	return sz[n];
+}
+
 void sleepThisThread(size_t msec) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(msec));
 }

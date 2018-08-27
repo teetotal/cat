@@ -47,7 +47,7 @@
 //race rand(매력 * x)
 #define raceAppealRatio 0.8
 //race AI advantage ratio
-#define raceAIAdvantageRatio 0.05
+#define raceAIAdvantageRatio 0.1
 //race 경묘에서 지력이 차지하는 비율
 #define raceIntelligenceRatio 0.5
 //race AI item 등급별 추가 지급
@@ -55,7 +55,7 @@
 //race 스퍼트 구간
 #define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
-#define raceInvokeThreshold 70
+#define raceInvokeThreshold 60
 //race AI 스킬발동 랜덤 확률 1/raceAIRandom 
 #define raceAIRandom 10
 //farming 식탐 방지 지능 threshold
@@ -426,6 +426,10 @@ public:
 	_raceCurrent* getRaceResult() {
 		return &mRaceCurrent;
 	}
+	//race 순위
+	raceParticipants * getRaceRank() {
+		return &mRaceOrderedVector;
+	};
 	//charge
 	errorCode runRecharge(int id, int quantity);	
 
@@ -468,7 +472,7 @@ private:
 	raceParticipants* mRaceParticipants;	
 	raceMeta mRace;		
 	_raceCurrent mRaceCurrent;	
-	vector<_raceParticipant> mRaceOrderedVector;
+	raceParticipants mRaceOrderedVector;
 
 	//경묘용 아이템만 따로 모아논 벡터
 	typedef vector<int> intVector;

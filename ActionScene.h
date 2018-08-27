@@ -47,8 +47,8 @@ private:
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
 
-	Label* mRankLabel, * mTimeDisplay;
-	int mTimeDisplayValue;
+	//Label * mRankLabel[raceParticipantNum + 1];
+
 	MenuItemFont * mSelectedItem[raceItemSlot];
 	MenuItemFont * mSkillItem[raceItemSlot];
 	Layout * mFullLayer;
