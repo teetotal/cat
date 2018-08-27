@@ -11,10 +11,6 @@
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 5);
 #define POPUP_NODE_MARGIN  4
 
-wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , L""};
-Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
-
-
 //#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene()
 {
@@ -24,7 +20,6 @@ Scene* ActionScene::createScene()
 bool ActionScene::init() {		
 
 	//초기화
-	names[raceParticipantNum] = logics::hInst->getActor()->name;
 	mPopupLayer = NULL;
 	mPopupLayerBackground = NULL;
 
@@ -164,6 +159,9 @@ Sprite* ActionScene::createRunner(int idx) {
 	));
 	//gui::inst()->setScale(p, RUNNER_WIDTH);
     p->runAction(getRunningAnimation());
+
+	wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , logics::hInst->getActor()->name };
+	Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
 
     Color3B color = txtColors[idx];
 	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
