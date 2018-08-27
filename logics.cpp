@@ -1147,19 +1147,29 @@ void logics::invokeRaceItemAI() {
 	}
 }
 
-int logics::getBaseSpeed(int s, int i, int a) {
-	//float ratioI = ((float)i / (float)(s + i + a));
+int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */) {
+	/*
 	float s1 = (float)(s * (1.0f - raceIntelligenceRatio));
 	float i1 = (float)(i * raceIntelligenceRatio);
 	float a1 = (float)getRandValue(a * raceAppealRatio);
 	int length = (int)(s1 + i1 + a1);
+	*/
+	// 체력 50% + 지력 100% + rand(매력) - (전체 * (1 - 체력비율) * 달린거리 / 100 )
+	float total = (float)(s + i + a);
+	float s1 = (float)s / 2.f;
+	float i1 = (float)i;
+	float a1 = (float)getRandValue(a * raceAppealRatio);
+	//지침 정도. 체력 100% = 0
+	float tiredRatio = 1.f - ((float)s / total);
+	int decrease = total / 3.f * tiredRatio * ranPercent / 100.f;
+
+	int length = (int)(s1 + i1 + a1 - decrease);
 
 	return length;
 }
 
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
-	 int lastRank = 0;
-	 //int raceLength = mRace[mRaceCurrent.id].length;
+	 int lastRank = 0;	 
 	 int raceLength = (int)((float)mActor->property.total() / 2.f * 0.5f * 30.f * 5.f);
 	 //순위 산정용 벡터
 	 mRaceOrderedVector.clear();
@@ -1207,6 +1217,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 mRaceParticipants->at(n).strength
 			 , mRaceParticipants->at(n).intelligence
 			 , mRaceParticipants->at(n).appeal
+			 , mRaceParticipants->at(n).ratioLength
 		 );
 		 
 		 switch (mRaceParticipants->at(n).currentSuffer) {

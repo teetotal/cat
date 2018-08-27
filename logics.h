@@ -484,7 +484,7 @@ private:
 	//race 순위에 아이템 적용
 	void invokeRaceByRank(int rank, itemType type, int quantity);
 	//SIA를 고려한 기본 스피드
-	int getBaseSpeed(int s, int i, int a);
+	int getBaseSpeed(int s, int i, int a, float ranPercent);
 	
 	//increase property
 	void addProperty(int strength, int intelligence, int appeal);

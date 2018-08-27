@@ -44,7 +44,9 @@ private:
 	void invokeItem(Ref* pSender, int idx);
 	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
-	Sprite * mRunner[5];
+	Sprite * mRunner[raceParticipantNum + 1];
+	Label * mRunnerLabel[raceParticipantNum + 1];
+
 	Label* mRankLabel, * mTimeDisplay;
 	int mTimeDisplayValue;
 	MenuItemFont * mSelectedItem[raceItemSlot];

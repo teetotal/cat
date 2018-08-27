@@ -161,6 +161,9 @@ Sprite* ActionScene::createRunner(int idx) {
 	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
 	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 15);
 
+	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, "!", p, 10, ALIGNMENT_CENTER, color);
+	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 30);
+
 	return p;
 }
 
@@ -243,6 +246,7 @@ void ActionScene::timer(float f) {
 		Vec2 position = mRunner[n]->getPosition();
 		position.x = x;
 		mRunner[n]->runAction(MoveTo::create(0.3, position));
+		mRunnerLabel[n]->setString(to_string(p.currentLength));
 	}
 }
 
