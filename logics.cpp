@@ -7,9 +7,7 @@
 
 logics * logics::hInst = NULL;
 
-bool logics::init(farmingFinshedNotiCallback farmCB
-	    , tradeUpdatedCallback tradeCB
-	) {
+bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB) {
 
     string szMeta;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
@@ -38,11 +36,12 @@ bool logics::init(farmingFinshedNotiCallback farmCB
 	if (!initAchievement(d["achievement"]))
 		return false;
 
-	mFarming.init(farmCB);
-
 	if (!initActor())
 		return false;
 
+	mFarming.init(farmCB);
+	mAchieveCB = achieveCB;
+	
 	//trade
 	float trade_margin = d["trade"]["margin"].GetFloat();
 	int trade_interval = d["trade"]["updateInterval"].GetInt();
@@ -166,7 +165,7 @@ bool logics::initActor()
 		}		
 	}
 
-	if (!mAchievement.init(achievementCallback, lastLogin))
+	if (!mAchievement.init(achievementCallbackFn, lastLogin))
 		return false;
 
 	//save backup
@@ -621,9 +620,18 @@ bool logics::setTradeMarketPrice() {
 */
 errorCode logics::isValidTraining(int id) {
 	//check validation
-	if (mTraining.find(id) == mTraining.end() || isValidTraningTime(id) == false) {
+	if (mTraining.find(id) == mTraining.end()) {
 		return error_invalid_id;
 	}
+
+	if (isValidTraningLevel(id) == false) {
+		return error_not_enough_level;
+	}
+
+	if (isValidTraningTime(id) == false) {
+		return error_invalid_time;
+	}
+
 	_training t = mTraining[id];
 	if (getHP() <= 0) {
 		return error_not_enough_hp;
@@ -874,12 +882,18 @@ bool logics::rechargeHP() {
 	return false;
 }
 
-bool logics::isValidTraningTime(int id) {
-
+bool logics::isValidTraningLevel(int id) {
 	_training* t = &mTraining[id];
 
 	if (mActor->level < t->level)
 		return false;
+
+	return true;
+}
+
+bool logics::isValidTraningTime(int id) {
+
+	_training* t = &mTraining[id];
 
 	if (t->start == 0)
 		return true;
@@ -978,7 +992,7 @@ errorCode logics::runRaceValidate(int id) {
 	return error_success;
 }
 
-errorCode logics::runRace(int id, itemsVector &items) {
+errorCode logics::runRaceSetRunners(int id) {
 	if (mRace.find(id) == mRace.end())
 		return error_invalid_id;
 
@@ -991,11 +1005,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 
 	if (mActor->point < mRace[id].fee)
 		return error_not_enough_point;
-
-	for (int m = 0; m < (int)items.size(); m++) {
-		if(!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
-			return error_not_enough_item;
-	}
+		
 	_race race = mRace[id];
 	mActor->point -= race.fee;
 	mRaceCurrent.id = id;
@@ -1008,7 +1018,7 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
 	//sum += (int)((float)sum * raceAIAdvantageRatio * race.level); // 레벨 * raceAIAdvantageRatio 만큼 능력치 올라감
 	sum += sum * raceAIAdvantageRatio; // 레벨에 상관없이 raceAIAdvantageRatio만 올림
-	//참가자 목록
+									   //참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
@@ -1016,36 +1026,48 @@ errorCode logics::runRace(int id, itemsVector &items) {
 		p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
 		p.intelligence = getRandValue(sum - p.strength);
 		p.appeal = sum - p.strength - p.intelligence;
-		
+
 		//AI advantage
 		//p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);
-		/*
-		for (int m = 0; m < raceItemSlot; m++) {
-			p.items[m] = getRandomRaceItem();
-		}*/
-		//printf("(%d) S: %d, I: %d, A: %d\n",n+1,  p.strength, p.intelligence, p.appeal);
-		//_sleep(100);
+		
 		mRaceParticipants->push_back(p);
-	}
+	}	
+
+	return error_success;
+}
+errorCode logics::runRaceSetItems(itemsVector &items) {
+	
+	for (int m = 0; m < (int)items.size(); m++) {
+		if (!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
+			return error_not_enough_item;
+	}	
+
 	_raceParticipant p;
 	p.idx = raceParticipantNum;
 	p.strength = mActor->property.strength;
 	p.intelligence = mActor->property.intelligence;
 	p.appeal = mActor->property.appeal;
-	
+
 	int idx = 0;
 	for (int m = 0; m < (int)items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
 			p.items[idx] = items[m].itemId;
 			addInventory(items[m].itemId, -1);
 			idx++;
-		}		
+		}
 	}
 	mRaceParticipants->push_back(p);
 	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);
 	//if (increaseExp())		return error_levelup;
 
 	return error_success;
+}
+
+errorCode logics::runRace(int id, itemsVector &items) {
+	errorCode err = runRaceSetRunners(id);
+	if (err != error_success)
+		return err;
+	return runRaceSetItems(items);
 }
 
 void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
@@ -1149,12 +1171,14 @@ void logics::invokeRaceItemAI() {
 }
 
 int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */) {
+	/* 전반은 I:S = 7: 3 후반은 S:I 7:3 */
+	
+	int s1 = (ranPercent <= 50.f) ? s * 0.3 : s * 0.7;
+	int i1 = (ranPercent <= 50.f) ? i * 0.7 : i * 0.3;
+	int a1 = (float)getRandValue(a); //raceAppealRatio
+	return (s1 + i1 + a1);
+	
 	/*
-	float s1 = (float)(s * (1.0f - raceIntelligenceRatio));
-	float i1 = (float)(i * raceIntelligenceRatio);
-	float a1 = (float)getRandValue(a * raceAppealRatio);
-	int length = (int)(s1 + i1 + a1);
-	*/
 	// 체력 50% + 지력 100% + rand(매력) - (전체 * (1 - 체력비율) * 달린거리 / 100 )
 	float total = (float)(s + i + a);
 	float s1 = (float)s / 2.f;
@@ -1168,6 +1192,7 @@ int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 
 	int decrease = length / 3.f * tiredRatio * ranPercent / 100.f;
 
 	return length - decrease;
+	*/
 }
 
 raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
@@ -1353,13 +1378,13 @@ errorCode logics::farmingExtend()
 }
 ;
 
-void logics::achievementCallback(bool isDaily, int idx) {
+void logics::achievementCallbackFn(bool isDaily, int idx) {
 	printf("%d achievementCallback \n", idx);
 	achievement::detail d;
 	hInst->mAchievement.getDetail(isDaily, idx, d);
 	hInst->mAchievement.rewardReceive(isDaily, idx);
 	hInst->addInventory(d.rewardId, d.rewardVal);
-
+	hInst->mAchieveCB(isDaily, idx);
 }
 
 void logics::threadRun()

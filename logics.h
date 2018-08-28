@@ -79,7 +79,9 @@ enum errorCode {
 	error_not_enough_strength,
 	error_farming_failure,
 	error_farming_gluttony,
-	error_full_hp
+	error_full_hp,
+	error_invalid_time,
+	error_not_enough_level,
 };
 enum inventoryType {
 	inventoryType_all = -1,
@@ -315,9 +317,7 @@ public:
 			finalize();
 		hInst = NULL;
 	};
-	bool init(farmingFinshedNotiCallback
-			, tradeUpdatedCallback
-	);
+	bool init(farmingFinshedNotiCallback, tradeUpdatedCallback, achievementCallback);
 	void finalize();
 	void saveActor(); //현재 정보 저장
 	bool insertItem(_item);	
@@ -331,6 +331,7 @@ public:
 
     //check traning time validation
     bool isValidTraningTime(int id);
+	bool isValidTraningLevel(int id);
 
     __training * getActionList(){
         return &mTraining;
@@ -418,7 +419,14 @@ public:
 
 	//Race
 	errorCode runRace(int id, itemsVector &items);
+	//위에 함수를 2개로 나눔
+	errorCode runRaceSetRunners(int id);
+	errorCode runRaceSetItems(itemsVector &items);
+	raceParticipants* getRaceRunners() {
+		return mRaceParticipants;
+	}
 	errorCode runRaceValidate(int id);
+	
 
 	//race 진행
 	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx);
@@ -515,7 +523,7 @@ private:
 	bool initAchievement(rapidjson::Value &p);
 
 	void printInven(inventoryType type, wstring &sz);    
-	static void achievementCallback(bool isDaily, int idx);
+	static void achievementCallbackFn(bool isDaily, int idx);
 	static void threadRun();
 	
 	void saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type);
@@ -525,6 +533,8 @@ private:
 	int mFarmingExtendFee;
 	//Trade
 	trade mTrade;
+	//업적 콜백
+	achievementCallback mAchieveCB;
 
 	thread* mThread;
 	bool mIsFinalized;

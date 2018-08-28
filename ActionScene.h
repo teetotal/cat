@@ -14,15 +14,27 @@ USING_NS_CC;
 
 class ActionScene : public Scene {
 public:
-    static Scene* createScene();
+    static Scene* createScene(int id);
 
     virtual bool init();
 
-    // a selector callback
-    void menuCloseCallback(Ref* pSender);
+	static ActionScene* create(int id)
+	{
+		ActionScene *pRet = new(std::nothrow) ActionScene();
+		pRet->setRaceId(id);
 
-    // implement the "static create()" method manually
-    CREATE_FUNC(ActionScene);
+		if (pRet && pRet->init())
+		{
+			pRet->autorelease();
+			return pRet;
+		}
+		else
+		{
+			delete pRet;
+			pRet = nullptr;
+			return nullptr;
+		}
+	};
 
 	void setRaceId(int id) {
 		mRaceId = id;
@@ -67,6 +79,10 @@ private:
 
 	int mRaceId;
 	queue<int> mInvokeItemQueue;
+
+	wstring names[raceParticipantNum + 1];
+	Color3B txtColors[raceParticipantNum + 1];
+
 };
 
 

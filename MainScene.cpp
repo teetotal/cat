@@ -44,7 +44,7 @@ bool MainScene::init()
 	mAlertLayer = NULL;
     hInst = this;
     mParitclePopup = NULL;
-	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB))
+	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB))
 		return false;
 
     //////////////////////////////
@@ -154,7 +154,8 @@ bool MainScene::init()
     mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE, fontColor);
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
-    mJobTitle = gui::inst()->addLabel(4,1,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
+    mJobTitle = gui::inst()->addLabel(4,0,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
+	mJobTitle->setPosition(Vec2(mJobTitle->getPosition().x, mJobTitle->getPosition().y + 15));
 
 	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
     gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, fontColor);
@@ -166,7 +167,7 @@ bool MainScene::init()
     mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
-    gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
+	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
 
 	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16, ALIGNMENT_CENTER, fontColor);
 
@@ -518,9 +519,7 @@ void MainScene::runRace(Ref* pSender, int raceId) {
 		return;
 	}
 
-	Scene * p = ActionScene::createScene();
-	((ActionScene*)p)->setRaceId(raceId);
-	Director::getInstance()->pushScene(p);
+	Director::getInstance()->pushScene(ActionScene::createScene(raceId));
 	
 }
 
@@ -543,6 +542,8 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		showInventory(inventoryType_all, true);
 		break;
 	case SCENECODE_ACHIEVEMENT: // 업적
+		mAchievement->stopAllActions();
+		mAchievement->setScale(1);
 		showAchievement();
 		break;
 	case SCENECODE_BUY: //구매
@@ -774,10 +775,10 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 
 	vector<intPair> vec;
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(7, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(7, 1), size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;
@@ -1132,62 +1133,30 @@ void MainScene::actionList() {
     for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {        
 		int id = it->first;
 
-		if (!logics::hInst->isValidTraningTime(id))
-            continue;
-
-        wstring rewardItems;
         wstring costItems;		
 		int rewardItemCnt = 0;		
 
         for (int n = 0; n < maxTrainingItems; n++) {
-            _itemPair* p = it->second.reward.items[n];
-            if (p != NULL) {				
-				if(n == 0)
-					rewardItems = logics::hInst->getItem(p->itemId).name;
-				rewardItemCnt++;
-                
-            }
-            p = it->second.cost.items[n];
+            _itemPair* p = it->second.cost.items[n];
             if (p != NULL) {				
 				costItems += logics::hInst->getItem(p->itemId).name + L"x" + to_wstring(p->val);				
             }
-        }		
-		if (rewardItemCnt > 1)
-			rewardItems += L" 외 " + to_wstring(rewardItemCnt - 1);
-		
-		/*
-		string pay = " ";
-		if (it->second.cost.point > 0) pay += "$ " + to_string(it->second.cost.point) + " ";		
-		if (it->second.cost.strength > 0) pay += "S: " + to_string(it->second.cost.strength) + " ";
-		if (it->second.cost.intelligence > 0) pay += "I: " + to_string(it->second.cost.intelligence) + " ";
-		if (it->second.cost.appeal > 0) pay += "A: " + to_string(it->second.cost.appeal) + " ";
-		//pay += wstring_to_utf8(costItems);
-		*/
-		/*
-		string reward;
-        if(it->second.reward.point > 0)         reward += "$ " + to_string(it->second.reward.point) + " ";
-        if(it->second.reward.strength > 0)      reward += "S: " + to_string(it->second.reward.strength) + " ";
-        if(it->second.reward.intelligence > 0)  reward += "I: "+ to_string(it->second.reward.intelligence) + " ";
-        if(it->second.reward.appeal > 0)        reward += "A: " + to_string(it->second.reward.appeal) + " ";
-		reward += wstring_to_utf8(rewardItems);
-		*/
+        }
 
         //대충 정해 놓고 나중에
         int type = it->second.type;
 		int level = it->second.level;
 		const wchar_t c[] = {L'`' , L'─', L'┌', L'┐', L'┘', L'└', L'├', L'┬'};
-        Color3B bgColor = Color3B(255 - type * 5, 255 - level * 10, 255);
+        Color3B bgColor = Color3B(255 - type * 2, 255 - level * 5, 255);
 
         Layout* l = gui::inst()->createLayout(nodeSize, "", true, bgColor);
 
 		wstring szC = L" ";
 		szC[0] = c[type];
-
-        gui::inst()->addLabelAutoDimension(0,2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-
+		
 		//Error처리
+		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
-		Color3B fontColorReward = Color3B::BLUE;
 		errorCode err = logics::hInst->isValidTraining(id);
 		if (err != error_success) {			
 			id = -1;
@@ -1202,15 +1171,22 @@ void MainScene::actionList() {
 				, Size::ZERO
 			);
 			fontColor = Color3B::GRAY;
-			fontColorReward = fontColor;
+			isEnable = false;
 		}
-			
-		gui::inst()->addLabelAutoDimension(1, 1, "Lv. " + to_string(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLabelAutoDimension(0, 2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLabelAutoDimension(1, 1, getRomeNumber(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
         gui::inst()->addTextButtonAutoDimension(1,2, wstring_to_utf8(it->second.name), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1,3, wstring_to_utf8(costItems), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
         //gui::inst()->addTextButtonAutoDimension(1,3, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
         
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
+
+		if (!isEnable) {
+			l->setEnabled(false);
+		}
+			
     }
 
     layer->addChild(sv, 1, 123);
@@ -1252,6 +1228,27 @@ void MainScene::showRace() {
 	//this->removeChild(layerGray);
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
+
+	gui::inst()->addTextButtonAutoDimension(0, 0, "ITEM", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(1, 0, "SPEED", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(2, 0, "PvP", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(3, 0, "PvP SPEED", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
 
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)

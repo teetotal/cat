@@ -8,13 +8,13 @@
 #define RACE_UPDATE_INTERVAL 0.3
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 2.5
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 5);
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 5);
 #define POPUP_NODE_MARGIN  4
 
 //#define RUNNER_WIDTH 80
-Scene* ActionScene::createScene()
-{
-    return ActionScene::create();
+Scene* ActionScene::createScene(int id)
+{	
+	return ActionScene::create(id);
 }
 
 bool ActionScene::init() {		
@@ -26,7 +26,18 @@ bool ActionScene::init() {
 	for (int n = 0; n < raceItemSlot; n++) {
 		mSelectedItem[n] = NULL;
 	}
-	
+
+	int idx = 0;
+	names[idx++] = L"꼴등이";
+	txtColors[idx] = Color3B::YELLOW;
+	names[idx++] = L"시그";
+	txtColors[idx] = Color3B::GRAY;
+	names[idx++] = L"김밥이";
+	txtColors[idx] = Color3B::MAGENTA;
+	names[idx++] = L"인절미";
+	txtColors[idx] = Color3B::ORANGE;
+	names[idx++] = logics::hInst->getActor()->name;
+	txtColors[idx] = Color3B::WHITE;
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
 
@@ -59,9 +70,9 @@ bool ActionScene::init() {
 	));
 
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
-	this->addChild(mFullLayer);
+	this->addChild(mFullLayer);	
 
-	//아이템 선택
+	//경묘 선수 초기 셋팅 및 아이템 선택
 	showItemSelect();
 
     return true;
@@ -70,7 +81,7 @@ bool ActionScene::init() {
 void ActionScene::initRace() {
 	bool ret;
 	//Race 초기 상태	
-	errorCode err = logics::hInst->runRace(mRaceId, mSelectItems);
+	errorCode err = logics::hInst->runRaceSetItems(mSelectItems);
 	if (err != error_success && err != error_levelup) {
 		//alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
 		return;
@@ -159,9 +170,6 @@ Sprite* ActionScene::createRunner(int idx) {
 	));
 	//gui::inst()->setScale(p, RUNNER_WIDTH);
     p->runAction(getRunningAnimation());
-
-	wstring names[raceParticipantNum + 1] = { L"꼴등이" , L"시그" , L"김밥이" , L"인절미" , logics::hInst->getActor()->name };
-	Color3B txtColors[raceParticipantNum + 1] = { Color3B::YELLOW, Color3B::GRAY, Color3B::MAGENTA, Color3B::ORANGE, Color3B::WHITE };
 
     Color3B color = txtColors[idx];
 	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
@@ -335,6 +343,7 @@ void ActionScene::selectItem(Ref* pSender, int id) {
 
 void ActionScene::showItemSelect() {
 	RACE_SIZE;
+
 	this->removeChild(mPopupLayerBackground);
 	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, size, "bg_race.png", Color4B::WHITE);
 
@@ -351,25 +360,50 @@ void ActionScene::showItemSelect() {
 
 	//Selected Item
 	for (int n = 0; n < raceItemSlot; n++) {
-		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(1 + (3 * (n)), 5, "EMPTY", mPopupLayer
+		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(3 + (2 * (n)), 5, "EMPTY", mPopupLayer
 			, CC_CALLBACK_1(ActionScene::removeSelectItem, this, n)
 			, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 		);
 	}
-	
+
+	//Race 초기 상태	
+	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
+	if (err != error_success && err != error_levelup) {
+		gui::inst()->addLabel(4, 3, wstring_to_utf8(logics::hInst->getErrorMessage(err)), this);
+		return;
+	}
+
+	//선수 정보
+	raceParticipants* p = logics::hInst->getRaceRunners();
+	for (int n = 0; n < p->size(); n++) {
+		gui::inst()->addLabelAutoDimension(0, n +1, wstring_to_utf8(names[n]), mPopupLayer, 10, ALIGNMENT_NONE, txtColors[n]);
+		string pro = "S: " + to_string(p->at(n).strength) + " ";
+		pro += "I: " + to_string(p->at(n).intelligence) + " ";
+		pro += "A: " + to_string(p->at(n).appeal);
+
+		gui::inst()->addLabelAutoDimension(1, n + 1, pro, mPopupLayer, 10, ALIGNMENT_NONE, txtColors[n]);
+	}
+
+	gui::inst()->addLabelAutoDimension(0, p->size() + 1, wstring_to_utf8(logics::hInst->getActor()->name), mPopupLayer, 10, ALIGNMENT_NONE, txtColors[p->size()]);
+	string pro = "S: " + to_string(logics::hInst->getActor()->property.strength) + " ";
+	pro += "I: " + to_string(logics::hInst->getActor()->property.intelligence) + " ";
+	pro += "A: " + to_string(logics::hInst->getActor()->property.appeal);
+
+	gui::inst()->addLabelAutoDimension(1, p->size() + 1, pro, mPopupLayer, 10, ALIGNMENT_NONE, txtColors[p->size()]);
+		
 	int nMenuIdx = 0;
-	int newLine = 0;
+	int newLine = 2;
 
 	vector<intPair> vec;
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)inventoryType_race);
 
 	int cnt = vec.size();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 3), Vec2(9, 0), size, margin);
-	//nodeSize.width = (sizeOfScrollView.width / (float)newLine) - POPUP_NODE_MARGIN;
-	nodeSize.height = sizeOfScrollView.height - POPUP_NODE_MARGIN;
-	Size innerSize = Size(cnt * (nodeSize.width + POPUP_NODE_MARGIN), sizeOfScrollView.height);
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 4), Vec2(9, 1), size, margin, "", innerSize);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(3, 5), Vec2(9, 0), size, margin);
+	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - POPUP_NODE_MARGIN;
+	//nodeSize.width = sizeOfScrollView.width - POPUP_NODE_MARGIN;
+	Size innerSize = Size(sizeOfScrollView.width , cnt * (sizeOfScrollView.height + POPUP_NODE_MARGIN));
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(3, 5), Vec2(9, 0), size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;
@@ -388,12 +422,12 @@ void ActionScene::showItemSelect() {
 		string name = wstring_to_utf8(item.name);
 		
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, getRomeNumber(item.grade), l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		//item quantity
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "x " + to_string(vec[n].val), l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(sv, l, POPUP_NODE_MARGIN, newLine);
 

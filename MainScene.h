@@ -67,10 +67,6 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(MainScene);
 
-    void cultivationCBInner(int id){
-        CCLOG("cultivationCBInner %d", id);
-    };
-
 	static Sprite * getIdle(int id = 100);
 	static RepeatForever * getIdleAnimation(int id = 100);
 
@@ -84,7 +80,7 @@ private:
     LoadingBar * loadingBar;
 
     Label * mName, * mJobTitle, * mExp, * mProperties;
-    MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy;
+    MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
     Layout * mAlertLayer;
 
 	SCENECODE mCurrentScene; //현재 Scene 정보
@@ -97,11 +93,10 @@ private:
     void callback0();
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
-    
-
-    static void cultivationCB(int id){
-        hInst->cultivationCBInner(id);
-    };
+  
+	static void achievementCB(bool isDaily, int idx) {
+		noticeEffect(hInst->mAchievement);
+	};
 
 	static void noticeEffect(MenuItemFont * p) {
 		if (p) {

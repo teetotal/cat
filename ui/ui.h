@@ -15,7 +15,7 @@
 #define GRID_INVALID_VALUE -1
 #define DEFAULT_OPACITY 150
 
-#define DEFAULT_LAYER_SIZE Size(385, 200)
+#define DEFAULT_LAYER_SIZE Size(420, 200)
 
 using namespace cocos2d;
 using namespace cocos2d::ui;
