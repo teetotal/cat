@@ -307,9 +307,11 @@ bool logics::initRace(rapidjson::Value & race)
 	for (rapidjson::SizeType i = 0; i < race.Size(); i++) {
 		_race r;
 		r.id = race[rapidjson::SizeType(i)]["id"].GetInt();
+		r.mode = (race_mode)race[rapidjson::SizeType(i)]["mode"].GetInt();
 		r.title = utf8_to_utf16(race[rapidjson::SizeType(i)]["title"].GetString());
-		r.fee = race[rapidjson::SizeType(i)]["fee"].GetInt();
-		r.length = race[rapidjson::SizeType(i)]["length"].GetInt();
+		r.min = race[rapidjson::SizeType(i)]["min"].GetInt();
+		r.max = race[rapidjson::SizeType(i)]["max"].GetInt();
+		r.fee = race[rapidjson::SizeType(i)]["fee"].GetInt();		
 		r.level = race[rapidjson::SizeType(i)]["level"].GetInt();
 
 		const rapidjson::Value& rewards = race[rapidjson::SizeType(i)]["rewards"];
@@ -328,6 +330,7 @@ bool logics::initRace(rapidjson::Value & race)
 			r.rewards.push_back(rr);
 		}
 		addRaceMeta(r);
+		mRaceModeCnt[r.mode]++;
 	}
 	return true;
 }
@@ -996,17 +999,18 @@ errorCode logics::runRaceSetRunners(int id) {
 	if (mRace.find(id) == mRace.end())
 		return error_invalid_id;
 
-	if (mActor->property.strength < 0) {
-		return error_not_enough_strength;
+	_race race = mRace[id];
+
+	if (mActor->property.total() < race.min) {
+		return error_not_enough_property;
 	}
 	if (!increaseHP(-1)) {
 		return error_not_enough_hp;
 	}
 
-	if (mActor->point < mRace[id].fee)
+	if (mActor->point < race.fee)
 		return error_not_enough_point;
-		
-	_race race = mRace[id];
+	
 	mActor->point -= race.fee;
 	mRaceCurrent.id = id;
 	mRaceCurrent.prize = 0;
@@ -1015,10 +1019,16 @@ errorCode logics::runRaceSetRunners(int id) {
 
 	mRaceParticipants->clear();
 	//내 능력치랑 비슷하게 구성
-	int sum = mActor->property.strength + mActor->property.intelligence + mActor->property.appeal;
-	//sum += (int)((float)sum * raceAIAdvantageRatio * race.level); // 레벨 * raceAIAdvantageRatio 만큼 능력치 올라감
-	sum += sum * raceAIAdvantageRatio; // 레벨에 상관없이 raceAIAdvantageRatio만 올림
-									   //참가자 목록
+	int sum = min(race.max, mActor->property.total()); //경묘 능력 최대치랑 유저 능력치 중 낮은 값으로 설정
+	if (race.mode == race_mode_speed) {
+		sum += (float)sum * raceAIAdvantageRatio * max(1, getRandValue(4)); // raceAIAdvantageRatio * 1 ~ 3 올림
+	}
+	else {
+		sum += (float)sum * raceAIAdvantageRatio; // raceAIAdvantageRatio만 올림
+	}
+
+	
+    //참가자 목록
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
@@ -1068,6 +1078,17 @@ errorCode logics::runRace(int id, itemsVector &items) {
 	if (err != error_success)
 		return err;
 	return runRaceSetItems(items);
+}
+
+int logics::getRaceReward(int id, int rankIdx) {
+	_race race = mRace[id];
+	//최대 능력치 보다 유저 능력치가 높으면 참가비 보다 상금이 적음.
+	//1등은 참가비 + 20%
+	//2등은 참가비 + 10%
+	if (race.max < mActor->property.total()) {
+		return race.fee - (race.fee * (rankIdx + 1) * 0.1);
+	}	
+	return race.rewards.at(rankIdx).prize;
 }
 
 void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
@@ -1170,13 +1191,14 @@ void logics::invokeRaceItemAI() {
 	}
 }
 
-int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */) {
+int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */, int boost) {
 	/* 전반은 I:S = 7: 3 후반은 S:I 7:3 */
-	
+	int boostLength = (float)(s + i + a) * (float)boost / 100.f;
+
 	int s1 = (ranPercent <= 50.f) ? s * 0.3 : s * 0.7;
 	int i1 = (ranPercent <= 50.f) ? i * 0.7 : i * 0.3;
 	int a1 = (float)getRandValue(a); //raceAppealRatio
-	return (s1 + i1 + a1);
+	return (s1 + i1 + a1) + boostLength;
 	
 	/*
 	// 체력 50% + 지력 100% + rand(매력) - (전체 * (1 - 체력비율) * 달린거리 / 100 )
@@ -1195,7 +1217,7 @@ int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 
 	*/
 }
 
-raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
+raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 	 int lastRank = 0;	 
 	 int raceLength = (int)((float)mActor->property.total() / 2.f * 0.5f * 30.f * 5.f);
 	 //순위 산정용 벡터
@@ -1223,8 +1245,9 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 	 if (itemIdx > -1) {
 		 invokeRaceItemByIdx(raceParticipantNum, itemIdx);
 	 }
-	 //AI가 사용한 아이템 발동
-	 invokeRaceItemAI();
+	 //AI 아이템 발동
+	 if(mRace[mRaceCurrent.id].mode == race_mode_item || mRace[mRaceCurrent.id].mode == race_mode_friend_1)
+		invokeRaceItemAI();
 
 	 //진행 값 설정
 	 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
@@ -1238,13 +1261,13 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 mRaceParticipants->at(n).sufferItems.pop();
 		 }
 		 
-		 //기초 체력 + random appeal
-		 //int length = mRaceParticipants->at(n).strength + getRandValue(mRaceParticipants->at(n).appeal * raceAppealRatio);
+		 //기초 체력 + random appeal		 
 		 int length = getBaseSpeed(
 			 mRaceParticipants->at(n).strength
 			 , mRaceParticipants->at(n).intelligence
 			 , mRaceParticipants->at(n).appeal
 			 , mRaceParticipants->at(n).ratioLength
+			 , (n == raceParticipantNum) ? boost : 0	//boost 설정. 0 ~ 100
 		 );
 		 
 		 switch (mRaceParticipants->at(n).currentSuffer) {
@@ -1296,15 +1319,19 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx) {
 			 
 		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
 			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
-				 mActor->point += mRace[mRaceCurrent.id].rewards[n].prize;
-				 int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
-				 int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
-				 int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
-				 addInventory(itemId, val);
+				 //상금 지급
+				 mActor->point += getRaceReward(mRaceCurrent.id, n); //mRace[mRaceCurrent.id].rewards[n].prize;
 
+				 if (mRace[mRaceCurrent.id].rewards[n].items.size() > 0) {
+					 int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
+					 int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
+					 int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
+					 addInventory(itemId, val);
+
+					 mRaceCurrent.rewardItemId = itemId;
+					 mRaceCurrent.rewardItemQuantity = val;
+				 }
 				 mRaceCurrent.prize = mRace[mRaceCurrent.id].rewards[n].prize;
-				 mRaceCurrent.rewardItemId = itemId;
-				 mRaceCurrent.rewardItemQuantity = val;
 
 				 break;
 			 }

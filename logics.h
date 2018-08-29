@@ -144,6 +144,13 @@ enum achievement_race_id {
 	achievement_race_id_first,	//1등
 	achievement_race_id_second,	//2등
 };
+enum race_mode {
+	race_mode_item = 0,		//vs cpu
+	race_mode_speed,
+	race_mode_friend_1,	//user vs user
+	race_mode_max
+};
+
 
 //HP lock
 static mutex lockHP;
@@ -249,6 +256,9 @@ struct _raceReward {
 //race
 struct _race {
 	int id;
+	race_mode mode;
+	int min;
+	int max;
 	wstring title;
 	int length;
 	int level;
@@ -311,6 +321,8 @@ public:
 		hInst = this;
 		srand((int)time(0));		
 		mRaceParticipants = new raceParticipants;
+		for (int n = 0; n < race_mode_max; n++)
+			mRaceModeCnt[n] = 0;
 	};
 	~logics() {
 		if(!mIsFinalized)
@@ -362,11 +374,6 @@ public:
 	//get max HP
 	int getMaxHP();
 
-	//get race info
-	raceMeta * getRace() {
-		return &mRace;
-	};
-
 	bool isAvailableHP() {
 		return getHP() > 0 ? true : false;
 	}
@@ -417,7 +424,7 @@ public:
 	errorCode runTrade(bool isBuy, int id, int quantity);
 	int getTradeInvenTypeCnt(inventoryType type); //Trade 인벤타입 갯수
 
-	//Race
+	//----------------------------------------------------------------------Race
 	errorCode runRace(int id, itemsVector &items);
 	//위에 함수를 2개로 나눔
 	errorCode runRaceSetRunners(int id);
@@ -426,10 +433,12 @@ public:
 		return mRaceParticipants;
 	}
 	errorCode runRaceValidate(int id);
-	
-
+	//get race info
+	raceMeta * getRace() {
+		return &mRace;
+	};
 	//race 진행
-	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx);
+	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx, int boost = 0);
 	//race 결과
 	_raceCurrent* getRaceResult() {
 		return &mRaceCurrent;
@@ -438,13 +447,18 @@ public:
 	raceParticipants * getRaceRank() {
 		return &mRaceOrderedVector;
 	};
-	//charge
-	errorCode runRecharge(int id, int quantity);	
+	int getRaceModeCnt(race_mode mode) {
+		return mRaceModeCnt[mode];
+	};
+	//능력치에 따라 상금을 달리 지급
+	int getRaceReward(int id, int rankIdx /*1등 = 0*/);
 
+	//-----------------------------------------------------------------------charge
+	errorCode runRecharge(int id, int quantity);	
 	//auto recharge HP 충전이 되면 true, 이미 만땅이거나 시간이 아니면 false
 	bool rechargeHP();
 	
-	//add inventory
+	//------------------------------------------------------------------------add inventory
 	bool addInventory(int itemId, int quantity);
 	inventoryType getInventoryType(int itemId);
 
@@ -496,7 +510,7 @@ private:
 	//race 순위에 아이템 적용
 	void invokeRaceByRank(int rank, itemType type, int quantity);
 	//SIA를 고려한 기본 스피드
-	int getBaseSpeed(int s, int i, int a, float ranPercent);
+	int getBaseSpeed(int s, int i, int a, float ranPercent, int boost);
 	
 	//increase property
 	void addProperty(int strength, int intelligence, int appeal);
@@ -538,6 +552,6 @@ private:
 
 	thread* mThread;
 	bool mIsFinalized;
-	
+	int mRaceModeCnt[race_mode_max];
 };
 

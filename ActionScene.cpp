@@ -6,6 +6,7 @@
 #include "SimpleAudioEngine.h"
 
 #define RACE_UPDATE_INTERVAL 0.3
+#define RACE_MAX_TOUCH 100.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 2.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 5);
@@ -19,7 +20,16 @@ Scene* ActionScene::createScene(int id)
 
 bool ActionScene::init() {		
 
-	//초기화
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->setSwallowTouches(true);
+	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
+	/*
+	listener->onTouchMoved = CC_CALLBACK_2(ActionScene::onTouchMoved, this);
+	listener->onTouchEnded = CC_CALLBACK_2(ActionScene::onTouchEnded, this);
+	*/	
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
+	//초기화	
 	mPopupLayer = NULL;
 	mPopupLayerBackground = NULL;
 
@@ -72,9 +82,20 @@ bool ActionScene::init() {
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(mFullLayer);	
 
-	//경묘 선수 초기 셋팅 및 아이템 선택
-	showItemSelect();
-
+	//Race 초기 상태	
+	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
+	switch (logics::hInst->getRace()->at(mRaceId).mode) {
+	case race_mode_item:
+	case race_mode_friend_1:
+		//경묘 선수 초기 셋팅 및 아이템 선택
+		showItemSelect(err);
+		break;
+	case race_mode_speed:
+		initRace();
+		break;
+	default:
+		break;
+	}
     return true;
 }
 
@@ -112,10 +133,36 @@ void ActionScene::initRace() {
 		string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
 		mSkillItem[i] = gui::inst()->addTextButton(0, 3 + i, sz, this,
 			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 12, ALIGNMENT_NONE, Color3B::BLACK);
-		
 	}
-	
-	this->schedule(schedule_selector(ActionScene::timer), RACE_UPDATE_INTERVAL);
+
+	counting();
+}
+
+void ActionScene::counting() {
+	mTouchCnt = 0;
+	mCount = 3;
+	mCounting = gui::inst()->addLabel(4, 3, "Ready", this);
+	mCounting->runAction(Sequence::create(ScaleTo::create(0.5, 4), ScaleTo::create(0.5, 1), NULL));
+	this->schedule(schedule_selector(ActionScene::counter), 1);
+}
+
+void ActionScene::counter(float f) {		
+	string sz = to_string(mCount);
+	if (mCount == 0) {
+		sz = "Go!";
+		mCounting->setColor(Color3B::RED);
+	}
+	else {
+		mCounting->setColor(Color3B::BLUE);
+	}
+	mCounting->setString(sz);
+	mCounting->runAction(Sequence::create(ScaleTo::create(0.5, 4), ScaleTo::create(0.5, 1), NULL));
+	if (mCount < 0) {
+		this->removeChild(mCounting);
+		unschedule(schedule_selector(ActionScene::counter));
+		this->schedule(schedule_selector(ActionScene::timer), RACE_UPDATE_INTERVAL);
+	}	
+	mCount--;
 }
 
 void ActionScene::invokeItem(Ref* pSender, int idx) {
@@ -190,7 +237,21 @@ void ActionScene::timer(float f) {
 		mInvokeItemQueue.pop();
 	}
 
-	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx);
+	/*	
+	RACE_MAX_TOUCH : 1 = x : RACE_UPDATE_INTERVAL
+	RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL = x
+	*/
+	
+	int boost = 0;
+	if (mRaceMode == race_mode_speed) {
+		boost = (float)mTouchCnt / (RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL) * 100.f;
+		boost = min(boost, 100);
+		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "," + to_string(mTouchCnt));
+		mTouchCnt = 0;
+	}
+	
+
+	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx, boost);
 	if(!ret){
 		unschedule(schedule_selector(ActionScene::timer));		
 		mRunner[raceParticipantNum]->stopAllActions();
@@ -262,6 +323,7 @@ void ActionScene::timer(float f) {
 		Vec2 position = mRunner[n]->getPosition();
 		position.x = x;
 		mRunner[n]->runAction(MoveTo::create(0.3, position));
+		
 		//mRunnerLabel[n]->setString(to_string(p.currentLength) + "-" + to_string(p.sufferItems.size()) + "," + to_string(p.currentSuffer));
 	}
 }
@@ -273,8 +335,8 @@ void ActionScene::result() {
 	sz += L"순위: ";
 	sz += to_wstring(mRaceCurrent->rank);
 	if (mRaceCurrent->prize > 0) {
-		sz += L"\n상금: $";
-		sz += to_wstring(mRaceCurrent->prize);
+		sz += L"\n상금: $";		
+		sz += to_wstring(logics::hInst->getRaceReward(mRaceCurrent->id, mRaceCurrent->rank - 1));
 	}
 
 	if (mRaceCurrent->rewardItemQuantity > 0) {
@@ -341,11 +403,11 @@ void ActionScene::selectItem(Ref* pSender, int id) {
 	updateSelectItem();
 }
 
-void ActionScene::showItemSelect() {
+void ActionScene::showItemSelect(errorCode err) {
 	RACE_SIZE;
 
 	this->removeChild(mPopupLayerBackground);
-	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, size, "bg_race.png", Color4B::WHITE);
+	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, size, BG_RACE, Color4B::WHITE);
 
 	//Go!
 	gui::inst()->addTextButtonAutoDimension(3, 6, "GO!", mPopupLayer
@@ -365,9 +427,7 @@ void ActionScene::showItemSelect() {
 			, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 		);
 	}
-
-	//Race 초기 상태	
-	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
+		
 	if (err != error_success && err != error_levelup) {
 		gui::inst()->addLabel(4, 3, wstring_to_utf8(logics::hInst->getErrorMessage(err)), this);
 		return;
@@ -435,3 +495,23 @@ void ActionScene::showItemSelect() {
 
 	mPopupLayer->addChild(sv, 1, CHILD_ID_RACE);
 }
+
+bool ActionScene::onTouchBegan(Touch* touch, Event* event)
+{
+	/*
+		auto touchPoint = touch->getLocation();
+		log("onTouchBegan id = %d, x = %f, y = %f", touch->getID(), touchPoint.x, touchPoint.y);
+		bool bTouch = pMan->getBoundingBox().containsPoint(touchPoint);
+		if (bTouch)
+		{
+		log("Sprite clicked...");
+		}
+	*/
+	if(mRaceMode == race_mode_speed)
+		mTouchCnt++;
+
+	return true;
+}
+
+
+

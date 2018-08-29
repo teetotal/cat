@@ -38,27 +38,40 @@ public:
 
 	void setRaceId(int id) {
 		mRaceId = id;
+		mRaceMode = logics::hInst->getRace()->at(id).mode;
 	};
 
 private:
+
+	virtual bool onTouchBegan(Touch* touch, Event* event);
+	int mTouchCnt;
+
+
 	enum SUFFER_STATE {
 		SUFFER_STATE_NONE,
 		SUFFER_STATE_SPEEDUP,
 		SUFFER_STATE_SHIELD,
 		SUFFER_STATE_ATTACK,
 	};
+		
+	race_mode mRaceMode;
+
 	LayerColor * mPopupLayer, *mPopupLayerBackground;
 	void initRace();
-	void showItemSelect();
+	void showItemSelect(errorCode err);
 	void selectItem(Ref* pSender, int id); //아이템 선택
 	void updateSelectItem(); //선택한 아이템 정보 갱신
     void callback2(Ref* pSender, SCENECODE type);
 	void invokeItem(Ref* pSender, int idx);
 	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
+	void counting();
+
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
-
+	//Start Count
+	Label * mCounting;
+	int mCount;
 	//Label * mRankLabel[raceParticipantNum + 1];
 
 	MenuItemFont * mSelectedItem[raceItemSlot];
@@ -66,6 +79,7 @@ private:
 	Layout * mFullLayer;
 
 	void timer(float f);
+	void counter(float f);
 
 	raceParticipants* mRaceParticipants;
 	_raceCurrent* mRaceCurrent;

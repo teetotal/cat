@@ -1176,7 +1176,7 @@ void MainScene::actionList() {
 
 		gui::inst()->addLabelAutoDimension(0, 2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
 
-		gui::inst()->addLabelAutoDimension(1, 1, getRomeNumber(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(1, 1, "Lv." + to_string(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
         gui::inst()->addTextButtonAutoDimension(1,2, wstring_to_utf8(it->second.name), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1,3, wstring_to_utf8(costItems), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
         //gui::inst()->addTextButtonAutoDimension(1,3, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
@@ -1207,57 +1207,20 @@ void MainScene::particleSample(const string sz){
     );
     mGacha.run("gem.jpg", layer);
 }
-/*
-void MainScene::scheduleCB(float f){
-    float p =c1.getPercent() + 5;
-    c1.update(p);
 
-    if(p > 100){
-        this->unschedule( schedule_selector(MainScene::scheduleCB));
-        c1.setDecay(true);
-    }
-}
-*/
 void MainScene::scheduleRecharge(float f) {
 	if (logics::hInst->rechargeHP())
 		updateState(false);
 }
 
-void MainScene::showRace() {
+
+void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 	RACE_SIZE;
-	//this->removeChild(layerGray);
-	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
 
-	gui::inst()->addTextButtonAutoDimension(0, 0, "ITEM", layer
-		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-	);
-
-	gui::inst()->addTextButtonAutoDimension(1, 0, "SPEED", layer
-		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-	);
-
-	gui::inst()->addTextButtonAutoDimension(2, 0, "PvP", layer
-		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-	);
-
-	gui::inst()->addTextButtonAutoDimension(3, 0, "PvP SPEED", layer
-		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-	);
-
-
-	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
-		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-	);
 	int nMenuIdx = 0;
 	int newLine = 1;
 
-	int cnt = logics::hInst->getRace()->size();
+	int cnt = logics::hInst->getRaceModeCnt(mode);
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
@@ -1267,28 +1230,48 @@ void MainScene::showRace() {
 	for (raceMeta::iterator it = logics::hInst->getRace()->begin(); it != logics::hInst->getRace()->end(); ++it) {
 		int id = it->first;
 		_race race = it->second;
-		
+
+		if (race.mode != mode)
+			continue;
+
+		bool isEnable = true;
+		Color3B fontColor = Color3B::BLACK;
+		//속성 부족 체크
+		if (race.min > logics::hInst->getActor()->property.total()) {
+			isEnable = false;
+			fontColor = Color3B::GRAY;
+		}
+
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		int heightIdx = 1;
 
-		gui::inst()->addTextButtonAutoDimension(0, 1
-			, "Lv." + to_string(race.level), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		
-		gui::inst()->addTextButtonAutoDimension(0, 3
-			, wstring_to_utf8(L"┲"), l, CC_CALLBACK_1(MainScene::runRace, this, id), 28, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		auto btn1 = gui::inst()->addTextButtonAutoDimension(0, 1
+			, getRomeNumber(race.level), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		if (!isEnable)
+			btn1->setEnabled(false);
 
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++
-			, wstring_to_utf8(race.title), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++
-			, "$" + to_string(race.fee), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
+		auto btn2 = gui::inst()->addTextButtonAutoDimension(0, 3
+			, wstring_to_utf8(L"┲"), l, CC_CALLBACK_1(MainScene::runRace, this, id), 28, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		if (!isEnable)
+			btn2->setEnabled(false);
+
+		auto btn3 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++
+			, wstring_to_utf8(race.title), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		if (!isEnable)
+			btn3->setEnabled(false);
+
+		auto btn4 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++
+			, "$" + to_string(race.fee), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		if (!isEnable)
+			btn4->setEnabled(false);
 
 		for (int m = 0; m < (int)it->second.rewards.size(); m++) {
 			/*
 			printf("%d등 상금: %d (%ls 외 %d)\n"
-				, m + 1
-				, race.rewards[m].prize
-				, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
-				, (int)it->second.rewards[m].items.size() - 1
+			, m + 1
+			, race.rewards[m].prize
+			, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
+			, (int)it->second.rewards[m].items.size() - 1
 			);
 			*/
 			string rewardPrefix;
@@ -1300,12 +1283,19 @@ void MainScene::showRace() {
 				rewardPrefix = "2nd: $";
 				break;
 			default:
-				rewardPrefix = to_string(m+1) + "th: $";
+				rewardPrefix = to_string(m + 1) + "th: $";
 				break;
 			}
-			gui::inst()->addTextButtonAutoDimension(1, heightIdx++
-				, rewardPrefix + to_string(race.rewards[m].prize), l
+			auto btn = gui::inst()->addTextButtonAutoDimension(1, heightIdx++
+				, rewardPrefix + to_string(logics::hInst->getRaceReward(id, m)), l
 				, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			if (!isEnable)
+				btn->setEnabled(false);
+		}
+
+		if (!isEnable) {
+			gui::inst()->addLabelAutoDimension(1, heightIdx++
+				, wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_property)), l, 12, ALIGNMENT_NONE, Color3B::RED, gridSize, Size::ZERO, Size::ZERO);
 		}
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
@@ -1314,6 +1304,36 @@ void MainScene::showRace() {
 
 	layer->removeChildByTag(CHILD_ID_RACE, true);
 	layer->addChild(sv, 1, CHILD_ID_RACE);
+}
+
+void MainScene::showRace() {
+	RACE_SIZE;
+	//this->removeChild(layerGray);
+	closePopup();
+	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
+
+	gui::inst()->addTextButtonAutoDimension(0, 0, "ITEM", layer
+		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_item)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(1, 0, "SPEED", layer
+		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_speed)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(2, 0, "FRIEND", layer
+		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_friend_1)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
+		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	showRaceCategory(this, race_mode_item);
+	
 }
 
 void MainScene::closePopup() {

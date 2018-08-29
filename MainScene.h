@@ -135,22 +135,32 @@ private:
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
     void alert(const string msg); //alert
 	void showResult(const string msg, bool enableParticle); //결과 보기
-    void alertCloseCallback(Ref* pSender);
-	void showInventory(inventoryType type = inventoryType_all, bool isSell = false);	//가방조회
-	void showInventoryCategory(Ref* pSender, inventoryType code, bool isSell); //가방조회 카테고리
+    void alertCloseCallback(Ref* pSender);	
 	void scheduleRecharge(float f); // HP 충전 쓰레드
+	//Buy
 	void showBuy(inventoryType type = inventoryType_all); //구매 보기
 	void showBuyCategory(Ref* pSender, inventoryType code); // 구매 카테고리
 	void buyCallback(Ref* pSender, int id); //구매
+	//Inventory
+	void showInventory(inventoryType type = inventoryType_all, bool isSell = false);	//가방조회
+	void showInventoryCategory(Ref* pSender, inventoryType code, bool isSell); //가방조회 카테고리
 	void invokeItem(Ref* pSender, int id); //아이템 발동
+	//Sell
 	void sellItem(Ref* pSender, inventoryType code, int id); //아이템 판매
+	//Action
 	void callbackAction(Ref* pSender, int id);
 	void callbackActionAnimation(Ref* pSender, int id);	
+	//Achievement
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender, bool isDaily); //업적 카테고리
-	void runRace(Ref* pSender, int raceId); //Race
+	//Collection
 	void showCollection(); //도감 보기
+	//Race
+	void showRaceCategory(Ref* pSender, race_mode mode);
 	void showRace(); //Race 보기
+	void runRace(Ref* pSender, int raceId); 
+
+
 	void closePopup(); //팝업 닫으면 메인
 
 	string getTradeRemainTime() {
