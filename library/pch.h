@@ -21,7 +21,7 @@ using namespace std;
 typedef map<int, int> intMap;
 typedef void(*farmingFinshedNotiCallback)(int fieldId);
 typedef void(*tradeUpdatedCallback)(time_t t);
-typedef void(*achievementCallback)(bool isDaily, int idx);
+typedef void(*achievementCallback)(int type, int idx);
 wstring utf8_to_utf16(const string& utf8);
 string wstring_to_utf8(const wstring& str);
 string wstring_to_utf8(const wstring& str, bool isLabel);

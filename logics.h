@@ -28,6 +28,8 @@
 #define CONFIG_ACTOR_BACKUP "actor_backup.json"
 #define CONFIG_META "meta.json"
 
+//만랩
+#define LEVEL_MAX	10
 //levelup bonus $
 #define bonusCashPerLevel 100
 //HP 추가 간격
@@ -131,7 +133,8 @@ enum achievement_category {
 	achievement_category_trade_sell,
 	achievement_category_recharge, //체력 충전
 	achievement_category_farming,   
-	achievement_category_race	
+	achievement_category_race,
+	achievement_category_property	//능력치
 };
 enum achievement_farming_id {
 	achievement_farming_id_plant = 0, //심기 횟수
@@ -144,6 +147,14 @@ enum achievement_race_id {
 	achievement_race_id_first,	//1등
 	achievement_race_id_second,	//2등
 };
+enum achievement_property_id {
+	achievement_property_id_total = 0, //전체 능력치
+	achievement_property_id_S,
+	achievement_property_id_I,
+	achievement_property_id_A,
+};
+
+//race
 enum race_mode {
 	race_mode_item = 0,		//vs cpu
 	race_mode_speed,
@@ -393,11 +404,11 @@ public:
 	void addRaceMeta(_race & race);
 
 	//achievement
-	int getAchievementSize(bool isDaily) {
-		return mAchievement.getSize(isDaily);
+	int getAchievementSize(int type) {
+		return mAchievement.getSize(type);
 	};
-	bool getAchievementDetail(bool isDaily, int idx, achievement::detail &p) {
-		return mAchievement.getDetail(isDaily, idx, p);
+	bool getAchievementDetail(int type, int idx, achievement::detail &p) {
+		return mAchievement.getDetail(p, type, idx);
 	};
     
 
@@ -526,7 +537,7 @@ private:
 	//set jobTitle
 	void setJobTitle();
 		
-	bool initActor();
+	bool initActor(rapidjson::Document &p);
 	void insertInventory(rapidjson::Value &p, inventoryType type);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p);
@@ -534,10 +545,10 @@ private:
 	bool initTraining(rapidjson::Value &p);
 	bool initJobTitle(rapidjson::Value &p);
 	bool initRace(rapidjson::Value &p);
-	bool initAchievement(rapidjson::Value &p);
+	bool initAchievement(rapidjson::Value &p, rapidjson::Value& pAchievement);
 
 	void printInven(inventoryType type, wstring &sz);    
-	static void achievementCallbackFn(bool isDaily, int idx);
+	static void achievementCallbackFn(int type, int idx);
 	static void threadRun();
 	
 	void saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type);
@@ -553,5 +564,7 @@ private:
 	thread* mThread;
 	bool mIsFinalized;
 	int mRaceModeCnt[race_mode_max];
+	//actor.json 파일 내용
+	string mActorStringFromJSON;
 };
 

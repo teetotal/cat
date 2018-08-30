@@ -1,5 +1,13 @@
 ﻿#pragma once
 #include "pch.h"
+
+#define ACHIEVEMENT_TYPE_DAILY	0
+#define ACHIEVEMENT_TYPE_TOALLY	1
+/*
+	레벨별 퀘스트와
+	업적을 모두 처리할 수 있게 되어있다.
+	기본적으로 퀘스트 기준이지만 업적 전용 함수들이 있다.
+*/
 class achievement
 {
 public:
@@ -31,8 +39,9 @@ public:
 
 	bool mIsRunThread;
 
-	bool init(achievementCallback fn, time_t lastLogin);
-	void addAchieve(bool isDaily
+	bool init(achievementCallback fn, time_t lastLogin, bool isLevelMode = false, int level = 0);
+	void setLevel(int level);
+	void addAchieve(int type
 		, wstring title
 		, int category
 		, int id
@@ -40,22 +49,32 @@ public:
 		, int rewardId
 		, int rewardValue
 		);
-	//업적에 대한 누적 
-	void setAchievementAccumulation(bool isDaily, int category, int id, int accumulation, bool isFinished, bool isReceived);
+	//업적 전용.  업적에 대한 누적  초기화 관련
+	void setAchievementAccumulation(int type, int category, int id, int accumulation, bool isFinished, bool isReceived);
 	//누적
 	void setAccumulation(int category, int id, int accumulation);
 
 	void finalize();
 
-	void push(int category, int id, int val); //모든 한일을 일단 queue에 넣는다.
+	//모든 한일을 일단 queue에 넣는다.
+	void push(int category, int id, int val); 
+
+	//queue에 쌓인걸 누적한다.
+	void accumulate(); 
 	
-	void accumulate(); //queue에 쌓인걸 누적한다.
-	
-	bool getDetail(bool isDaily, int idx, detail &p);
-	int getSize(bool isDaily) {
-		return (isDaily) ? (int)mDaily.size() : (int)mTotally.size();
+	//업적 전용.
+	bool getDetail(bool isDaily, int idx, detail &p) {
+		return getDetail(p, isDaily ? ACHIEVEMENT_TYPE_DAILY : ACHIEVEMENT_TYPE_TOALLY, idx);
+	};
+	bool getDetail(detail &p, int type, int idx);
+
+	int getSize(int type) {
+		if(mMap.find(type) != mMap.end())
+			return (int)mMap[type].size();
+		return 0;
 	}
-	bool rewardReceive(bool isDaily, int idx);
+	//상품 수령
+	bool rewardReceive(int type, int idx);
 
 	intDoubleDepthMap * getAccumulation() {
 		return &mAccumulation;
@@ -89,9 +108,12 @@ private:
 		}
 	};
 	typedef vector<achieve*> achieveVector;
+	typedef map<int, achieveVector> achieveMap;
+	achieveMap mMap;
+	/*
 	achieveVector mDaily;		//일일
 	achieveVector mTotally;		//누적
-
+	*/
 	queue<done> mQueue;
 	intDoubleDepthMap mAccumulation;
 
@@ -99,9 +121,16 @@ private:
 	mutex mLock;
 	time_t mLastLogin;
 	achievementCallback mCallback;
+	bool mIsLevelMode;
+	int mLevel;
 		
-	void calculate(bool isDaily, done *pDone);
+	void calculate(done * pDone);
+	//업적 전용
 	void resetDaily();
 	static void threadRun(achievement *);
+	//퀘스트 업데이트
+	void calculateSet(int type, achieveVector * vec, done * pDone);
+
+	bool hasAccumulation(int category, int id);
 };
 

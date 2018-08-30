@@ -132,7 +132,28 @@ public:
             , const string img = ""
             , bool isBGImg = true
     );
-    MenuItemFont* addTextButton(int x
+	MenuItemFont * addTextButton(int x
+		, int y
+		, const string text
+		, Node* p
+		, const ccMenuCallback& callback
+		, int fontSize = 0
+		, ALIGNMENT align = ALIGNMENT_CENTER
+		, const Color3B color = Color3B::BLACK
+		, Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, const string img = ""
+		, bool isBGImg = true
+	) {
+		Menu * pMenu = NULL;
+		return addTextButtonRaw(pMenu, x, y, text, p, callback, fontSize, align, color, dimension, grid, origin, margin, img, isBGImg);
+	};
+
+    MenuItemFont* addTextButtonRaw(
+			Menu* &pMenu
+			, int x
             , int y
             , const string text
             , Node* p

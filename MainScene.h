@@ -94,8 +94,8 @@ private:
     void callback1(Ref* pSender);
     void callback2(Ref* pSender, SCENECODE type);
   
-	static void achievementCB(bool isDaily, int idx) {
-		noticeEffect(hInst->mAchievement);
+	static void achievementCB(int level, int idx) {
+		noticeEffect(hInst->mAchievement);		
 	};
 
 	static void noticeEffect(MenuItemFont * p) {
@@ -151,8 +151,10 @@ private:
 	void callbackAction(Ref* pSender, int id);
 	void callbackActionAnimation(Ref* pSender, int id);	
 	//Achievement
+	vector<Menu*> mQuestButtons; //퀘스트 표시용 vector
+	void updateQuests(bool isLevelup); //퀘스트 표시하기
 	void showAchievement(); //업적 보기
-	void showAchievementCategory(Ref* pSender, bool isDaily); //업적 카테고리
+	void showAchievementCategory(Ref* pSender); //업적 카테고리
 	//Collection
 	void showCollection(); //도감 보기
 	//Race

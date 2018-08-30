@@ -6,7 +6,7 @@
 #include "SimpleAudioEngine.h"
 
 #define RACE_UPDATE_INTERVAL 0.3
-#define RACE_MAX_TOUCH 100.f //초당 max 터치
+#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 2.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 5);

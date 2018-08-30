@@ -9,16 +9,28 @@ logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB) {
 
-    string szMeta;
+    string szMeta, szActor;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
+		szActor = loadJsonString(CONFIG_ACTOR);
 #else
 		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
+		string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
+		if (!FileUtils::getInstance()->isFileExist(fileFullPath)) {
+			//writable 경로에 파일 복사
+			FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
+		}
+		szActor = FileUtils::getInstance()->getStringFromFile(fileFullPath);
 #endif
 
 	rapidjson::Document d;
 	d.Parse(szMeta.c_str());
 	if (d.HasParseError())
+		return false;
+
+	rapidjson::Document dActor;
+	dActor.Parse(szActor.c_str());
+	if (dActor.HasParseError())
 		return false;
 
 	if(!initErrorMessage(d["errors"]))
@@ -33,11 +45,13 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		return false;
 	if (!initRace(d["race"]))
 		return false;
-	if (!initAchievement(d["achievement"]))
+		
+	if (!initActor(dActor))
+		return false;	
+	
+	if (!initAchievement(d["achievement"], dActor["achievement"]))
 		return false;
 
-	if (!initActor())
-		return false;
 
 	mFarming.init(farmCB);
 	mAchieveCB = achieveCB;
@@ -61,8 +75,9 @@ void logics::insertInventory(rapidjson::Value &p, inventoryType type)
 	}
 }
 /* private initialize */
-bool logics::initActor()
+bool logics::initActor(rapidjson::Document &d)
 {
+	/*
 	string sz;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		sz = loadJsonString(CONFIG_ACTOR);
@@ -74,9 +89,7 @@ bool logics::initActor()
     }
     sz = FileUtils::getInstance()->getStringFromFile(fileFullPath);
 #endif
-
-	rapidjson::Document d;
-	d.Parse(sz.c_str());
+	*/
 	_actor* actor = new _actor;
 	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
 	actor->userId = d["userId"].GetString();
@@ -129,47 +142,9 @@ bool logics::initActor()
 		);
 	}
 
-	//achievement
-	//daily, totally
-	bool isDaily = true;
-	for (int n = 0; n < 2; n++) {
-		const rapidjson::Value& p = isDaily ? d["achievement"]["daily"]: d["achievement"]["totally"];
-		for (rapidjson::SizeType i = 0; i < p.Size(); i++) {
-			mAchievement.setAchievementAccumulation(isDaily
-				, p[rapidjson::SizeType(i)]["category"].GetInt()
-				, p[rapidjson::SizeType(i)]["id"].GetInt()
-				, p[rapidjson::SizeType(i)]["accumulation"].GetInt()
-				, p[rapidjson::SizeType(i)]["isFinished"].GetBool()
-				, p[rapidjson::SizeType(i)]["isReceived"].GetBool()
-				);
-		}
-		isDaily = false;
-	}
-
-	//accumulation
-	const rapidjson::Value& achieveAccumulation = d["achievement"]["accumulation"];
-	for (rapidjson::Value::ConstMemberIterator it = achieveAccumulation.MemberBegin();
-		it != achieveAccumulation.MemberEnd(); ++it)
-	{		
-		const char * category = it->name.GetString();
-		//const rapidjson::Value& list = d["achievement"]["accumulation"][category];
-        const rapidjson::Value& list = it->value;
-
-		for (rapidjson::SizeType i = 0; i < list.Size(); i++) {
-			int id = list[rapidjson::SizeType(i)]["id"].GetInt();
-			int value = list[rapidjson::SizeType(i)]["value"].GetInt();
-			mAchievement.setAccumulation(atoi(category)
-				, id
-				, value
-			);
-		}		
-	}
-
-	if (!mAchievement.init(achievementCallbackFn, lastLogin))
-		return false;
-
+	
 	//save backup
-	saveFile(CONFIG_ACTOR_BACKUP, sz);
+	//saveFile(CONFIG_ACTOR_BACKUP, sz);
 
 	mIsRunThread = true;
 	mThread = new thread(threadRun);
@@ -335,6 +310,75 @@ bool logics::initRace(rapidjson::Value & race)
 	return true;
 }
 
+bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievement) {
+	//basic 
+	for (int n = mActor->level; n < LEVEL_MAX; n++) {
+		int totalProperty = 10 * n * n;
+		mAchievement.addAchieve(
+			n
+			, L"능력치 " + to_wstring(totalProperty) + L" 만들기"
+			, achievement_category_property
+			, achievement_property_id_total
+			, totalProperty
+			, 50 //제법 비싼 장난감
+			, n //레벨 만큼 준다
+		);
+	}
+
+	//specific
+	for (rapidjson::SizeType i = 0; i < v.Size(); i++)
+	{
+		mAchievement.addAchieve(
+			v[rapidjson::SizeType(i)]["level"].GetInt()
+			, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
+			, v[rapidjson::SizeType(i)]["category"].GetInt()
+			, v[rapidjson::SizeType(i)]["id"].GetInt()
+			, v[rapidjson::SizeType(i)]["value"].GetInt()
+			, v[rapidjson::SizeType(i)]["rewardId"].GetInt()
+			, v[rapidjson::SizeType(i)]["rewardValue"].GetInt()
+		);
+	}
+
+	//achievement			
+	rapidjson::Value & pQuests = pAchievement["quests"];
+	for (rapidjson::SizeType i = 0; i < pQuests.Size(); i++) {
+		mAchievement.setAchievementAccumulation(
+			pQuests[rapidjson::SizeType(i)]["level"].GetInt()
+			, pQuests[rapidjson::SizeType(i)]["category"].GetInt()
+			, pQuests[rapidjson::SizeType(i)]["id"].GetInt()
+			, pQuests[rapidjson::SizeType(i)]["accumulation"].GetInt()
+			, pQuests[rapidjson::SizeType(i)]["isFinished"].GetBool()
+			, pQuests[rapidjson::SizeType(i)]["isReceived"].GetBool()
+		);
+	}
+
+	//accumulation	
+	rapidjson::Value & pAccumulation = pAchievement["accumulation"];
+	for (rapidjson::Value::ConstMemberIterator it = pAccumulation.MemberBegin();
+		it != pAccumulation.MemberEnd(); ++it)
+	{
+		const char * category = it->name.GetString();
+		//const rapidjson::Value& list = d["achievement"]["accumulation"][category];
+		const rapidjson::Value& list = it->value;
+
+		for (rapidjson::SizeType i = 0; i < list.Size(); i++) {
+			int id = list[rapidjson::SizeType(i)]["id"].GetInt();
+			int value = list[rapidjson::SizeType(i)]["value"].GetInt();
+			mAchievement.setAccumulation(atoi(category)
+				, id
+				, value
+			);
+		}
+	}
+	
+
+	if (!mAchievement.init(achievementCallbackFn, mActor->lastLoginLoginTime, true))
+		return false;
+	mAchievement.setLevel(mActor->level);
+
+	return true;
+}
+/*
 bool logics::initAchievement(rapidjson::Value & p)
 {
 	bool isDaily = true;
@@ -345,7 +389,7 @@ bool logics::initAchievement(rapidjson::Value & p)
 		for (rapidjson::SizeType i = 0; i < v.Size(); i++)
 		{			
 			mAchievement.addAchieve(
-				isDaily
+				n
 				, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
 				, v[rapidjson::SizeType(i)]["category"].GetInt()
 				, v[rapidjson::SizeType(i)]["id"].GetInt()
@@ -358,6 +402,7 @@ bool logics::initAchievement(rapidjson::Value & p)
 	}
 	return true;
 }
+*/
 
 void logics::finalize() {
 	if(mActor)
@@ -494,20 +539,18 @@ void logics::print(int type) {
 		printf("------------- 경묘 대회 목록 -------------\n");
 		for (raceMeta::iterator it = mRace.begin(); it != mRace.end(); ++it) {
 			printf("\n");
-			printf("[%03d] %ls \n▷ 참가비: %d, 경주거리: %d m, lv.%d  \n▷ 우승상금 --------\n"
+			printf("[%03d] %ls \n▷ 참가비: %d, Mode: %d m, lv.%d  \n▷ 우승상금 --------\n"
 				, it->second.id
 				, it->second.title.c_str()
 				, it->second.fee
-				, it->second.length
+				, it->second.mode
 				, it->second.level
 			);
 			
 			for (int m = 0; m < (int)it->second.rewards.size(); m++) {
-				printf("%d등 상금: %d (%ls 외 %d)\n"
+				printf("%d등 상금: %d\n"
 					, m+1 
-					, it->second.rewards[m].prize
-					, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
-					, (int)it->second.rewards[m].items.size() -1
+					, it->second.rewards[m].prize					
 				);
 			}
 		}
@@ -685,7 +728,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 
 	//preservationRaio만큼 보전해서 줌
 	//give point
-	int preservation = preservationRatio * mTraining[id].reward.point;
+	int preservation = (int)(preservationRatio * (float)mTraining[id].reward.point);
 	printf("point: %d \n" , preservation);
 	point = getRandValue(mTraining[id].reward.point);
 	if (point < preservation)
@@ -693,19 +736,19 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 
 	mActor->point += point;
 	//give growth
-	preservation = preservationRatio * mTraining[id].reward.strength;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.strength);
 	printf("strength: %d \n", preservation);
 	rewardProperty->strength = getRandValue(mTraining[id].reward.strength);
 	if (rewardProperty->strength < preservation)
 		rewardProperty->strength = preservation;
 
-	preservation = preservationRatio * mTraining[id].reward.intelligence;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.intelligence);
 	printf("intelligence: %d \n", preservation);
 	rewardProperty->intelligence = getRandValue(mTraining[id].reward.intelligence);
 	if (rewardProperty->intelligence < preservation)
 		rewardProperty->intelligence = preservation;
 
-	preservation = preservationRatio * mTraining[id].reward.appeal;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.appeal);
 	printf("appeal: %d \n", preservation);
 	rewardProperty->appeal = getRandValue(mTraining[id].reward.appeal);
 	if (rewardProperty->appeal < preservation)
@@ -821,6 +864,11 @@ void logics::addProperty(int strength, int intelligence, int appeal) {
 	mActor->property.strength += strength;
 	mActor->property.intelligence += intelligence;
 	mActor->property.appeal += appeal;
+
+	mAchievement.push(achievement_category_property, achievement_property_id_total, strength + intelligence + appeal);
+	mAchievement.push(achievement_category_property, achievement_property_id_S, strength);
+	mAchievement.push(achievement_category_property, achievement_property_id_I, intelligence);
+	mAchievement.push(achievement_category_property, achievement_property_id_A, appeal);
 }
 
 //경험치 증가
@@ -829,6 +877,7 @@ bool logics::increaseExp() {
 	int maxExp = getMaxExp();
 	if (maxExp <= mActor->exp) {
 		mActor->level++;
+		mAchievement.setLevel(mActor->level);
 		mActor->exp = 0;
 		setMaxHP();
 		//give $
@@ -880,7 +929,7 @@ bool logics::rechargeHP() {
 	time_t waitTime = now - mActor->lastHPUpdateTime;
 	if (waitTime >= HPIncreaseInterval) {		
 		mActor->lastHPUpdateTime = now;
-		return increaseHP((waitTime / HPIncreaseInterval));
+		return increaseHP((int)(waitTime / HPIncreaseInterval));
 	}
 	return false;
 }
@@ -1021,10 +1070,10 @@ errorCode logics::runRaceSetRunners(int id) {
 	//내 능력치랑 비슷하게 구성
 	int sum = min(race.max, mActor->property.total()); //경묘 능력 최대치랑 유저 능력치 중 낮은 값으로 설정
 	if (race.mode == race_mode_speed) {
-		sum += (float)sum * raceAIAdvantageRatio * max(1, getRandValue(4)); // raceAIAdvantageRatio * 1 ~ 3 올림
+		sum += (int)((float)sum * raceAIAdvantageRatio * (float)max(1, getRandValue(4))); // raceAIAdvantageRatio * 1 ~ 3 올림
 	}
 	else {
-		sum += (float)sum * raceAIAdvantageRatio; // raceAIAdvantageRatio만 올림
+		sum += (int)((float)sum * raceAIAdvantageRatio); // raceAIAdvantageRatio만 올림
 	}
 
 	
@@ -1086,7 +1135,7 @@ int logics::getRaceReward(int id, int rankIdx) {
 	//1등은 참가비 + 20%
 	//2등은 참가비 + 10%
 	if (race.max < mActor->property.total()) {
-		return race.fee - (race.fee * (rankIdx + 1) * 0.1);
+		return race.fee - (int)(race.fee * (rankIdx + 1) * 0.1);
 	}	
 	return race.rewards.at(rankIdx).prize;
 }
@@ -1193,11 +1242,11 @@ void logics::invokeRaceItemAI() {
 
 int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */, int boost) {
 	/* 전반은 I:S = 7: 3 후반은 S:I 7:3 */
-	int boostLength = (float)(s + i + a) * (float)boost / 100.f;
+	int boostLength = (int)((float)(s + i + a) * (float)boost / 100.f);
 
-	int s1 = (ranPercent <= 50.f) ? s * 0.3 : s * 0.7;
-	int i1 = (ranPercent <= 50.f) ? i * 0.7 : i * 0.3;
-	int a1 = (float)getRandValue(a); //raceAppealRatio
+	int s1 = (int)((ranPercent <= 50.f) ? s * 0.3 : s * 0.7);
+	int i1 = (int)((ranPercent <= 50.f) ? i * 0.7 : i * 0.3);
+	int a1 = getRandValue(a); //raceAppealRatio
 	return (s1 + i1 + a1) + boostLength;
 	
 	/*
@@ -1405,13 +1454,15 @@ errorCode logics::farmingExtend()
 }
 ;
 
-void logics::achievementCallbackFn(bool isDaily, int idx) {
+void logics::achievementCallbackFn(int type, int idx) {
 	printf("%d achievementCallback \n", idx);
 	achievement::detail d;
-	hInst->mAchievement.getDetail(isDaily, idx, d);
-	hInst->mAchievement.rewardReceive(isDaily, idx);
+	hInst->mAchievement.getDetail(d, type, idx);
+	/*
+	hInst->mAchievement.rewardReceive(type, idx);
 	hInst->addInventory(d.rewardId, d.rewardVal);
-	hInst->mAchieveCB(isDaily, idx);
+	*/
+	hInst->mAchieveCB(type, idx);
 }
 
 void logics::threadRun()
@@ -1468,15 +1519,15 @@ void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inv
 
 void logics::saveActor() {
 
-    string sz;
+	if (mActorStringFromJSON.size() == 0) {
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
-    sz = loadJsonString(CONFIG_ACTOR);
+		mActorStringFromJSON = loadJsonString(CONFIG_ACTOR);
 #else
-    sz = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
+		mActorStringFromJSON = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
 #endif
-
+	}
     rapidjson::Document d;
-	d.Parse(sz.c_str());
+	d.Parse(mActorStringFromJSON.c_str());
 	
 	string userName = wstring_to_utf8(mActor->userName);
 	d["userName"] = rapidjson::StringRef(userName.c_str());
@@ -1535,32 +1586,25 @@ void logics::saveActor() {
 		}
 	}
 
-	d["achievement"]["daily"].Clear();
-	d["achievement"]["totally"].Clear();
-
-	bool isDaily = true;
-	for (int n = 0; n < 2; n++) {
-		int nSize = mAchievement.getSize(isDaily);
+	d["achievement"]["quests"].Clear();	
+	
+	for (int n = 0; n < LEVEL_MAX; n++) {
+		int nSize = mAchievement.getSize(n);
 		for (int i = 0; i < nSize; i++) {
 			achievement::detail p;
-			mAchievement.getDetail(isDaily, i, p);
+			mAchievement.getDetail(p, n, i);
 
 			rapidjson::Value objValue;
 			objValue.SetObject();
+			objValue.AddMember("level", n, d.GetAllocator());
 			objValue.AddMember("category", p.category, d.GetAllocator());
 			objValue.AddMember("id", p.id, d.GetAllocator());
 			objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
 			objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
 			objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
 
-			if (isDaily) {
-				d["achievement"]["daily"].PushBack(objValue, d.GetAllocator());
-			}
-			else {
-				d["achievement"]["totally"].PushBack(objValue, d.GetAllocator());
-			}
+			d["achievement"]["quests"].PushBack(objValue, d.GetAllocator());			
 		}
-		isDaily = isDaily ? false : true;
 	}
 	
 	d["achievement"]["accumulation"].RemoveAllMembers();

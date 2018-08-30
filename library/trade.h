@@ -36,7 +36,7 @@ public:
 
 	//다음 update까지 남은 초
 	int getRemainTimeUpdate() {
-		return mLastUpdate + mUpdateInterval - getNow();
+		return (int)(mLastUpdate + mUpdateInterval - getNow());
 	};
 
 

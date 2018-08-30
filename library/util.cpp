@@ -84,7 +84,7 @@ string wstring_to_utf8(const wstring& str) {
 }
 string wstring_to_utf8(const wstring& str, bool isLabel)
 {
-#ifdef _WIN32
+#if defined _WIN32 && defined(COCOS2D_DEBUG)
 	UINT type = CP_UTF8;
 	if (isLabel)
 		type = CP_UTF8;
@@ -102,7 +102,7 @@ string wstring_to_utf8(const wstring& str, bool isLabel)
 }
 
 wstring utf8_to_utf16(const string& str){
-#ifdef _WIN32
+#if defined _WIN32 && defined(COCOS2D_DEBUG)
 	int nLen = MultiByteToWideChar(CP_UTF8, 0, &str[0], str.size(), NULL, NULL);
 	wstring strUnicode(nLen, 0);
 	MultiByteToWideChar(CP_UTF8, 0, &str[0], str.size(), &strUnicode[0], nLen);

@@ -313,6 +313,10 @@ void tradeNotice(time_t updated) {
 	printf("%I64d Trade 시세가 변경되었습니다. \n", updated);
 }
 
+void achievementCB(int type, int idx) {
+	printf("%d, %d Achievement CB. \n", type, idx);
+}
+
 bool init() {
 	//setlocale(LC_ALL, "en_US.UTF-8");	
 #ifdef _WIN32
@@ -321,7 +325,7 @@ bool init() {
     setlocale( LC_ALL, "" );
     fwide( stdout, -1 );
 #endif	
-	if(!logic.init(farmNotice, tradeNotice))
+	if(!logic.init(farmNotice, tradeNotice, achievementCB))
 		return false;
 	
 	logic.print(3);
@@ -530,14 +534,14 @@ void farm() {
 	}
 }
 void achieves() {	
-	for (int i = 0; i < 2; i++) {		
+	for (int i = 0; i < LEVEL_MAX; i++) {		
 		bool isDaily = i == 0 ? true : false;
-		int size = logic.getAchievementSize(isDaily);
+		int size = logic.getAchievementSize(i);
 		for (int n = 0; n < size; n++) {
 			achievement::detail p;
-			logic.getAchievementDetail(isDaily, n, p);
-			printf("[%s %02d] %ls \t %ls (%d 개) [%d / %d] %s %s \n"
-				, isDaily ? "매일" : "전체"
+			logic.getAchievementDetail(i, n, p);
+			printf("[%d %02d] %ls \t %ls (%d 개) [%d / %d] %s %s \n"
+				, i
 				, n + 1
 				, p.title.c_str()
 				, logic.getItem(p.rewardId).name.c_str()

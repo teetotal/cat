@@ -162,14 +162,14 @@ bool MainScene::init()
     mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32, ALIGNMENT_CENTER, fontColor);
 
 
-    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
+    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	
     mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 12, ALIGNMENT_CENTER, Color3B::GREEN);
     mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
 	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
 
-	gui::inst()->addTextButton(0, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16, ALIGNMENT_CENTER, fontColor);
 
     mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32, ALIGNMENT_CENTER, fontColor);
     mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32, ALIGNMENT_CENTER, fontColor);
@@ -177,7 +177,9 @@ bool MainScene::init()
 
 	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
 	//EaseBackOut::create
-	
+
+	//quest 표시
+	updateQuests(true);
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
             , this
@@ -187,6 +189,10 @@ bool MainScene::init()
 
     updateState(false);
 	this->schedule(schedule_selector(MainScene::scheduleRecharge), 1); //HP recharge schedule
+	//퀘스트 타이머. 퀘스트 정산이 1초마다 되기 때문에 싱크가 잘 안맞아서 어쩔 수 없다.
+	this->schedule([=](float delta) {
+		this->updateQuests(false);
+	}, 1, "questTimer");
 
   	
     return true;
@@ -315,7 +321,9 @@ void MainScene::updateState(bool isInventoryUpdated) {
         mName->runAction(Sequence::create(
                 ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
         ));
-    }
+		updateQuests(true);
+	}
+
     mName->setString(name);
 
     mJobTitle->setString(wstring_to_utf8(logics::hInst->getActor()->jobTitle, true));
@@ -389,8 +397,10 @@ void MainScene::callbackActionAnimation(Ref* pSender, int id) {
 	_property property;
 	int point;
 	trainingType type;
-	float max = 40.f;
-	float ratioTouch = gui::inst()->mModalTouchCnt / max;
+
+	float max = 40.f * logics::hInst->getActionList()->at(id).level;
+
+	float ratioTouch = min(1.f, gui::inst()->mModalTouchCnt / max);
 	errorCode err = logics::hInst->runTraining(id, rewards, &property, point, type, ratioTouch);
 	wstring sz = logics::hInst->getErrorMessage(err);
 
@@ -465,7 +475,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	int idx = 2;
 	float animationDelay = 0.15f;
 	int cntAnimationMotion = 6;
-	int loopAnimation = 4;
+	int loopAnimation = 4 * t.level; //레벨이 높을 수록 오래 
 
 	//loading bar 연출
 	auto loadingbar = gui::inst()->addProgressBar(3, idx++, LOADINGBAR_IMG_SMALL, l, 10, size);
@@ -964,12 +974,12 @@ void MainScene::showBuy(inventoryType type) {
 	
 	showBuyCategory(this, type);
 }
-void MainScene::showAchievementCategory(Ref* pSender, bool isDaily) {
+void MainScene::showAchievementCategory(Ref* pSender) {
 	ACHIEVEMENT_SIZE;
 	//int nodeMargin = 2;
 	int newLine = 2;
 
-	int cnt = logics::hInst->getAchievementSize(isDaily);
+	int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;	
@@ -978,7 +988,7 @@ void MainScene::showAchievementCategory(Ref* pSender, bool isDaily) {
 	
 	for (int n = 0; n < cnt; n++) {
 		achievement::detail p;
-		logics::hInst->getAchievementDetail(isDaily, n, p);
+		logics::hInst->getAchievementDetail(logics::hInst->getActor()->level, n, p);
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		
 		string state = "";
@@ -1022,12 +1032,9 @@ void MainScene::showAchievement() {
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
-	int nMenuIdx = 0;
-	//tab
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACHIEVEMENT("Daily", true));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACHIEVEMENT("Totally", false));
+	int nMenuIdx = 0;	
 
-	showAchievementCategory(this, true);
+	showAchievementCategory(this);
 }
 
 void MainScene::showCollection() {
@@ -1348,4 +1355,56 @@ void MainScene::closePopup() {
 	layer = NULL;
 	layerGray = NULL;
 	mCurrentScene = SCENECODE_MAIN;
-};
+}
+
+void MainScene::updateQuests(bool isLevelup) {
+    int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
+
+	if (!isLevelup) {
+		for (int n = 0; n < cnt; n++) {
+			achievement::detail detail;
+			logics::hInst->getAchievementDetail(logics::hInst->getActor()->level, n, detail);
+			wstring sz = detail.title + L" " + to_wstring(detail.accumulation) + L"/" + to_wstring(detail.goal);
+			if (detail.accumulation >= detail.goal) {
+				sz = L"완료";
+				/*
+				mQuestButtons[n]->removeAllChildren();
+				this->removeChild(mQuestButtons[n]);
+				mQuestButtons.erase(mQuestButtons.begin() + n);				
+				continue;
+				*/
+			}
+			
+			//int ratio = (int)((float)detail.accumulation / (float)detail.goal * 100.f);
+			//sz += to_wstring(ratio) + L"%";
+			((MenuItemFont*)mQuestButtons[n]->getChildren().at(0))->setString(wstring_to_utf8(sz));
+		}
+		return;
+	}
+
+	for (int n = 0; n < mQuestButtons.size(); n++) {
+		mQuestButtons[n]->removeAllChildren();
+		this->removeChild(mQuestButtons[n]);
+	}		
+
+	mQuestButtons.clear();
+	for (int n = 0; n < cnt; n++) {
+		achievement::detail detail;
+		logics::hInst->getAchievementDetail(logics::hInst->getActor()->level, n, detail);
+		Menu * pMenu = NULL;
+		//wstring sz = detail.title;
+		//int ratio = (int)((float)detail.accumulation / (float)detail.goal * 100.f);
+		//sz += to_wstring(ratio) + L"%";
+		wstring sz = detail.title + L" " + to_wstring(detail.accumulation) + L"/" + to_wstring(detail.goal);
+		if (detail.accumulation >= detail.goal) {
+			sz = L"완료";
+			//continue;
+		}
+
+		MenuItemFont * p = gui::inst()->addTextButtonRaw(pMenu, 0, 3, wstring_to_utf8(sz), this
+			, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP), 10, ALIGNMENT_NONE);
+		p->setPosition(p->getPosition().x, p->getPosition().y - (n * 15));
+		mQuestButtons.push_back(pMenu);
+	}
+	
+}
