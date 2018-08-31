@@ -312,8 +312,9 @@ bool logics::initRace(rapidjson::Value & race)
 
 bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievement) {
 	//basic 
-	for (int n = mActor->level; n < LEVEL_MAX; n++) {
-		int totalProperty = 10 * n * n;
+	int goals[] = { 0, 2, 10, 26, 58, 122, 250, 506, 1018, 2042, 4090, 8186, 16378 };
+	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
+		int totalProperty = goals[n];
 		mAchievement.addAchieve(
 			n
 			, L"능력치 " + to_wstring(totalProperty) + L" 만들기"
@@ -783,7 +784,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 	type = mTraining[id].type;
 	//업적
 	mAchievement.push(achievement_category_training, id, 1);
-	if (increaseExp())
+	if (increaseExp(mTraining[id].level))
 		return error_levelup;
 	return error_success;
 }
@@ -824,7 +825,6 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 		mAchievement.push(achievement_category_trade_sell, id, quantity * -1);
 	}
 
-	//if (increaseExp())	return error_levelup;
 	return error_success;
 }
 
@@ -872,8 +872,9 @@ void logics::addProperty(int strength, int intelligence, int appeal) {
 }
 
 //경험치 증가
-bool logics::increaseExp() {
-	mActor->exp++;
+bool logics::increaseExp(int value) {
+	mActor->exp += value;
+
 	int maxExp = getMaxExp();
 	if (maxExp <= mActor->exp) {
 		mActor->level++;
@@ -925,11 +926,11 @@ int logics::getHP() {
 }
 
 bool logics::rechargeHP() {
-	time_t now = time(0);
+	time_t now = getNow();
 	time_t waitTime = now - mActor->lastHPUpdateTime;
 	if (waitTime >= HPIncreaseInterval) {		
 		mActor->lastHPUpdateTime = now;
-		return increaseHP((int)(waitTime / HPIncreaseInterval));
+		return increaseHP((int)((float)waitTime / (float)HPIncreaseInterval));
 	}
 	return false;
 }
@@ -1116,8 +1117,7 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 		}
 	}
 	mRaceParticipants->push_back(p);
-	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);
-	//if (increaseExp())		return error_levelup;
+	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);	
 
 	return error_success;
 }
@@ -1241,9 +1241,9 @@ void logics::invokeRaceItemAI() {
 }
 
 int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */, int boost) {
+	
+	int boostLength = (int)((float)(s + i + a) * raceTouchBoostRatio * (float)boost / 100.f);//최대 raceTouchBoostRatio까지만 부스트	
 	/* 전반은 I:S = 7: 3 후반은 S:I 7:3 */
-	int boostLength = (int)((float)(s + i + a) * (float)boost / 100.f);
-
 	int s1 = (int)((ranPercent <= 50.f) ? s * 0.3 : s * 0.7);
 	int i1 = (int)((ranPercent <= 50.f) ? i * 0.7 : i * 0.3);
 	int a1 = getRandValue(a); //raceAppealRatio

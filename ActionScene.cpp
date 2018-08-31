@@ -23,9 +23,10 @@ bool ActionScene::init() {
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
+	listener->onTouchEnded = CC_CALLBACK_2(ActionScene::onTouchEnded, this);
 	/*
 	listener->onTouchMoved = CC_CALLBACK_2(ActionScene::onTouchMoved, this);
-	listener->onTouchEnded = CC_CALLBACK_2(ActionScene::onTouchEnded, this);
+	
 	*/	
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
@@ -151,12 +152,14 @@ void ActionScene::counter(float f) {
 	if (mCount == 0) {
 		sz = "Go!";
 		mCounting->setColor(Color3B::RED);
+		mCounting->runAction(EaseIn::create(ScaleTo::create(0.2, 4), 3.f));
 	}
 	else {
 		mCounting->setColor(Color3B::BLUE);
+		mCounting->runAction(Sequence::create(EaseIn::create(ScaleTo::create(0.3, 4), 3.f), EaseIn::create(ScaleTo::create(0.3, 1), 3.f), NULL));
 	}
 	mCounting->setString(sz);
-	mCounting->runAction(Sequence::create(ScaleTo::create(0.5, 4), ScaleTo::create(0.5, 1), NULL));
+	
 	if (mCount < 0) {
 		this->removeChild(mCounting);
 		unschedule(schedule_selector(ActionScene::counter));
@@ -244,8 +247,10 @@ void ActionScene::timer(float f) {
 	
 	int boost = 0;
 	if (mRaceMode == race_mode_speed) {
-		boost = (float)mTouchCnt / (RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL) * 100.f;
-		boost = min(boost, 100);
+		//boost = (float)mTouchCnt / (RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL) * 100.f;
+		float ratio = getTouchRatio(RACE_UPDATE_INTERVAL, mTouchCnt);
+		boost = (int)min(ratio * 100.f, 100.f);
+		CCLOG("boost %d", boost);
 		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "," + to_string(mTouchCnt));
 		mTouchCnt = 0;
 	}
@@ -496,7 +501,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	mPopupLayer->addChild(sv, 1, CHILD_ID_RACE);
 }
 
-bool ActionScene::onTouchBegan(Touch* touch, Event* event)
+bool ActionScene::onTouchEnded(Touch* touch, Event* event)
 {
 	/*
 		auto touchPoint = touch->getLocation();

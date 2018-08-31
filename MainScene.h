@@ -72,6 +72,7 @@ public:
 
 	static LayerColor * createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle);
 private:
+	int mLevel;
     gui mGrid;
     ui_gacha  mGacha;
     LayerColor * layer, *layerGray;    
@@ -83,8 +84,14 @@ private:
     MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
     Layout * mAlertLayer;
 
+	//BUY Quantity
+	Sprite * mBuyQuantityImg;
+	Label * mBuyQuantityTitle, * mBuyQuantity, *mBuyQuantityPrice;
+	int mQuantity, mQuantityItemId;
+
 	SCENECODE mCurrentScene; //현재 Scene 정보
 	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
+	int mActionCnt; //action 진행 시간 카운트
 
     static void paricleCB(){
         //this->removeChild(mParitclePopupLayer);
@@ -133,6 +140,9 @@ private:
     //
     void actionList(); //액션 목록
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
+	void alert(errorCode err) {
+		return alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
+	}; //alert
     void alert(const string msg); //alert
 	void showResult(const string msg, bool enableParticle); //결과 보기
     void alertCloseCallback(Ref* pSender);	
@@ -140,7 +150,10 @@ private:
 	//Buy
 	void showBuy(inventoryType type = inventoryType_all); //구매 보기
 	void showBuyCategory(Ref* pSender, inventoryType code); // 구매 카테고리
-	void buyCallback(Ref* pSender, int id); //구매
+	void buyCallback(Ref* pSender); //구매
+	void buySelectCallback(Ref* pSender, int id); //구매 선택
+	void buyQuantityCallback(Ref* pSender, int value); // 수량
+	
 	//Inventory
 	void showInventory(inventoryType type = inventoryType_all, bool isSell = false);	//가방조회
 	void showInventoryCategory(Ref* pSender, inventoryType code, bool isSell); //가방조회 카테고리
@@ -149,10 +162,11 @@ private:
 	void sellItem(Ref* pSender, inventoryType code, int id); //아이템 판매
 	//Action
 	void callbackAction(Ref* pSender, int id);
-	void callbackActionAnimation(Ref* pSender, int id);	
+	void callbackActionAnimation(int id, int maxTimes);
 	//Achievement
-	vector<Menu*> mQuestButtons; //퀘스트 표시용 vector
+	vector<Label*> mQuestButtons; //퀘스트 표시용 vector
 	void updateQuests(bool isLevelup); //퀘스트 표시하기
+	string getQuestString(int n, Color3B &fontColor);
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender); //업적 카테고리
 	//Collection

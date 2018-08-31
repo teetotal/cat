@@ -29,11 +29,11 @@
 #define CONFIG_META "meta.json"
 
 //만랩
-#define LEVEL_MAX	10
+#define LEVEL_MAX	12
 //levelup bonus $
 #define bonusCashPerLevel 100
-//HP 추가 간격
-#define HPIncreaseInterval	60 * 5
+//HP 추가 간격 5분?
+#define HPIncreaseInterval	(5.f * 60.f)
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
 //기본 HP
@@ -51,7 +51,9 @@
 //race AI advantage ratio
 #define raceAIAdvantageRatio 0.1
 //race 경묘에서 지력이 차지하는 비율
-#define raceIntelligenceRatio 0.5
+#define raceIntelligenceRatio 0.5f
+//race boost 최대 반영 비율
+#define raceTouchBoostRatio 0.2f
 //race AI item 등급별 추가 지급
 //#define raceItemQuantityPerLevel 1
 //race 스퍼트 구간
@@ -527,7 +529,7 @@ private:
 	void addProperty(int strength, int intelligence, int appeal);
 	
 	//increment exp
-	bool increaseExp();
+	bool increaseExp(int value = 1);
 
 	//increment HP
 	bool increaseHP(int);

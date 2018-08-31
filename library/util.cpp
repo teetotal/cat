@@ -113,6 +113,17 @@ wstring utf8_to_utf16(const string& str){
 	return myconv.from_bytes(str);
 #endif
 }
+
+float getTouchRatio(float sec, int cnt){
+	const float max = 80.f; //초당 최대
+	/*
+	1:max = sec: X
+	X = max * sec
+	return cnt/X
+	*/
+	return min(1.f, ((float)cnt / (max * sec)));
+}
+
 /*
 char* intToChar(int n) {
 	char *buf = new char[10];

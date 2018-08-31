@@ -270,10 +270,16 @@ Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, AL
 
         p->addChild(sprite);
 
-    }else{
-
-        pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (label->getContentSize().width / 2) :
-             pointX;
+    }else{		
+		switch (align) {
+		case ALIGNMENT_NONE:
+			pX = pointX_NONE;
+			label->setAnchorPoint(Vec2(0.f, 0.5f));
+			break;
+		case ALIGNMENT_CENTER:
+			pX = pointX;
+		}
+        //pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (label->getContentSize().width / 2) : pointX;
 
         label->setPosition(Point(pX, pointY));
     }
@@ -306,7 +312,7 @@ MenuItemFont * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string te
         MenuItemFont::setFontSize(fontSize);
 
     auto pItem = MenuItemFont::create(text, callback);
-    pItem->setColor(color);
+    pItem->setColor(color);	
 
     pMenu = Menu::create(pItem, NULL);
 
@@ -348,10 +354,16 @@ MenuItemFont * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string te
 
         p->addChild(sprite);
 
-    }else{
-
-        pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (pItem->getContentSize().width / 2) :
-             pointX;
+    }else{		
+		switch (align) {
+		case ALIGNMENT_NONE:
+			pX = pointX_NONE;
+			pItem->setAnchorPoint(Vec2(0.f, 0.5f));
+			break;
+		case ALIGNMENT_CENTER:
+			pX = pointX;
+		}
+        //pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (pItem->getContentSize().width / 2) : pointX;
 
         pMenu->setPosition(Point(pX, pointY));
     }

@@ -42,8 +42,10 @@ public:
 	};
 
 private:
-
-	virtual bool onTouchBegan(Touch* touch, Event* event);
+	virtual bool onTouchBegan(Touch* touch, Event* event) {
+		return true;
+	};
+	virtual bool onTouchEnded(Touch* touch, Event* event);
 	int mTouchCnt;
 
 
