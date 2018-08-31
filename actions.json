@@ -1,0 +1,1879 @@
+{
+	"actions": [
+		{
+			"id": 1,
+			"name": "운동1",
+			"type": 0,
+			"level": 1,
+			"reward": {
+				"strength": 8,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 1
+					}
+				]
+			}
+		},
+		{
+			"id": 2,
+			"name": "공부1",
+			"type": 1,
+			"level": 1,
+			"reward": {
+				"strength": 0,
+				"intelligence": 8,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 1
+					}
+				]
+			}
+		},
+		{
+			"id": 3,
+			"name": "파티1",
+			"type": 2,
+			"level": 1,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 8,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 1
+					}
+				]
+			}
+		},
+		{
+			"id": 4,
+			"name": "수련1",
+			"type": 3,
+			"level": 1,
+			"reward": {
+				"strength": 4,
+				"intelligence": 4,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 1
+					}
+				]
+			}
+		},
+		{
+			"id": 5,
+			"name": "운동2",
+			"type": 0,
+			"level": 2,
+			"reward": {
+				"strength": 16,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 2
+					}
+				]
+			}
+		},
+		{
+			"id": 6,
+			"name": "공부2",
+			"type": 1,
+			"level": 2,
+			"reward": {
+				"strength": 0,
+				"intelligence": 16,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 2
+					}
+				]
+			}
+		},
+		{
+			"id": 7,
+			"name": "파티2",
+			"type": 2,
+			"level": 2,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 16,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 2
+					}
+				]
+			}
+		},
+		{
+			"id": 8,
+			"name": "수련2",
+			"type": 3,
+			"level": 2,
+			"reward": {
+				"strength": 8,
+				"intelligence": 8,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 2
+					}
+				]
+			}
+		},
+		{
+			"id": 9,
+			"name": "운동3",
+			"type": 0,
+			"level": 3,
+			"reward": {
+				"strength": 24,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 3
+					}
+				]
+			}
+		},
+		{
+			"id": 10,
+			"name": "공부3",
+			"type": 1,
+			"level": 3,
+			"reward": {
+				"strength": 0,
+				"intelligence": 24,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 3
+					}
+				]
+			}
+		},
+		{
+			"id": 11,
+			"name": "파티3",
+			"type": 2,
+			"level": 3,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 24,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 3
+					}
+				]
+			}
+		},
+		{
+			"id": 12,
+			"name": "수련3",
+			"type": 3,
+			"level": 3,
+			"reward": {
+				"strength": 12,
+				"intelligence": 12,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 3
+					}
+				]
+			}
+		},
+		{
+			"id": 13,
+			"name": "운동4",
+			"type": 0,
+			"level": 4,
+			"reward": {
+				"strength": 32,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 14,
+			"name": "공부4",
+			"type": 1,
+			"level": 4,
+			"reward": {
+				"strength": 0,
+				"intelligence": 32,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 15,
+			"name": "파티4",
+			"type": 2,
+			"level": 4,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 32,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 16,
+			"name": "수련4",
+			"type": 3,
+			"level": 4,
+			"reward": {
+				"strength": 16,
+				"intelligence": 16,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 17,
+			"name": "알바4",
+			"type": 4,
+			"level": 4,
+			"reward": {
+				"strength": 16,
+				"intelligence": 0,
+				"appeal": 16,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 18,
+			"name": "낚시4",
+			"type": 5,
+			"level": 4,
+			"reward": {
+				"strength": 0,
+				"intelligence": 16,
+				"appeal": 16,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 19,
+			"name": "사냥4",
+			"type": 6,
+			"level": 4,
+			"reward": {
+				"strength": 10,
+				"intelligence": 10,
+				"appeal": 10,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 4
+					}
+				]
+			}
+		},
+		{
+			"id": 20,
+			"name": "운동5",
+			"type": 0,
+			"level": 5,
+			"reward": {
+				"strength": 40,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 21,
+			"name": "공부5",
+			"type": 1,
+			"level": 5,
+			"reward": {
+				"strength": 0,
+				"intelligence": 40,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 22,
+			"name": "파티5",
+			"type": 2,
+			"level": 5,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 40,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 23,
+			"name": "수련5",
+			"type": 3,
+			"level": 5,
+			"reward": {
+				"strength": 20,
+				"intelligence": 20,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 24,
+			"name": "알바5",
+			"type": 4,
+			"level": 5,
+			"reward": {
+				"strength": 20,
+				"intelligence": 0,
+				"appeal": 20,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 25,
+			"name": "낚시5",
+			"type": 5,
+			"level": 5,
+			"reward": {
+				"strength": 0,
+				"intelligence": 20,
+				"appeal": 20,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 26,
+			"name": "사냥5",
+			"type": 6,
+			"level": 5,
+			"reward": {
+				"strength": 13,
+				"intelligence": 13,
+				"appeal": 13,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 5
+					}
+				]
+			}
+		},
+		{
+			"id": 27,
+			"name": "운동6",
+			"type": 0,
+			"level": 6,
+			"reward": {
+				"strength": 48,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 28,
+			"name": "공부6",
+			"type": 1,
+			"level": 6,
+			"reward": {
+				"strength": 0,
+				"intelligence": 48,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 29,
+			"name": "파티6",
+			"type": 2,
+			"level": 6,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 48,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 30,
+			"name": "수련6",
+			"type": 3,
+			"level": 6,
+			"reward": {
+				"strength": 24,
+				"intelligence": 24,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 31,
+			"name": "알바6",
+			"type": 4,
+			"level": 6,
+			"reward": {
+				"strength": 24,
+				"intelligence": 0,
+				"appeal": 24,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 32,
+			"name": "낚시6",
+			"type": 5,
+			"level": 6,
+			"reward": {
+				"strength": 0,
+				"intelligence": 24,
+				"appeal": 24,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 33,
+			"name": "사냥6",
+			"type": 6,
+			"level": 6,
+			"reward": {
+				"strength": 16,
+				"intelligence": 16,
+				"appeal": 16,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 6
+					}
+				]
+			}
+		},
+		{
+			"id": 34,
+			"name": "운동7",
+			"type": 0,
+			"level": 7,
+			"reward": {
+				"strength": 56,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 35,
+			"name": "공부7",
+			"type": 1,
+			"level": 7,
+			"reward": {
+				"strength": 0,
+				"intelligence": 56,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 36,
+			"name": "파티7",
+			"type": 2,
+			"level": 7,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 56,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 37,
+			"name": "수련7",
+			"type": 3,
+			"level": 7,
+			"reward": {
+				"strength": 28,
+				"intelligence": 28,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 38,
+			"name": "알바7",
+			"type": 4,
+			"level": 7,
+			"reward": {
+				"strength": 28,
+				"intelligence": 0,
+				"appeal": 28,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 39,
+			"name": "낚시7",
+			"type": 5,
+			"level": 7,
+			"reward": {
+				"strength": 0,
+				"intelligence": 28,
+				"appeal": 28,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 40,
+			"name": "사냥7",
+			"type": 6,
+			"level": 7,
+			"reward": {
+				"strength": 18,
+				"intelligence": 18,
+				"appeal": 18,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 7
+					}
+				]
+			}
+		},
+		{
+			"id": 41,
+			"name": "운동8",
+			"type": 0,
+			"level": 8,
+			"reward": {
+				"strength": 64,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 42,
+			"name": "공부8",
+			"type": 1,
+			"level": 8,
+			"reward": {
+				"strength": 0,
+				"intelligence": 64,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 43,
+			"name": "파티8",
+			"type": 2,
+			"level": 8,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 64,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 44,
+			"name": "수련8",
+			"type": 3,
+			"level": 8,
+			"reward": {
+				"strength": 32,
+				"intelligence": 32,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 45,
+			"name": "알바8",
+			"type": 4,
+			"level": 8,
+			"reward": {
+				"strength": 32,
+				"intelligence": 0,
+				"appeal": 32,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 46,
+			"name": "낚시8",
+			"type": 5,
+			"level": 8,
+			"reward": {
+				"strength": 0,
+				"intelligence": 32,
+				"appeal": 32,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 47,
+			"name": "사냥8",
+			"type": 6,
+			"level": 8,
+			"reward": {
+				"strength": 21,
+				"intelligence": 21,
+				"appeal": 21,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 8
+					}
+				]
+			}
+		},
+		{
+			"id": 48,
+			"name": "운동9",
+			"type": 0,
+			"level": 9,
+			"reward": {
+				"strength": 72,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 49,
+			"name": "공부9",
+			"type": 1,
+			"level": 9,
+			"reward": {
+				"strength": 0,
+				"intelligence": 72,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 50,
+			"name": "파티9",
+			"type": 2,
+			"level": 9,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 72,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 51,
+			"name": "수련9",
+			"type": 3,
+			"level": 9,
+			"reward": {
+				"strength": 36,
+				"intelligence": 36,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 52,
+			"name": "알바9",
+			"type": 4,
+			"level": 9,
+			"reward": {
+				"strength": 36,
+				"intelligence": 0,
+				"appeal": 36,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 53,
+			"name": "낚시9",
+			"type": 5,
+			"level": 9,
+			"reward": {
+				"strength": 0,
+				"intelligence": 36,
+				"appeal": 36,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 54,
+			"name": "사냥9",
+			"type": 6,
+			"level": 9,
+			"reward": {
+				"strength": 24,
+				"intelligence": 24,
+				"appeal": 24,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 9
+					}
+				]
+			}
+		},
+		{
+			"id": 55,
+			"name": "운동10",
+			"type": 0,
+			"level": 10,
+			"reward": {
+				"strength": 80,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 56,
+			"name": "공부10",
+			"type": 1,
+			"level": 10,
+			"reward": {
+				"strength": 0,
+				"intelligence": 80,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 57,
+			"name": "파티10",
+			"type": 2,
+			"level": 10,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 80,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 58,
+			"name": "수련10",
+			"type": 3,
+			"level": 10,
+			"reward": {
+				"strength": 40,
+				"intelligence": 40,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 59,
+			"name": "알바10",
+			"type": 4,
+			"level": 10,
+			"reward": {
+				"strength": 40,
+				"intelligence": 0,
+				"appeal": 40,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 60,
+			"name": "낚시10",
+			"type": 5,
+			"level": 10,
+			"reward": {
+				"strength": 0,
+				"intelligence": 40,
+				"appeal": 40,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 61,
+			"name": "사냥10",
+			"type": 6,
+			"level": 10,
+			"reward": {
+				"strength": 26,
+				"intelligence": 26,
+				"appeal": 26,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 10
+					}
+				]
+			}
+		},
+		{
+			"id": 62,
+			"name": "운동11",
+			"type": 0,
+			"level": 11,
+			"reward": {
+				"strength": 88,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 63,
+			"name": "공부11",
+			"type": 1,
+			"level": 11,
+			"reward": {
+				"strength": 0,
+				"intelligence": 88,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 64,
+			"name": "파티11",
+			"type": 2,
+			"level": 11,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 88,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 65,
+			"name": "수련11",
+			"type": 3,
+			"level": 11,
+			"reward": {
+				"strength": 44,
+				"intelligence": 44,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 66,
+			"name": "알바11",
+			"type": 4,
+			"level": 11,
+			"reward": {
+				"strength": 44,
+				"intelligence": 0,
+				"appeal": 44,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 67,
+			"name": "낚시11",
+			"type": 5,
+			"level": 11,
+			"reward": {
+				"strength": 0,
+				"intelligence": 44,
+				"appeal": 44,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 68,
+			"name": "사냥11",
+			"type": 6,
+			"level": 11,
+			"reward": {
+				"strength": 29,
+				"intelligence": 29,
+				"appeal": 29,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 11
+					}
+				]
+			}
+		},
+		{
+			"id": 69,
+			"name": "운동12",
+			"type": 0,
+			"level": 12,
+			"reward": {
+				"strength": 96,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 70,
+			"name": "공부12",
+			"type": 1,
+			"level": 12,
+			"reward": {
+				"strength": 0,
+				"intelligence": 96,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 71,
+			"name": "파티12",
+			"type": 2,
+			"level": 12,
+			"reward": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 96,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 72,
+			"name": "수련12",
+			"type": 3,
+			"level": 12,
+			"reward": {
+				"strength": 48,
+				"intelligence": 48,
+				"appeal": 0,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 73,
+			"name": "알바12",
+			"type": 4,
+			"level": 12,
+			"reward": {
+				"strength": 48,
+				"intelligence": 0,
+				"appeal": 48,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 74,
+			"name": "낚시12",
+			"type": 5,
+			"level": 12,
+			"reward": {
+				"strength": 0,
+				"intelligence": 48,
+				"appeal": 48,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		},
+		{
+			"id": 75,
+			"name": "사냥12",
+			"type": 6,
+			"level": 12,
+			"reward": {
+				"strength": 32,
+				"intelligence": 32,
+				"appeal": 32,
+				"point": 0,
+				"items": []
+			},
+			"cost": {
+				"strength": 0,
+				"intelligence": 0,
+				"appeal": 0,
+				"point": 0,
+				"items": [
+					{
+						"id": 1,
+						"quantity": 12
+					}
+				]
+			}
+		}
+	]
+}

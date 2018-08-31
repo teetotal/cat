@@ -9,12 +9,15 @@ logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB) {
 
-    string szMeta, szActor;
+    string szMeta, szActor, szActions;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
 		szActor = loadJsonString(CONFIG_ACTOR);
+		szActions = loadJsonString(CONFIG_ACTIONS);
 #else
 		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
+		szActions = FileUtils::getInstance()->getStringFromFile(CONFIG_ACTIONS);
+
 		string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
 		if (!FileUtils::getInstance()->isFileExist(fileFullPath)) {
 			//writable 경로에 파일 복사
@@ -33,13 +36,18 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	if (dActor.HasParseError())
 		return false;
 
+	rapidjson::Document dActions;
+	dActions.Parse(szActions.c_str());
+	if (dActions.HasParseError())
+		return false;
+
 	if(!initErrorMessage(d["errors"]))
 		return false;
 	if (!initItems(d["items"]))
 		return false;
 	if (!initSeed(d["farming"], d["seed"]))
 		return false;
-	if (!initTraining(d["training"]))
+	if (!initTraining(dActions["actions"]))
 		return false;
 	if (!initJobTitle(d["jobTitle"]))
 		return false;
@@ -312,7 +320,7 @@ bool logics::initRace(rapidjson::Value & race)
 
 bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievement) {
 	//basic 
-	int goals[] = { 0, 2, 10, 26, 58, 122, 250, 506, 1018, 2042, 4090, 8186, 16378 };
+	int goals[] = { 0, 2, 18, 50, 114, 242, 498, 1010, 2034, 4082, 8178, 16370, 32754 };
 	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
 		int totalProperty = goals[n];
 		mAchievement.addAchieve(
@@ -1458,10 +1466,10 @@ void logics::achievementCallbackFn(int type, int idx) {
 	printf("%d achievementCallback \n", idx);
 	achievement::detail d;
 	hInst->mAchievement.getDetail(d, type, idx);
-	/*
+
 	hInst->mAchievement.rewardReceive(type, idx);
 	hInst->addInventory(d.rewardId, d.rewardVal);
-	*/
+
 	hInst->mAchieveCB(type, idx);
 }
 

@@ -27,6 +27,7 @@
 #define CONFIG_ACTOR "actor.json"
 #define CONFIG_ACTOR_BACKUP "actor_backup.json"
 #define CONFIG_META "meta.json"
+#define CONFIG_ACTIONS "actions.json"
 
 //만랩
 #define LEVEL_MAX	12

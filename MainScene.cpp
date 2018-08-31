@@ -1036,9 +1036,9 @@ void MainScene::showBuy(inventoryType type) {
 	mBuyQuantityImg = gui::inst()->addSpriteAutoDimension(2, 1, "items/0.png", layerQunatity, ALIGNMENT_CENTER, gridQuantity, Size::ZERO, Size::ZERO);
 	mBuyQuantityImg->setContentSize(Size(20, 20));
 	mBuyQuantityTitle = gui::inst()->addLabelAutoDimension(1, 2, " ", layerQunatity, 10, ALIGNMENT_NONE, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(1, 3, "-", layerQunatity, CC_CALLBACK_1(MainScene::buyQuantityCallback, this, -1), 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(1, 3, "-", layerQunatity, CC_CALLBACK_1(MainScene::buyQuantityCallback, this, -1), 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	mBuyQuantity = gui::inst()->addLabelAutoDimension(2, 3, "  ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(3, 3, "+", layerQunatity, CC_CALLBACK_1(MainScene::buyQuantityCallback, this, 1), 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(3, 3, "+", layerQunatity, CC_CALLBACK_1(MainScene::buyQuantityCallback, this, 1), 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	mBuyQuantityPrice = gui::inst()->addLabelAutoDimension(2, 4, "           ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	gui::inst()->addTextButtonAutoDimension(2, 5, "BUY", layerQunatity, CC_CALLBACK_1(MainScene::buyCallback, this), 14, ALIGNMENT_CENTER, Color3B::BLUE, gridQuantity, Size::ZERO, Size::ZERO);
 	
