@@ -100,9 +100,7 @@ enum inventoryType {
 //아이템 종류
 enum itemType {
 	itemType_training = 0,
-	itemType_training_food,
-	itemType_training_doll,
-	itemType_training_etc,
+	itemType_training_material,
 	itemType_hp = 100,
 	itemType_hp_meal,
 	itemType_race = 200, //경묘
@@ -294,6 +292,8 @@ struct _raceParticipant : _property {
 
 	//아이템 사용 횟수
 	int shootItemCount;
+	itemType shootCurrentType; //현재 사용한 아이템 타입
+	int shootCurrentQuantity; //현재 사용한 아이템 수량
 
 	_raceParticipant() {
 		this->idx = 0;
@@ -305,6 +305,8 @@ struct _raceParticipant : _property {
 		this->rank = 0;			
 		this->currentRank = 0;
 		this->shootItemCount = 0;
+		this->shootCurrentType = itemType_max;
+		this->shootCurrentQuantity = 0;
 	};
 	bool operator <(const _raceParticipant &a) const {
 		return this->totalLength > a.totalLength;		

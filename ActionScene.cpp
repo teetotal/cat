@@ -6,7 +6,7 @@
 #include "SimpleAudioEngine.h"
 
 #define RACE_UPDATE_INTERVAL 0.3
-#define RACE_MAX_TOUCH 200.f //초당 max 터치
+//#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 2.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 5);
@@ -131,9 +131,12 @@ void ActionScene::initRace() {
 	//아이템 설정
 	for (int i = 0; i < mSelectItems.size(); i++) {
 		_item item = logics::hInst->getItem(mSelectItems[i].itemId);
-		string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
+		//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
+		wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
+		string sz = wstring_to_utf8(szW);
+
 		mSkillItem[i] = gui::inst()->addTextButton(0, 3 + i, sz, this,
-			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 12, ALIGNMENT_NONE, Color3B::BLACK);
+			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
 	}
 
 	counting();
@@ -275,12 +278,14 @@ void ActionScene::timer(float f) {
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		_raceParticipant p = mRaceParticipants->at(n);
 		//rank
-		//mRankLabel[n]->setString(to_string(p.rank));
-
+		
 		if (p.ratioLength >= 100.f) {			
 			mRunner[n]->stopAllActions();
 			mRunnerLabel[n]->setString(to_string(p.rank));
 			continue;
+		}
+		else { //순위 전에는 사용한 아이템 
+			mRunnerLabel[n]->setString(getSkillIcon(p.shootCurrentType));
 		}
 
 		if (p.currentSuffer != itemType_max) {
@@ -367,7 +372,8 @@ void ActionScene::updateSelectItem() {
 	for (int n = 0; n < raceItemSlot; n++) {
 		if (mSelectItems.size() > n) {
 			_item item = logics::hInst->getItem(mSelectItems[n].itemId);
-			mSelectedItem[n]->setString(wstring_to_utf8(item.name));
+			wstring sz = getSkillIconW(item.type) + to_wstring(item.grade);
+			mSelectedItem[n]->setString(wstring_to_utf8(sz));
 		}
 		else {
 			mSelectedItem[n]->setString("EMPTY");
@@ -427,9 +433,9 @@ void ActionScene::showItemSelect(errorCode err) {
 
 	//Selected Item
 	for (int n = 0; n < raceItemSlot; n++) {
-		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(3 + (2 * (n)), 5, "EMPTY", mPopupLayer
+		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(1 + (3 * (n)), 5, "EMPTY", mPopupLayer
 			, CC_CALLBACK_1(ActionScene::removeSelectItem, this, n)
-			, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+			, 24, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 		);
 	}
 		
@@ -439,6 +445,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	}
 
 	//선수 정보
+	/*
 	raceParticipants* p = logics::hInst->getRaceRunners();
 	for (int n = 0; n < p->size(); n++) {
 		gui::inst()->addLabelAutoDimension(0, n +1, wstring_to_utf8(names[n]), mPopupLayer, 10, ALIGNMENT_NONE, txtColors[n]);
@@ -455,7 +462,8 @@ void ActionScene::showItemSelect(errorCode err) {
 	pro += "A: " + to_string(logics::hInst->getActor()->property.appeal);
 
 	gui::inst()->addLabelAutoDimension(1, p->size() + 1, pro, mPopupLayer, 10, ALIGNMENT_NONE, txtColors[p->size()]);
-		
+	*/
+
 	int nMenuIdx = 0;
 	int newLine = 2;
 
@@ -464,23 +472,27 @@ void ActionScene::showItemSelect(errorCode err) {
 
 	int cnt = vec.size();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(3, 5), Vec2(9, 0), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 5), Vec2(9, 0), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - POPUP_NODE_MARGIN;
 	//nodeSize.width = sizeOfScrollView.width - POPUP_NODE_MARGIN;
 	Size innerSize = Size(sizeOfScrollView.width , cnt * (sizeOfScrollView.height + POPUP_NODE_MARGIN));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(3, 5), Vec2(9, 0), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 5), Vec2(9, 0), size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;
 		string img = "items/" + to_string(id % 20) + ".png";
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true);
+		l->setOpacity(192);
 		_item item = logics::hInst->getItem(id);
 
 		int heightIdx = 2;
 		//item image
+		/*
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, heightIdx++, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(20, 20));
-		gui::inst()->addLabelAutoDimension(0, heightIdx++, to_string(item.type), l, 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		*/
+		
+		gui::inst()->addLabelAutoDimension(0, heightIdx++, getSkillIcon(item.type), l, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		heightIdx = 1;
 		//item name

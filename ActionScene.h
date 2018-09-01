@@ -68,6 +68,31 @@ private:
 	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
 	void counting();
+	wstring getSkillIconW(itemType type) {
+		wstring szImg;
+		switch (type) {
+		case itemType_race_shield:		//방어 쉴드
+			szImg = L"┛";
+			break;
+		case itemType_race_speedUp:		//속업
+			szImg = L"┲";
+			break;
+		case itemType_race_attactFront:	//전방 공격
+			szImg = L"┡";
+			break;
+		case itemType_race_attactFirst:	//1등 공격
+			szImg = L"┼";
+			break;
+		default:
+			break;
+		}
+		return szImg;
+	};
+	string getSkillIcon(itemType type) {
+		if (type == itemType_max)
+			return "";
+		return wstring_to_utf8(getSkillIconW(type));
+	};
 
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];

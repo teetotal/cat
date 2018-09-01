@@ -1188,6 +1188,8 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
             break;
 	}
 	mRaceParticipants->at(seq).shootItemCount++;
+	mRaceParticipants->at(seq).shootCurrentType = type;
+	mRaceParticipants->at(seq).shootCurrentQuantity = quantity;
 }
 
 void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
@@ -1281,6 +1283,10 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 	 mRaceOrderedVector.clear();
 
 	 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
+		 // 순위 산정 하는 김에 사용 아이템 초기화.
+		 mRaceParticipants->at(n).shootCurrentType = itemType_max;
+		 mRaceParticipants->at(n).shootCurrentQuantity = 0;
+
 		 if (mRaceParticipants->at(n).rank == 0) {
 			 mRaceOrderedVector.push_back(mRaceParticipants->at(n));
 		 }
