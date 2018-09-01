@@ -60,7 +60,9 @@ function getTitle(level, type){
 }
 
 function createAction(level, type){
-    
+    if(getTitle(level, type) == null)
+        return;
+
     var obj = {
         "id": id++,
         "name": getTitle(level, type),
@@ -74,7 +76,7 @@ function createAction(level, type){
           "point": 0,
           "items": [
             {
-              "id": 1,
+              "id": type + 1,
               "quantity": level
             }
           ]
@@ -92,5 +94,5 @@ function create(level){
 for(var level =1; level <= 12; level++){
     create(level);
 }
-fs.writeFile("./actions.json", JSON.stringify(actions, '', '\t'));
+fs.writeFile("../Resources/actions.json", JSON.stringify(actions, '', '\t'));
 console.log(actions);

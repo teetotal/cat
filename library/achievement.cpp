@@ -32,6 +32,7 @@ void achievement::setLevel(int level) {
 		if (vec[n]->accumulation >= vec[n]->value) {
 			vec[n]->accumulation = vec[n]->value;
 			vec[n]->isFinished = true;
+			mCallback(level, n);
 		}
 			
 	}

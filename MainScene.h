@@ -14,6 +14,7 @@
 USING_NS_CC;
 
 #define BG_HOME "bg_home.png"
+#define BG_ACTION "bg_action.png"
 #define BG_FARM "bg_farming.jpg"
 #define BG_ACHIEVEMENT "bg_achievement.png"
 #define BG_BUY	"bg_buy.png"
@@ -24,6 +25,7 @@ USING_NS_CC;
 
 enum CHILD_ID {
 	CHILD_ID_INVENTORY = 1000,
+	CHILD_ID_ACTION,
 	CHILD_ID_BUY,
 	CHILD_ID_ACHIEVEMENT,
 	CHILD_ID_COLLECTION,
@@ -102,7 +104,7 @@ private:
     void callback2(Ref* pSender, SCENECODE type);
   
 	static void achievementCB(int level, int idx) {
-		noticeEffect(hInst->mAchievement);		
+		noticeEffect(hInst->mAchievement);
 	};
 
 	static void noticeEffect(MenuItemFont * p) {
@@ -161,6 +163,7 @@ private:
 	//Sell
 	void sellItem(Ref* pSender, inventoryType code, int id); //아이템 판매
 	//Action
+	void showActionCategory(Ref* pSender, int type);
 	void callbackAction(Ref* pSender, int id);
 	void callbackActionAnimation(int id, int maxTimes);
 	//Achievement

@@ -118,14 +118,13 @@ enum itemType {
 };
 //training type
 enum trainingType {
-	trainingType_dance = 0,		//댄스
-	trainingType_walking_around,		//돌아다니기
-	trainingType_work_hard,	//열심히 일하기
-	trainingType_panic,		//멘붕
-	trainingType_lazy,		//게으르기
-	trainingType_fight,		//무사 수련
+	trainingType_play = 0,	//놀이
+	trainingType_study,		//공부
+	trainingType_party,		//파티
+	trainingType_training,	//수련
+	trainingType_work,		//알바
 	trainingType_fishing,	//낚시
-	trainingType_study,		//공부하기
+	trainingType_hunting,		//사냥
 	trainingType_max,
 };
 

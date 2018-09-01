@@ -195,7 +195,8 @@ bool MainScene::init()
 	//퀘스트 타이머. 퀘스트 정산이 1초마다 되기 때문에 싱크가 잘 안맞아서 어쩔 수 없다.
 	this->schedule([=](float delta) {		
 		this->updateQuests((mLevel != logics::hInst->getActor()->level));
-	}, 1, "questTimer");
+		mLevel = logics::hInst->getActor()->level;
+	}, 0.5, "questTimer");
 
   	
     return true;
@@ -324,7 +325,6 @@ void MainScene::updateState(bool isInventoryUpdated) {
         mName->runAction(Sequence::create(
                 ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
         ));
-		mLevel = logics::hInst->getActor()->level;
 	}
 
     mName->setString(name);
@@ -1176,80 +1176,70 @@ void MainScene::showCollection() {
 	layer->addChild(sv, 1, CHILD_ID_COLLECTION);
 }
 
-void MainScene::actionList() {
-	ACTION_SIZE;	
-	int newLine = 2;   
 
-    //this->removeChild(layerGray);
-	closePopup();
-    layer = gui::inst()->addPopup(layerGray, this, size, "bg_action.png", Color4B::WHITE);
-    gui::inst()->addTextButtonAutoDimension(8,0
-            ,"CLOSE"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::RED
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
+void MainScene::showActionCategory(Ref* pSender, int type) {
+	ACTION_SIZE;
+	//int nodeMargin = 2;
+	int newLine = 2;
 
-    gui::inst()->addLabelAutoDimension(4,0
-            ,"ACTION"
-            , layer
-            , 14
-            , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-            , Size::ZERO
-            , margin
-    );
+	__training * pTraining = logics::hInst->getActionList();
 
-
-    //grid line
-    //gui::inst()->drawGrid(layer, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
-
-    __training * pTraining = logics::hInst->getActionList();
-	
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((pTraining->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-    ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 
-    for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {        
+	for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {
 		int id = it->first;
+		switch (type) {
+		case 0:
+			break;
+		case 1:
+			if (it->second.reward.strength == 0)
+				continue;
+			break;
+		case 2:
+			if (it->second.reward.intelligence == 0)
+				continue;
+			break;
+		case 3:
+			if (it->second.reward.appeal == 0)
+				continue;
+			break;
+		default:
+			break;
+		}
+	
+		wstring costItems;
+		int rewardItemCnt = 0;
 
-        wstring costItems;		
-		int rewardItemCnt = 0;		
+		for (int n = 0; n < maxTrainingItems; n++) {
+			_itemPair* p = it->second.cost.items[n];
+			if (p != NULL) {
+				costItems += logics::hInst->getItem(p->itemId).name + L"x" + to_wstring(p->val);
+			}
+		}
 
-        for (int n = 0; n < maxTrainingItems; n++) {
-            _itemPair* p = it->second.cost.items[n];
-            if (p != NULL) {				
-				costItems += logics::hInst->getItem(p->itemId).name + L"x" + to_wstring(p->val);				
-            }
-        }
-
-        //대충 정해 놓고 나중에
-        int type = it->second.type;
+		//대충 정해 놓고 나중에
+		int type = it->second.type;
 		int level = it->second.level;
-		const wchar_t c[] = {L'`' , L'─', L'┌', L'┐', L'┘', L'└', L'├', L'┬'};
-        Color3B bgColor = Color3B(255 - type * 2, 255 - level * 5, 255);
+		const wchar_t c[] = { L'`' , L'─', L'┌', L'┐', L'┘', L'└', L'├', L'┬' };
+		Color3B bgColor = Color3B(255 - type * 2, 255 - level * 5, 255);
 
-        Layout* l = gui::inst()->createLayout(nodeSize, "", true, bgColor);
-
+		Layout* l = gui::inst()->createLayout(nodeSize, "", true, bgColor);
+		l->setOpacity(192);
 		wstring szC = L" ";
 		szC[0] = c[type];
-		
+
 		//Error처리
 		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
 		errorCode err = logics::hInst->isValidTraining(id);
-		if (err != error_success) {			
+		if (err != error_success) {
 			id = -1;
 			gui::inst()->addLabelAutoDimension(1, 4
 				, wstring_to_utf8(logics::hInst->getErrorMessage(err), true)
-				, l				
+				, l
 				, 8
 				, ALIGNMENT_NONE
 				, Color3B::RED
@@ -1264,19 +1254,51 @@ void MainScene::actionList() {
 		gui::inst()->addLabelAutoDimension(0, 2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLabelAutoDimension(1, 1, "Lv." + to_string(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-        gui::inst()->addTextButtonAutoDimension(1,2, wstring_to_utf8(it->second.name), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-		gui::inst()->addTextButtonAutoDimension(1,3, wstring_to_utf8(costItems), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-        //gui::inst()->addTextButtonAutoDimension(1,3, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
-        
+		gui::inst()->addTextButtonAutoDimension(1, 2, wstring_to_utf8(it->second.name), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addTextButtonAutoDimension(1, 3, wstring_to_utf8(costItems), l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+		//gui::inst()->addTextButtonAutoDimension(1,3, pay, l, CC_CALLBACK_1(MainScene::callbackAction, this, id), 9, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
 
 		if (!isEnable) {
 			l->setEnabled(false);
 		}
-			
-    }
+	}
 
-    layer->addChild(sv, 1, 123);
+	layer->removeChildByTag(CHILD_ID_ACTION, true);
+	layer->addChild(sv, 1, CHILD_ID_ACTION);
+}
+
+
+void MainScene::actionList() {
+#define __PARAMS_ACTION(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showActionCategory, this, ID), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+
+	ACTION_SIZE;	
+	int newLine = 2;   
+
+    //this->removeChild(layerGray);
+	closePopup();
+    layer = gui::inst()->addPopup(layerGray, this, size, BG_ACTION, Color4B::WHITE);
+    gui::inst()->addTextButtonAutoDimension(8,0
+            ,"CLOSE"
+            , layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+            , 14
+            , ALIGNMENT_CENTER
+            , Color3B::RED
+            , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+            , Size::ZERO
+            , margin
+    );
+
+	int nMenuIdx = 0;
+
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("ALL", 0));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("S", 1));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("I", 2));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("A", 3));
+	
+	showActionCategory(this, 0);
 }
 
 void MainScene::particleSample(const string sz){
