@@ -631,3 +631,36 @@ void gui::addBGScrolling(const string img, Node * p, float duration){
     p->addChild(sprite2);
     p->addChild(sprite3);
 }
+
+void gui::addQuantityLayer(Node * p, Size size, Size margin
+	, Sprite* &sprite, Label * &label, Label * &labelQuantity, Label* &labelPrice
+	, const string szSubmit
+	, const ccMenuCallback& callbackDec
+	, const ccMenuCallback& callbackInc
+	, const ccMenuCallback& callbackSubmit
+) {
+	//quantity
+	Vec2 s, e;
+	gui::inst()->getPoint(7, 7, s, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+	gui::inst()->getPoint(9, 1, e, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+
+	Size sizeQunatity = Size(e.x - s.x, e.y - s.y);
+	auto layerQunatity = gui::inst()->createLayout(sizeQunatity, "", true);
+	layerQunatity->setOpacity(192);
+
+	Size gridQuantity = Size(5, 6);
+	sprite = gui::inst()->addSpriteAutoDimension(2, 1, "blank.png", layerQunatity, ALIGNMENT_CENTER, gridQuantity, Size::ZERO, Size::ZERO);
+	sprite->setContentSize(Size(20, 20));
+
+	label = gui::inst()->addLabelAutoDimension(1, 2, " ", layerQunatity, 10, ALIGNMENT_NONE, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(1, 3, "-", layerQunatity, callbackDec, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	labelQuantity = gui::inst()->addLabelAutoDimension(2, 3, "  ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(3, 3, "+", layerQunatity, callbackInc, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	labelPrice = gui::inst()->addLabelAutoDimension(2, 4, "           ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(2, 5, szSubmit, layerQunatity, callbackSubmit, 14, ALIGNMENT_CENTER, Color3B::BLUE, gridQuantity, Size::ZERO, Size::ZERO);
+
+	layerQunatity->setAnchorPoint(Vec2(0, 0));
+	layerQunatity->setPosition(s);
+
+	p->addChild(layerQunatity);
+}

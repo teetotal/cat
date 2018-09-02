@@ -86,10 +86,14 @@ private:
     MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
     Layout * mAlertLayer;
 
-	//BUY Quantity
-	Sprite * mBuyQuantityImg;
-	Label * mBuyQuantityTitle, * mBuyQuantity, *mBuyQuantityPrice;
+	//Quantity
+	Sprite * mQuantityImg;
+	Label * mQuantityTitle, * mQuantityLabel, *mQuantityPrice;
 	int mQuantity, mQuantityItemId;
+	bool mIsSell; //buy인지 sell인지 구분
+
+	void quantityCallback(Ref* pSender, int value); // 수량 제어
+
 
 	SCENECODE mCurrentScene; //현재 Scene 정보
 	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
@@ -149,19 +153,21 @@ private:
 	void showResult(const string msg, bool enableParticle); //결과 보기
     void alertCloseCallback(Ref* pSender);	
 	void scheduleRecharge(float f); // HP 충전 쓰레드
+	
+	//Quantity	
+	void selectCallback(Ref* pSender, int id); //수량 선택
+									
 	//Buy
 	void showBuy(inventoryType type = inventoryType_all); //구매 보기
 	void showBuyCategory(Ref* pSender, inventoryType code); // 구매 카테고리
 	void buyCallback(Ref* pSender); //구매
-	void buySelectCallback(Ref* pSender, int id); //구매 선택
-	void buyQuantityCallback(Ref* pSender, int value); // 수량
 	
 	//Inventory
 	void showInventory(inventoryType type = inventoryType_all, bool isSell = false);	//가방조회
 	void showInventoryCategory(Ref* pSender, inventoryType code, bool isSell); //가방조회 카테고리
 	void invokeItem(Ref* pSender, int id); //아이템 발동
 	//Sell
-	void sellItem(Ref* pSender, inventoryType code, int id); //아이템 판매
+	void sellItem(Ref* pSender); //아이템 판매
 	//Action
 	void showActionCategory(Ref* pSender, int type);
 	void callbackAction(Ref* pSender, int id);

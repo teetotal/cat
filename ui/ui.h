@@ -246,6 +246,13 @@ public:
 			, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
 			, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
     );
+	//수량 UI Layer
+	void addQuantityLayer(Node * p, Size size, Size margin
+		, Sprite* &sprite, Label * &label, Label * &labelQuantity, Label* &labelPrice
+		, const string szSubmit
+		, const ccMenuCallback& callbackDec
+		, const ccMenuCallback& callbackInc
+		, const ccMenuCallback& callbackSubmit);
 
 	void setScale(Node * p, float targetWidth) {
 		float ratio = targetWidth / p->getContentSize().width;

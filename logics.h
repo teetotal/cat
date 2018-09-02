@@ -132,9 +132,12 @@ enum achievement_category {
 	achievement_category_trade_buy,
 	achievement_category_trade_sell,
 	achievement_category_recharge, //체력 충전
-	achievement_category_farming,   
-	achievement_category_race,
-	achievement_category_property	//능력치
+	achievement_category_farming,   // 농사 전체
+	achievement_category_race, //경묘 전체
+	achievement_category_property,	//능력치
+	achievement_category_race_item, // 경묘 아이템 모드
+	achievement_category_race_speed, // 경묘 스피드 모드
+	achievement_category_race_friend_1, // 경묘 friend 모드
 };
 enum achievement_farming_id {
 	achievement_farming_id_plant = 0, //심기 횟수
@@ -325,7 +328,7 @@ struct _raceCurrent
 };
 
 typedef map<int, _item> __items;
-typedef map<int, _training> __training;
+typedef map<int, _training, std::greater<int>> __training;
 typedef map<int, _race> raceMeta;
 
 class logics 

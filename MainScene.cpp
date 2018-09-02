@@ -777,16 +777,15 @@ void MainScene::invokeItem(Ref* pSender, int id) {
 	}	
 }
 
-void MainScene::sellItem(Ref* pSender, inventoryType code, int id) {
-	errorCode err = logics::hInst->runTrade(false, id, 1);
+void MainScene::sellItem(Ref* pSender) {
+	errorCode err = logics::hInst->runTrade(false, mQuantityItemId, mQuantity);
 	if (err != error_success && err != error_levelup) {
 		wstring sz = logics::hInst->getErrorMessage(err);
 		alert(wstring_to_utf8(sz, true));
 	}
 	else {
-		//closePopup();
-		updateState(true);
-		showInventoryCategory(pSender, code, true);
+		updateState(false);
+		closePopup();
 	}
 }
 
@@ -797,12 +796,22 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 	if (isSell)
 		gridSize.height++;
 
+	Vec2 rect1, rect2;
+	rect1 = Vec2(0, 7);
+
+	if (isSell) {
+		rect2 = Vec2(7, 1);
+	}
+	else {
+		rect2 = Vec2(9, 1);
+	}
+
 	vector<intPair> vec;
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(7, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(rect1, rect2, size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(7, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(rect1, rect2, size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;
@@ -825,14 +834,14 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			int price = logics::hInst->getTrade()->getPriceSell(item.id);
 
 			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "Lv." + to_string(item.grade), l
-				, CC_CALLBACK_1(MainScene::sellItem, this, code, item.id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
-				, CC_CALLBACK_1(MainScene::sellItem, this, code, item.id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 			//item quantity
 			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "x " + to_string(vec[n].val), l
-				, CC_CALLBACK_1(MainScene::sellItem, this, code, item.id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "$" + to_string(price), l
-				, CC_CALLBACK_1(MainScene::sellItem, this, code, item.id), 12, ALIGNMENT_NONE, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		}
 		else {
 			if (item.type == itemType_hp_meal) {
@@ -880,31 +889,53 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
 	
 	if (isSell) {
+		mIsSell = true;
+		mQuantityItemId = -1;
 		auto time = gui::inst()->addLabelAutoDimension(nMenuIdx, 0, getTradeRemainTime(), layer, 8, ALIGNMENT_NONE, Color3B::GRAY
 			, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 		time->setAnchorPoint(Vec2(0, 0));
 		time->setPosition(Vec2(margin.width, 0));
+		
+		//수량 추가
+		gui::inst()->addQuantityLayer(layer, size, margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
+			, wstring_to_utf8(L"판매")
+			, CC_CALLBACK_1(MainScene::quantityCallback, this, -1)
+			, CC_CALLBACK_1(MainScene::quantityCallback, this, 1)
+			, CC_CALLBACK_1(MainScene::sellItem, this)
+		);
 	}
 	
 	showInventoryCategory(this, type, isSell);
 }
 
-void MainScene::buyQuantityCallback(Ref* pSender, int value) {
+void MainScene::quantityCallback(Ref* pSender, int value) {
 	if (mQuantity <= 1 && value < 0)
 		return;
 
 	mQuantity += value;
-	mBuyQuantity->setString(to_string(mQuantity));
+	mQuantityLabel->setString(to_string(mQuantity));
 	_item item = logics::hInst->getItem(mQuantityItemId);	
-	int price = logics::hInst->getTrade()->getPriceBuy(mQuantityItemId) * mQuantity;
-	if (price > logics::hInst->getActor()->point) {
-		mBuyQuantityPrice->setString(wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_point)));
-		mBuyQuantityPrice->setScale(0.5);
+
+	//판매 수량 체크
+	if (mIsSell && !logics::hInst->getActor()->inven.checkItemQuantity(logics::hInst->getInventoryType(item.id), item.id, mQuantity)) {
+		mQuantityPrice->setString(wstring_to_utf8(logics::hInst->getErrorMessage(error_invalid_quantity)));
+		mQuantityPrice->setScale(0.5);
+		return;
 	}
-	else {
-		mBuyQuantityPrice->setString("$ " + to_string(price));
-		mBuyQuantityPrice->setScale(1);
+
+	int price = mIsSell ? logics::hInst->getTrade()->getPriceSell(mQuantityItemId) : logics::hInst->getTrade()->getPriceBuy(mQuantityItemId);
+	price = price * mQuantity;
+	
+	//구매시 보유 금액 초과
+	if (!mIsSell && price > logics::hInst->getActor()->point) {
+		mQuantityPrice->setString(wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_point)));
+		mQuantityPrice->setScale(0.5);
+		return;
 	}
+
+	mQuantityPrice->setString("$ " + to_string(price));
+	mQuantityPrice->setScale(1);
+	
 }
 
 void MainScene::buyCallback(Ref* pSender) {
@@ -920,7 +951,7 @@ void MainScene::buyCallback(Ref* pSender) {
 	}
 }
 
-void MainScene::buySelectCallback(Ref* pSender, int id) {
+void MainScene::selectCallback(Ref* pSender, int id) {
 	/*
 	//quantity modal
 	LayerColor * bg, *l2;
@@ -935,21 +966,21 @@ void MainScene::buySelectCallback(Ref* pSender, int id) {
 	szImg += to_string(id % 20) + ".png";
 
 	_item item = logics::hInst->getItem(mQuantityItemId);
-	mBuyQuantityImg->setTexture(szImg);
-	mBuyQuantityImg->setContentSize(Size(20, 20));
+	mQuantityImg->setTexture(szImg);
+	mQuantityImg->setContentSize(Size(20, 20));
 	
-	mBuyQuantityTitle->setString(wstring_to_utf8(item.name));
+	mQuantityTitle->setString(wstring_to_utf8(item.name));
 	if (item.name.size() > 14) {
-		mBuyQuantityTitle->setScale(0.6);
+		mQuantityTitle->setScale(0.6);
 	}
 	else if (item.name.size() > 10) {
-		mBuyQuantityTitle->setScale(0.8);
+		mQuantityTitle->setScale(0.8);
 	}
 	else {
-		mBuyQuantityTitle->setScale(1);
+		mQuantityTitle->setScale(1);
 	}
 
-	buyQuantityCallback(this, 0);
+	quantityCallback(this, 0);
 }
 
 void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
@@ -987,14 +1018,14 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 2, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(20, 20));
 		gui::inst()->addTextButtonAutoDimension(0, 3, to_string(item.type), l
-			, CC_CALLBACK_1(MainScene::buySelectCallback, this, id), 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 9, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, getRomeNumber(item.grade), l
-			, CC_CALLBACK_1(MainScene::buySelectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
-			, CC_CALLBACK_1(MainScene::buySelectCallback, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "$ " + to_string(logics::hInst->getTrade()->getPriceBuy(id)), l
-			, CC_CALLBACK_1(MainScene::buySelectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
 	}
@@ -1007,7 +1038,8 @@ void MainScene::showBuy(inventoryType type) {
 #define __PARAMS_BUY(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showBuyCategory, this, ID), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 
 	BUY_SIZE;
-	//this->removeChild(layerGray);
+	mIsSell = false;
+	mQuantityItemId = -1;
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_BUY, Color4B::WHITE);
 
@@ -1025,6 +1057,7 @@ void MainScene::showBuy(inventoryType type) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
 
 	//quantity
+	/*
 	Vec2 s, e;
 	gui::inst()->getPoint(7, 7, s, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 	gui::inst()->getPoint(9, 1, e, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
@@ -1047,7 +1080,13 @@ void MainScene::showBuy(inventoryType type) {
 	layerQunatity->setPosition(s);
 
 	layer->addChild(layerQunatity);
-
+	*/
+	gui::inst()->addQuantityLayer(layer, size, margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
+		, wstring_to_utf8(L"구매")
+		, CC_CALLBACK_1(MainScene::quantityCallback, this, -1)
+		, CC_CALLBACK_1(MainScene::quantityCallback, this, 1)
+		, CC_CALLBACK_1(MainScene::buyCallback, this)
+	);
 	auto time = gui::inst()->addLabelAutoDimension(nMenuIdx, 0, getTradeRemainTime(), layer, 8, ALIGNMENT_NONE, Color3B::GRAY
 		, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 	time->setAnchorPoint(Vec2(0, 0));
@@ -1055,6 +1094,7 @@ void MainScene::showBuy(inventoryType type) {
 	
 	showBuyCategory(this, type);
 }
+
 void MainScene::showAchievementCategory(Ref* pSender) {
 	ACHIEVEMENT_SIZE;
 	//int nodeMargin = 2;
@@ -1192,6 +1232,11 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 
 	for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {
 		int id = it->first;
+		errorCode err = logics::hInst->isValidTraining(id);
+		//아직 레벨이 낮으면 skip
+		if (err == error_not_enough_level)
+			continue;
+
 		switch (type) {
 		case 0:
 			break;
@@ -1235,7 +1280,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		//Error처리
 		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
-		errorCode err = logics::hInst->isValidTraining(id);
+		
 		if (err != error_success) {
 			id = -1;
 			gui::inst()->addLabelAutoDimension(1, 4
@@ -1272,7 +1317,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 
 
 void MainScene::actionList() {
-#define __PARAMS_ACTION(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showActionCategory, this, ID), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+#define __PARAMS_ACTION(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showActionCategory, this, ID), 18, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 
 	ACTION_SIZE;	
 	int newLine = 2;   
@@ -1290,6 +1335,7 @@ void MainScene::actionList() {
             , Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
             , Size::ZERO
             , margin
+			//, "close.png"
     );
 
 	int nMenuIdx = 0;

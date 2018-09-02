@@ -1125,8 +1125,7 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 		}
 	}
 	mRaceParticipants->push_back(p);
-	mAchievement.push(achievement_category_race, achievement_race_id_try, 1);	
-
+	
 	return error_success;
 }
 
@@ -1375,10 +1374,29 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 //보상 지급
 		 mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
 		 //업적
-		 if(mRaceCurrent.rank == 1)
+		 mAchievement.push(achievement_category_race, achievement_race_id_try, 1);	//경묘 전체
+		 achievement_category ac;
+		 switch (mRace[mRaceCurrent.id].mode) {
+		 case race_mode_item:
+			 ac = achievement_category_race_item;
+			 break;
+		 case race_mode_speed:
+			 ac = achievement_category_race_speed;
+			 break;
+		 case race_mode_friend_1:
+			 ac = achievement_category_race_friend_1;
+			 break;
+		 }
+		 mAchievement.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
+		 
+		 if (mRaceCurrent.rank == 1) {
 			 mAchievement.push(achievement_category_race, achievement_race_id_first, 1);
-		 else if (mRaceCurrent.rank == 2)
+			 mAchievement.push(ac, achievement_race_id_first, 1);
+		 }			 
+		 else if (mRaceCurrent.rank == 2) {
 			 mAchievement.push(achievement_category_race, achievement_race_id_second, 1);
+			 mAchievement.push(ac, achievement_race_id_second, 1);
+		 }			 
 			 
 		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
 			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
