@@ -7,6 +7,7 @@
 #include "ui/CocosGUI.h"
 #include "ActionScene.h"
 #include "FarmingScene.h"
+#include "HelloWorldScene.h"
 
 using namespace cocos2d::ui;
 
@@ -161,6 +162,7 @@ bool MainScene::init()
 	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
     gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, fontColor);
     mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
 
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	
@@ -550,6 +552,9 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	mCurrentScene = type;
 
    	switch (type) {
+	case SCENECODE_TEMP:
+		Director::getInstance()->pushScene(HelloWorld::createScene());
+		break;
 	case SCENECODE_CLOSEPOPUP:
 		closePopup();
 		break;

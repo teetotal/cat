@@ -26,7 +26,7 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
-#include "ui/grid.h"
+#include "ui/ui.h"
 
 class HelloWorld : public cocos2d::Scene
 {
@@ -34,17 +34,50 @@ public:
     static cocos2d::Scene* createScene();
 
     virtual bool init();
+	virtual bool onTouchBegan(Touch* touch, Event* event);
+	virtual bool onTouchEnded(Touch* touch, Event* event);
+	virtual void onTouchMoved(Touch *touch, Event *event);		
     
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
     
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
-
 private:
-    grid mGrid;
+	gui mGui;
 
-    void callback2(cocos2d::Ref* pSender, int type);
+	struct field {
+		int tag;
+		int plantTag;
+		Vec2 position;
+		Layout * l;
+		Label * label;		
+	};
+
+	struct plant {
+		int tag;
+		int fieldTag;
+		Vec2 position;
+		Sprite * sprite;
+		int type;
+		int level;
+	};
+
+	bool mIsMove;
+	Vec2 mTouchDownPosition;
+	Size mGridSize;
+
+	typedef std::map<int, field *> fieldMap;
+	typedef std::map<int, plant *> plantMap;
+	fieldMap mMap;
+	plantMap mPlantMap;
+
+	int mCurrentNodeId;
+
+	void levelUp(int tag);
+	void clear(int tag);
+	void swap(plant* a, plant * b);
+
 };
 
 #endif // __HELLOWORLD_SCENE_H__
