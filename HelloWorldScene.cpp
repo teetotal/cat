@@ -32,7 +32,7 @@ USING_NS_CC;
 #define EMPTY_PLANT_TAG -1
 #define OPACITY_MAX 255
 #define OPACITY_DIABLE 64
-
+#define PLANT_COMPLETE_SEC 10
 
 Scene* HelloWorld::createScene()
 {
@@ -178,47 +178,9 @@ bool HelloWorld::init()
 			id++;
 		}		
 	}
-	/*
-	for (fieldMap::iterator it = mMap.begin(); it != mMap.end(); ++it) {
-		field * p = it->second;
-		plant * o = new plant;
-		o->fieldTag = p->tag;
-		o->tag = p->tag;
-		p->plantTag = o->tag;
-		o->level = 1;		
-		o->type = rand() % 5;
-		o->sprite = Sprite::create("fruit/" + to_string(o->type) + ".png");
-
-		Vec2 position = p->l->getPosition();
-		Size size = p->l->getContentSize();
-		position.x += size.width / 2;
-		position.y += size.height / 2;
-		
-		o->sprite->setPosition(position);
-		o->position = position;
-		o->sprite->setContentSize(Size(mGridSize.height / 2, mGridSize.height / 2 ));
-		this->addChild(o->sprite);
-
-		mPlantMap[o->tag] = o;	
-	}
-	*/
+	
 	createSeedMenu();
-	 // add "HelloWorld" splash screen"
-	/*
-	auto sprite = Sprite::create("HelloWorld.png");
-	if (sprite == nullptr)
-	{
-	problemLoading("'HelloWorld.png'");
-	}
-	else
-	{
-	// position the sprite on the center of the screen
-	sprite->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-	// add the sprite as a child to this layer
-	this->addChild(sprite, 0);
-	}
-	*/
+	
 	//캐릭터
 	mCharacterInitPosition = Vec2(0, 6);
 	mCharacter = MainScene::getIdle();
@@ -226,7 +188,47 @@ bool HelloWorld::init()
 	//mCharacter->setAnchorPoint(Vec2(0.5, 0));
 	this->addChild(mCharacter, 99);
 
+	this->schedule(schedule_selector(HelloWorld::updateFarming), 1.f);
+
     return true;
+}
+
+HelloWorld::Plant_Status HelloWorld::getStatus(plant * p, int &cnt) {
+	int t = getNow() - p->start; //심어서 부터 지금까지 걸린 시간.
+	int total = 1 << (p->level - 1);
+
+	int cntCrop = min(t / PLANT_COMPLETE_SEC, total); // 수확물
+	if (cntCrop + p->accumulation >= total) {
+		cnt = total - p->accumulation;
+		return Plant_Status_Harvest;
+	}
+	else if (cntCrop > p->accumulation) {
+		cnt = cntCrop - p->accumulation;
+		return Plant_Status_Crop;
+	}
+	cnt = 0;
+	return Plant_Status_Max;
+}
+
+void HelloWorld::updateFarming(float f) {
+	for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
+		int cnt = 0;
+		switch (getStatus(it->second, cnt)) {
+		case Plant_Status_Crop:
+			this->addChild(createClinkParticle(it->second->position), 100);
+			break;
+		case Plant_Status_Harvest:
+			if (it->second->isHarvestAction == false) {
+				//it->second->sprite->runAction(RepeatForever::create(TintTo::create(1, Color3B::RED)));
+				it->second->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, 1.1), ScaleTo::create(0.4, 1.f), NULL)));
+
+				it->second->isHarvestAction = true;
+			}
+			break;
+		default:
+			break;
+		}
+	}
 }
 
 bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
@@ -234,7 +236,7 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	//찾기
 	if (mCharacter->getBoundingBox().containsPoint(touch->getLocation())) {
 		mMode = Mode_Farming;
-		mCharacter->stopAllActions();
+		stopAction(mCharacter);
 		mCharacter->runAction(getFarmingAnimation());
 		return true;
 	}
@@ -276,7 +278,7 @@ void HelloWorld::swap(plant* a, plant * b) {
 bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 
 	if (mMode == Mode_Farming) {
-		mCharacter->stopAllActions();
+		stopAction(mCharacter);
 		mCharacter->runAction(MainScene::getIdleAnimation());
 		mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
 		return true;
@@ -300,8 +302,6 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 			continue;
 
 		if (p->sprite->getBoundingBox().intersectsRect(it->second->sprite->getBoundingBox())) {
-			CCLOG("intersectsRect %d", it->first);
-			//mCurrentNodeId = it->first;
 			if (p->type == it->second->type && p->level == it->second->level) {
 				//merge
 				levelUp(it->first);
@@ -345,16 +345,30 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 	
 	return true;
 }
-void HelloWorld::onTouchMoved(Touch *touch, Event *event) {	
+void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
+	int cnt = 0;
+
 	switch (mMode) {
 	case Mode_Farming:
 		mCharacter->setPosition(touch->getLocation());
-		//swap
+		//harvest
 		for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
 			if (mCharacter->getBoundingBox().intersectsRect(it->second->sprite->getBoundingBox())) {
-				//효과
-				plantAnimation(it->second);
-				clear(it->first);
+				stopAction(it->second->sprite);
+
+				switch (getStatus(it->second, cnt)) {
+				case Plant_Status_Crop:
+					plantAnimation(it->second, cnt);
+					it->second->accumulation += cnt;
+					break;
+				case Plant_Status_Harvest:
+					plantAnimation(it->second, cnt);
+					it->second->accumulation += cnt;
+					clear(it->first);
+					break;
+				case Plant_Status_Max:
+					break;
+				}
 				break;
 			}
 		}
@@ -368,8 +382,8 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	}
 }
 
-void HelloWorld::plantAnimation(plant * node) {
-	for (int n = 0; n < node->level; n++) {
+void HelloWorld::plantAnimation(plant * node, int cnt) {
+	for (int n = 0; n < cnt; n++) {
 		auto sprite1 = Sprite::create("fruit/" + to_string(node->type) + ".png");
 		sprite1->setPosition(Vec2(node->position));
 		sprite1->setContentSize(Size(50, 50));
@@ -384,27 +398,12 @@ void HelloWorld::plantAnimation(plant * node) {
 }
 
 void HelloWorld::levelUp(int tag) {	
-	
 	plant * node = mPlantMap[tag];
 	node->level++;
-	/*
-	for (int n = 0; n < node->level; n++) {
-		auto sprite1 = Sprite::create("fruit/" + to_string(node->type) + ".png");
-		sprite1->setPosition(Vec2(node->position));
-		sprite1->setContentSize(Size(50, 50));
-
-		this->addChild(sprite1);
-		auto delay1 = DelayTime::create(n * 0.05);
-		auto delay2 = delay1->clone();
-		auto seq1 = Sequence::create(delay1, MoveTo::create(0.5, Vec2(0, 0)), RemoveSelf::create(), NULL);
-		auto seq2 = Sequence::create(delay2, ScaleTo::create(0.2, 1.5), ScaleTo::create(0.3, 0.5), NULL);
-		sprite1->runAction(Spawn::create(seq1, seq2, NULL));
-	}
-	*/
-	plantAnimation(node);
 	mMap[node->fieldTag]->label->setString(to_string(node->level));
 	mMap[node->fieldTag]->plantTag = node->tag;
-
+	node->isHarvestAction = false;
+	stopAction(node->sprite);
 }
 void HelloWorld::clear(int tag) {
 	

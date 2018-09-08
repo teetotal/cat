@@ -27,6 +27,7 @@
 
 #include "cocos2d.h"
 #include "ui/ui.h"
+#include "library/farming.h"
 
 class HelloWorld : public cocos2d::Scene
 {
@@ -44,12 +45,20 @@ public:
     // implement the "static create()" method manually
     CREATE_FUNC(HelloWorld);
 private:
+#define PARTICLE_CLINK "particles/particle_clink.plist"
+
 	gui mGui;
 
 	enum Mode {
 		Mode_Seed,
 		Mode_Farming,
 		Mode_Max
+	};
+
+	enum Plant_Status {
+		Plant_Status_Crop,
+		Plant_Status_Harvest,
+		Plant_Status_Max
 	};
 
 	Mode mMode;
@@ -70,6 +79,19 @@ private:
 		Sprite * sprite;
 		int type;
 		int level;
+		time_t start;		//심은 시각
+		int accumulation;	//현재까지 누적 수확
+		//bool isCropAction;		//Crop Action 중
+		bool isHarvestAction;
+		
+		plant() {
+			this->accumulation = 0;
+			this->fieldTag = 0;
+			this->level = 0;
+			this->start = getNow();
+			//this->isCropAction = false;
+			this->isHarvestAction = false;
+		};
 	};
 
 	bool mIsMove;
@@ -91,13 +113,27 @@ private:
 	void clearOpacity();
 	int getPlantId();
 	void createSeedMenu();
-	void plantAnimation(plant * node);
+	void plantAnimation(plant * node, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
 	void closeCallback(Ref * pSender) {
 		Director::getInstance()->popScene();
 	};
 	RepeatForever * getFarmingAnimation();
+	void updateFarming(float f);
+	Plant_Status getStatus(plant * p, int &cnt);
+
+	void stopAction(Sprite * p) {
+		p->stopAllActions();
+		p->setScale(1.f);
+	};
+
+	ParticleSystemQuad * createClinkParticle(Vec2 position) {
+		auto particle = ParticleSystemQuad::create(PARTICLE_CLINK);
+		particle->setPosition(position);
+
+		return particle;
+	};
 };
 
 #endif // __HELLOWORLD_SCENE_H__

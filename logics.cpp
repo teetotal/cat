@@ -8,7 +8,7 @@
 logics * logics::hInst = NULL;
 
 bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB) {
-
+	srand(getNow());
     string szMeta, szActor, szActions;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
