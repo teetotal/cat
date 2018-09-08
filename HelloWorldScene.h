@@ -46,6 +46,15 @@ public:
 private:
 	gui mGui;
 
+	enum Mode {
+		Mode_Seed,
+		Mode_Farming,
+		Mode_Max
+	};
+
+	Mode mMode;
+	Vec2 mCharacterInitPosition;
+
 	struct field {
 		int tag;
 		int plantTag;
@@ -66,6 +75,7 @@ private:
 	bool mIsMove;
 	Vec2 mTouchDownPosition;
 	Size mGridSize;
+	Sprite * mCharacter;
 
 	typedef std::map<int, field *> fieldMap;
 	typedef std::map<int, plant *> plantMap;
@@ -77,7 +87,17 @@ private:
 	void levelUp(int tag);
 	void clear(int tag);
 	void swap(plant* a, plant * b);
+	void setOpacity();
+	void clearOpacity();
+	int getPlantId();
+	void createSeedMenu();
+	void plantAnimation(plant * node);
 
+	void seedCallback(cocos2d::Ref* pSender, int seedId);
+	void closeCallback(Ref * pSender) {
+		Director::getInstance()->popScene();
+	};
+	RepeatForever * getFarmingAnimation();
 };
 
 #endif // __HELLOWORLD_SCENE_H__

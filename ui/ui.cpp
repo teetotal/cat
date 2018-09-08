@@ -467,6 +467,9 @@ void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int ne
 }
 
 Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin) {
+	if (size.width <= 0)
+		size = Director::getInstance()->getVisibleSize();
+
 	float svX1, svY1, svX2, svY2;
 	getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 	getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
@@ -474,7 +477,10 @@ Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin) {
 	return Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2));
 }
 
-ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize){
+ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize, Node * parent){
+
+	if (size.width <= 0)
+		size = Director::getInstance()->getVisibleSize();
 
     ScrollView * sv = ScrollView::create();
     //sv->setBackGroundColor(Color3B::GRAY);
@@ -514,6 +520,9 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
 
      */
     sv->setDirection(d);
+	if (parent != NULL)
+		parent->addChild(sv);
+
     return sv;
 }
 
@@ -663,4 +672,50 @@ void gui::addQuantityLayer(Node * p, Size size, Size margin
 	layerQunatity->setPosition(s);
 
 	p->addChild(layerQunatity);
+}
+
+MenuItemImage * gui::addSpriteButtonRaw(
+	Menu* &pMenu
+	, int x
+	, int y
+	, const string normalImg
+	, const string selectImg
+	, Node *p
+	, const ccMenuCallback &callback
+	, ALIGNMENT align
+	, Size dimension
+	, Size grid
+	, Size origin
+	, Size margin
+) {
+	auto pItem = MenuItemImage::create(normalImg, selectImg, callback);
+	pMenu = Menu::create(pItem, NULL);
+
+	float pointX, pointY;
+	float pointX_NONE, pointY_NONE;
+	getPoint(x, y
+		, pointX, pointY
+		, pointX_NONE, pointY_NONE
+		, ALIGNMENT_CENTER
+		, dimension
+		, grid
+		, origin
+		, margin
+	);
+
+	float pX;
+	switch (align) {
+	case ALIGNMENT_NONE:
+		pX = pointX_NONE;
+		pItem->setAnchorPoint(Vec2(0.f, 0.5f));
+		break;
+	case ALIGNMENT_CENTER:
+		pX = pointX;
+	}
+	//pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (pItem->getContentSize().width / 2) : pointX;
+
+	pMenu->setPosition(Point(pX, pointY));
+	p->addChild(pMenu);
+	
+	return pItem;
 }

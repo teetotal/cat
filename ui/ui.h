@@ -169,6 +169,37 @@ public:
             , bool isBGImg = true
     );
 
+	MenuItemImage * addSpriteButton(int x
+		, int y
+		, const string normalImg
+		, const string selectImg
+		, Node *p
+		, const ccMenuCallback &callback
+		, ALIGNMENT align = ALIGNMENT_CENTER
+		, Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+	) {
+		Menu * pMenu = NULL;
+		return addSpriteButtonRaw(pMenu, x, y, normalImg, selectImg, p, callback, align, dimension, grid, origin, margin);
+	};
+
+	MenuItemImage * addSpriteButtonRaw(
+		Menu* &pMenu
+		, int x
+		, int y
+		, const string normalImg
+		, const string selectImg
+		, Node *p
+		, const ccMenuCallback &callback
+		, ALIGNMENT align = ALIGNMENT_CENTER
+		, Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+		, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+	);
+
     Sprite* addSprite(int x
             , int y
             , const string img
@@ -234,6 +265,7 @@ public:
             , Size margin
             , const string bgImg = ""
             , Size innerSize = Size(0, 0)
+			, Node * parent = NULL
     );
 
     LoadingBar * addProgressBar(int x

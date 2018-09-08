@@ -25,11 +25,14 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
+#include "MainScene.h"
 
 USING_NS_CC;
 
-#define BG_HOME "bg_home.png"
 #define EMPTY_PLANT_TAG -1
+#define OPACITY_MAX 255
+#define OPACITY_DIABLE 64
+
 
 Scene* HelloWorld::createScene()
 {
@@ -72,15 +75,17 @@ bool HelloWorld::init()
 	mGridSize.width = a2.x - a1.x;
 	mGridSize.height = a1.y - a2.y;
 
-	auto bg = Sprite::create(BG_HOME);
+	auto bg = Sprite::create(BG_FARM);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
-	//bg->setOpacity(50);
+	bg->setOpacity(192);
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
 
 	
+	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(HelloWorld::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
 
+	/*
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
     //    you may modify it.
@@ -108,13 +113,13 @@ bool HelloWorld::init()
     auto menu = Menu::create(closeItem, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
-
+	*/
     /////////////////////////////
     // 3. add your codes below...
 
     // add a label shows "Hello World"
     // create and initialize a label
-
+	/*
     auto label = Label::createWithTTF("ACT Nimble", "fonts/Marker Felt.ttf", 24);
     if (label == nullptr)
     {
@@ -130,7 +135,6 @@ bool HelloWorld::init()
         this->addChild(label, 1);
     }
 
-	/*
 	auto textField = ui::TextField::create("ID", "fonts/Marker Felt.ttf", 30);
 	textField->setColor(Color3B::WHITE);
 	textField->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
@@ -161,8 +165,9 @@ bool HelloWorld::init()
 			field * node = new field();
 			node->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
 			node->tag = id;						
+			node->plantTag = EMPTY_PLANT_TAG;
 			//gui::inst()->drawGrid(this);
-			node->label = gui::inst()->addLabelAutoDimension(0, 2, "1", node->l, 10, ALIGNMENT_CENTER, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
+			node->label = gui::inst()->addLabelAutoDimension(0, 2, "", node->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
 			node->l->setTag(id);
 			node->position = gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE);
 			node->l->setPosition(node->position);
@@ -173,7 +178,7 @@ bool HelloWorld::init()
 			id++;
 		}		
 	}
-
+	/*
 	for (fieldMap::iterator it = mMap.begin(); it != mMap.end(); ++it) {
 		field * p = it->second;
 		plant * o = new plant;
@@ -196,7 +201,9 @@ bool HelloWorld::init()
 
 		mPlantMap[o->tag] = o;	
 	}
-    // add "HelloWorld" splash screen"
+	*/
+	createSeedMenu();
+	 // add "HelloWorld" splash screen"
 	/*
 	auto sprite = Sprite::create("HelloWorld.png");
 	if (sprite == nullptr)
@@ -212,23 +219,37 @@ bool HelloWorld::init()
 	this->addChild(sprite, 0);
 	}
 	*/
-    
+	//캐릭터
+	mCharacterInitPosition = Vec2(0, 6);
+	mCharacter = MainScene::getIdle();
+	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+	//mCharacter->setAnchorPoint(Vec2(0.5, 0));
+	this->addChild(mCharacter, 99);
+
     return true;
 }
 
 bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	mTouchDownPosition = touch->getLocation();
 	//찾기
-	
+	if (mCharacter->getBoundingBox().containsPoint(touch->getLocation())) {
+		mMode = Mode_Farming;
+		mCharacter->stopAllActions();
+		mCharacter->runAction(getFarmingAnimation());
+		return true;
+	}
+
 	for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
 		if (it->second->sprite->getBoundingBox().containsPoint(touch->getLocation())) {
 			//CCLOG("%d", it->first);
 			mCurrentNodeId = it->first;
 			mPlantMap[mCurrentNodeId]->sprite->setAnchorPoint(Vec2(0.5, 0.5));
+			setOpacity();
+			mMode = Mode_Seed;
 			return true;
 		}
 	}
-	
+	mMode = Mode_Max;
 	mCurrentNodeId = -1;
 	
 	return true;
@@ -254,8 +275,17 @@ void HelloWorld::swap(plant* a, plant * b) {
 
 bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 
+	if (mMode == Mode_Farming) {
+		mCharacter->stopAllActions();
+		mCharacter->runAction(MainScene::getIdleAnimation());
+		mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+		return true;
+	}
+
 	if (mCurrentNodeId == -1)
 		return true;
+
+	clearOpacity();
 
 	plant * p =mPlantMap[mCurrentNodeId];
 	
@@ -295,6 +325,7 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 			it->second->label->setString(to_string(p->level));
 			mMap[p->fieldTag]->label->setString("");
 			mMap[p->fieldTag]->plantTag = EMPTY_PLANT_TAG;
+			it->second->plantTag = p->tag;
 			p->fieldTag = it->first;
 			
 			Vec2 position = mMap[p->fieldTag]->position;
@@ -315,15 +346,29 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 	return true;
 }
 void HelloWorld::onTouchMoved(Touch *touch, Event *event) {	
-	if(mCurrentNodeId != -1)
-		mPlantMap[mCurrentNodeId]->sprite->setPosition(touch->getLocation());
+	switch (mMode) {
+	case Mode_Farming:
+		mCharacter->setPosition(touch->getLocation());
+		//swap
+		for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
+			if (mCharacter->getBoundingBox().intersectsRect(it->second->sprite->getBoundingBox())) {
+				//효과
+				plantAnimation(it->second);
+				clear(it->first);
+				break;
+			}
+		}
+		break;
+	case Mode_Seed:
+		if (mCurrentNodeId != -1)
+			mPlantMap[mCurrentNodeId]->sprite->setPosition(touch->getLocation());
+		break;
+	default:
+		break;
+	}
 }
 
-void HelloWorld::levelUp(int tag) {	
-	
-	plant * node = mPlantMap[tag];
-	node->level++;
-
+void HelloWorld::plantAnimation(plant * node) {
 	for (int n = 0; n < node->level; n++) {
 		auto sprite1 = Sprite::create("fruit/" + to_string(node->type) + ".png");
 		sprite1->setPosition(Vec2(node->position));
@@ -336,6 +381,27 @@ void HelloWorld::levelUp(int tag) {
 		auto seq2 = Sequence::create(delay2, ScaleTo::create(0.2, 1.5), ScaleTo::create(0.3, 0.5), NULL);
 		sprite1->runAction(Spawn::create(seq1, seq2, NULL));
 	}
+}
+
+void HelloWorld::levelUp(int tag) {	
+	
+	plant * node = mPlantMap[tag];
+	node->level++;
+	/*
+	for (int n = 0; n < node->level; n++) {
+		auto sprite1 = Sprite::create("fruit/" + to_string(node->type) + ".png");
+		sprite1->setPosition(Vec2(node->position));
+		sprite1->setContentSize(Size(50, 50));
+
+		this->addChild(sprite1);
+		auto delay1 = DelayTime::create(n * 0.05);
+		auto delay2 = delay1->clone();
+		auto seq1 = Sequence::create(delay1, MoveTo::create(0.5, Vec2(0, 0)), RemoveSelf::create(), NULL);
+		auto seq2 = Sequence::create(delay2, ScaleTo::create(0.2, 1.5), ScaleTo::create(0.3, 0.5), NULL);
+		sprite1->runAction(Spawn::create(seq1, seq2, NULL));
+	}
+	*/
+	plantAnimation(node);
 	mMap[node->fieldTag]->label->setString(to_string(node->level));
 	mMap[node->fieldTag]->plantTag = node->tag;
 
@@ -351,6 +417,100 @@ void HelloWorld::clear(int tag) {
 		
 }
 
+void HelloWorld::setOpacity() {
+	if (mCurrentNodeId == EMPTY_PLANT_TAG)
+		return;
+
+	plant* p = mPlantMap[mCurrentNodeId];
+	for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
+		if (it->first == mCurrentNodeId)
+			continue;
+		if (it->second->level == p->level && it->second->type == p->type) {
+
+		}
+		else {
+			it->second->sprite->setOpacity(OPACITY_DIABLE);
+		}
+	}
+}
+void HelloWorld::clearOpacity() {
+	for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
+		it->second->sprite->setOpacity(OPACITY_MAX);
+	}
+}
+
+void HelloWorld::createSeedMenu()
+{
+	Vec2 start, end;
+	start = Vec2(8, 6);
+	end = Vec2(start.x + 1, 0);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size::ZERO, Size::ZERO);
+	auto scroll = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * 20), this);
+	
+	for (int n = 0; n < 20; n++) {
+		auto l = gui::inst()->createLayout(Size(30, 30));
+		gui::inst()->addSpriteButton(0, 0, "fruit/"+ to_string(n) +".png", "fruit/21.png", l
+			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n), ALIGNMENT_CENTER, l->getContentSize(), Size(1, 1), Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLayoutToScrollView(scroll, l, 1, 1);
+	}
+}
+
+void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
+{
+	for (fieldMap::iterator it = mMap.begin(); it != mMap.end(); ++it) {
+		field * p = it->second;
+		if (p->plantTag != EMPTY_PLANT_TAG)
+			continue;
+
+		plant * o = new plant;
+		o->fieldTag = p->tag;
+		o->tag = getPlantId();
+		p->plantTag = o->tag;
+		o->level = 1;
+		o->type = seedId;
+		o->sprite = Sprite::create("fruit/" + to_string(o->type) + ".png");
+
+		Vec2 position = p->l->getPosition();
+		Size size = p->l->getContentSize();
+		position.x += size.width / 2;
+		position.y += size.height / 2;
+
+		o->sprite->setPosition(position);
+		o->position = position;
+		//o->sprite->setContentSize(Size(mGridSize.height / 2, mGridSize.height / 2));
+		this->addChild(o->sprite, 1);
+
+		mPlantMap[o->tag] = o;
+
+		p->label->setString("1");
+		
+		return;
+	}
+}
+
+int HelloWorld::getPlantId() {
+	int max = mMap.size();
+	for (int n = 0; n < max; n++) {
+		if (mPlantMap.find(n) == mPlantMap.end())
+			return n;
+	}
+	return EMPTY_PLANT_TAG;
+}
+
+RepeatForever * HelloWorld::getFarmingAnimation() {
+
+	auto animation = Animation::create();
+	animation->setDelayPerUnit(0.1);
+
+	string path;
+	for (int n = 0; n < 8; n++) {
+		path = "action/201/" + to_string(n) + ".png";
+		animation->addSpriteFrameWithFile(path);
+	}
+
+	return RepeatForever::create(Animate::create(animation));
+}
 
 void HelloWorld::menuCloseCallback(Ref* pSender)
 {
