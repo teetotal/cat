@@ -727,9 +727,10 @@ void MainScene::dailyReward() {
 
     for(int n=0; n < 20; n++){
 
-        string img = "items/";
+		string img = getItemImg(n);/*"items/";
         img += to_string(n+1);
         img += ".png";
+		*/
         Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::GRAY);
 
         gui::inst()->addLabelAutoDimension(0,0
@@ -820,7 +821,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;
-		string img = "items/" + to_string(id % 20) + ".png";
+		string img = getItemImg(id);//"items/" + to_string(id % 20) + ".png";
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true);
 		_item item = logics::hInst->getItem(id);
 		
@@ -967,9 +968,9 @@ void MainScene::selectCallback(Ref* pSender, int id) {
 	*/
 	mQuantity = 1;
 	mQuantityItemId = id;
-	string szImg = "items/"; 
+	string szImg = getItemImg(id);/*"items/";
 	szImg += to_string(id % 20) + ".png";
-
+	*/
 	_item item = logics::hInst->getItem(mQuantityItemId);
 	mQuantityImg->setTexture(szImg);
 	mQuantityImg->setContentSize(Size(20, 20));
@@ -1011,9 +1012,10 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 		if (item.type > itemType_max)
 			continue;		
 		
-		string img = "items/";
+		string img = getItemImg(id); /* "items/";
 		img += to_string(id % 20);
 		img += ".png";
+		*/
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		l->setOpacity(192);
 		
@@ -1564,5 +1566,13 @@ void MainScene::updateQuests(bool isLevelup) {
 		p->setPosition(p->getPosition().x, p->getPosition().y - (n * 15));
 		mQuestButtons.push_back(p);
 	}
-	
+}
+
+string MainScene::getItemImg(int id) {
+	_item item = logics::hInst->getItem(id);
+	if (item.type == itemType_farming) {
+		return "fruit/" + to_string(id - itemType_farming) + ".png";
+	}
+
+	return "items/" + to_string(id % 20) + ".png";
 }

@@ -73,6 +73,7 @@ public:
 	static RepeatForever * getIdleAnimation(int id = 100);
 
 	static LayerColor * createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle);
+	static string getItemImg(int id);
 private:
 	int mLevel;
     gui mGrid;

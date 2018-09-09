@@ -443,14 +443,25 @@ void HelloWorld::createSeedMenu()
 	Vec2 start, end;
 	start = Vec2(8, 6);
 	end = Vec2(start.x + 1, 0);
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size::ZERO, Size::ZERO);
-	auto scroll = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * 20), this);
-	
-	for (int n = 0; n < 20; n++) {
-		auto l = gui::inst()->createLayout(Size(30, 30));
-		gui::inst()->addSpriteButton(0, 0, "fruit/"+ to_string(n) +".png", "fruit/21.png", l
-			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n), ALIGNMENT_CENTER, l->getContentSize(), Size(1, 1), Size::ZERO, Size::ZERO);
 
+	vector<intPair> v;
+	logics::hInst->getActor()->inven.getWarehouse(v, inventoryType_farming);
+	int cnt = v.size();
+
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size::ZERO, Size::ZERO);
+	auto scroll = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
+	
+	for (int n = 0; n < cnt; n++) {
+		auto l = gui::inst()->createLayout(Size(30, 30));
+		
+		gui::inst()->addTextButtonAutoDimension(0, 0, "x" + to_string(v[n].val), l
+			, CC_CALLBACK_1(HelloWorld::seedCallback, this, v[n].key), 0, ALIGNMENT_CENTER
+			, Color3B::BLACK
+			, Size(1, 1), Size::ZERO, Size::ZERO, MainScene::getItemImg(v[n].key));
+		/*
+		gui::inst()->addSpriteButton(0, 0, MainScene::getItemImg(v[n].key), "fruit/21.png", l
+			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n), ALIGNMENT_CENTER, l->getContentSize(), Size(1, 1), Size::ZERO, Size::ZERO);
+			*/
 		gui::inst()->addLayoutToScrollView(scroll, l, 1, 1);
 	}
 }
@@ -468,7 +479,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 		p->plantTag = o->tag;
 		o->level = 1;
 		o->type = seedId;
-		o->sprite = Sprite::create("fruit/" + to_string(o->type) + ".png");
+		o->sprite = Sprite::create(MainScene::getItemImg(seedId));
 
 		Vec2 position = p->l->getPosition();
 		Size size = p->l->getContentSize();

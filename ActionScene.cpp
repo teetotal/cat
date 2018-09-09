@@ -254,6 +254,7 @@ void ActionScene::timer(float f) {
 		float ratio = getTouchRatio(RACE_UPDATE_INTERVAL, mTouchCnt);
 		boost = (int)min(ratio * 100.f, 100.f);
 		CCLOG("boost %d", boost);
+		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "%");
 		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "," + to_string(mTouchCnt));
 		mTouchCnt = 0;
 	}
