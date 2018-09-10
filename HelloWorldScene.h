@@ -94,15 +94,25 @@ private:
 		};
 	};
 
+	struct seed {
+		Layout * layout;
+		MenuItemFont * label;
+		int itemId;
+		int itemQuantity;
+	};
+
 	bool mIsMove;
 	Vec2 mTouchDownPosition;
 	Size mGridSize;
 	Sprite * mCharacter;
+	ScrollView * mScrollView;
 
 	typedef std::map<int, field *> fieldMap;
 	typedef std::map<int, plant *> plantMap;
+	typedef std::vector<seed*> seedVector;
 	fieldMap mMap;
 	plantMap mPlantMap;
+	seedVector mSeedVector;
 
 	int mCurrentNodeId;
 
@@ -113,6 +123,7 @@ private:
 	void clearOpacity();
 	int getPlantId();
 	void createSeedMenu();
+	void addSeedMenu();
 	void plantAnimation(plant * node, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);

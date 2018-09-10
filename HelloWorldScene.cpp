@@ -384,7 +384,7 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 
 void HelloWorld::plantAnimation(plant * node, int cnt) {
 	for (int n = 0; n < cnt; n++) {
-		auto sprite1 = Sprite::create("fruit/" + to_string(node->type) + ".png");
+		auto sprite1 = Sprite::create(MainScene::getItemImg(node->type));
 		sprite1->setPosition(Vec2(node->position));
 		sprite1->setContentSize(Size(50, 50));
 
@@ -449,25 +449,41 @@ void HelloWorld::createSeedMenu()
 	int cnt = v.size();
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size::ZERO, Size::ZERO);
-	auto scroll = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
+	mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
+	
 	
 	for (int n = 0; n < cnt; n++) {
-		auto l = gui::inst()->createLayout(Size(30, 30));
-		
-		gui::inst()->addTextButtonAutoDimension(0, 0, "x" + to_string(v[n].val), l
-			, CC_CALLBACK_1(HelloWorld::seedCallback, this, v[n].key), 0, ALIGNMENT_CENTER
-			, Color3B::BLACK
-			, Size(1, 1), Size::ZERO, Size::ZERO, MainScene::getItemImg(v[n].key));
-		/*
-		gui::inst()->addSpriteButton(0, 0, MainScene::getItemImg(v[n].key), "fruit/21.png", l
-			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n), ALIGNMENT_CENTER, l->getContentSize(), Size(1, 1), Size::ZERO, Size::ZERO);
-			*/
-		gui::inst()->addLayoutToScrollView(scroll, l, 1, 1);
+		seed* s = new seed;
+		s->itemId = v[n].key;
+		s->itemQuantity = v[n].val;
+		mSeedVector.push_back(s);
 	}
+
+	addSeedMenu();
 }
 
-void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
+void HelloWorld::addSeedMenu() {
+	mScrollView->removeAllChildren();
+	mScrollView->setInnerContainerSize(Size(mScrollView->getContentSize().width, 30 * mSeedVector.size()));
+
+	for (int n = 0; n < mSeedVector.size(); n++) {
+		seed * s = mSeedVector[n];
+		s->layout = gui::inst()->createLayout(Size(30, 30));
+		gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(s->itemId), s->layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
+		s->label = gui::inst()->addTextButtonAutoDimension(0, 0, "x" + to_string(s->itemQuantity), s->layout
+			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n)
+			, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 1), Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLayoutToScrollView(mScrollView, s->layout, 1, 1);
+	}	
+}
+
+void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 {
+	seed * s = mSeedVector[seedIdx];
+	s->itemQuantity--;
+	logics::hInst->addInventory(s->itemId, -1);	
+	
 	for (fieldMap::iterator it = mMap.begin(); it != mMap.end(); ++it) {
 		field * p = it->second;
 		if (p->plantTag != EMPTY_PLANT_TAG)
@@ -478,8 +494,8 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 		o->tag = getPlantId();
 		p->plantTag = o->tag;
 		o->level = 1;
-		o->type = seedId;
-		o->sprite = Sprite::create(MainScene::getItemImg(seedId));
+		o->type = s->itemId;
+		o->sprite = Sprite::create(MainScene::getItemImg(s->itemId));
 
 		Vec2 position = p->l->getPosition();
 		Size size = p->l->getContentSize();
@@ -495,7 +511,18 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 
 		p->label->setString("1");
 		
-		return;
+		break;
+	}
+
+	if (s->itemQuantity <= 0) {
+		//seed menu °»½Å
+		mScrollView->removeChild(s->layout);
+		mSeedVector.erase(mSeedVector.begin() + seedIdx);
+		delete s;
+		addSeedMenu();
+	}
+	else {
+		s->label->setString("x" + to_string(s->itemQuantity));
 	}
 }
 
