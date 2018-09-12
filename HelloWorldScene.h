@@ -64,36 +64,19 @@ private:
 	Mode mMode;
 	Vec2 mCharacterInitPosition;
 
-	struct field {
-		int tag;
-		int plantTag;
-		Vec2 position;
+	struct field : farming::field {		
 		Layout * l;
 		Label * label;		
-	};
-
-	struct plant {
-		int tag;
-		int fieldTag;
-		Vec2 position;
 		Sprite * sprite;
-		int type;
-		int level;
-		time_t start;		//심은 시각
-		int accumulation;	//현재까지 누적 수확
-		//bool isCropAction;		//Crop Action 중
 		bool isHarvestAction;
-		
-		plant() {
-			this->accumulation = 0;
-			this->fieldTag = 0;
-			this->level = 0;
-			this->start = getNow();
-			//this->isCropAction = false;
-			this->isHarvestAction = false;
+		field() {
+
+		};
+		field(int x, int y) : farming::field(x, y) {
+			isHarvestAction = false;
 		};
 	};
-
+	
 	struct seed {
 		Layout * layout;
 		MenuItemFont * label;
@@ -107,24 +90,22 @@ private:
 	Sprite * mCharacter;
 	ScrollView * mScrollView;
 
-	typedef std::map<int, field *> fieldMap;
-	typedef std::map<int, plant *> plantMap;
-	typedef std::vector<seed*> seedVector;
-	fieldMap mMap;
-	plantMap mPlantMap;
+	
+	typedef std::vector<seed*> seedVector;	
 	seedVector mSeedVector;
 
 	int mCurrentNodeId;
-
-	void levelUp(int tag);
-	void clear(int tag);
-	void swap(plant* a, plant * b);
+	
+	void levelUp(field * p);	
+	void clear(field * p);
+	void swap(field* a, field * b);
+	
 	void setOpacity();
 	void clearOpacity();
-	int getPlantId();
 	void createSeedMenu();
 	void addSeedMenu();
-	void plantAnimation(plant * node, int cnt);
+	void addSprite(field * p, int seedId);
+	void plantAnimation(field * node, int productId, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
 	void closeCallback(Ref * pSender) {
@@ -132,7 +113,6 @@ private:
 	};
 	RepeatForever * getFarmingAnimation();
 	void updateFarming(float f);
-	Plant_Status getStatus(plant * p, int &cnt);
 
 	void stopAction(Sprite * p) {
 		p->stopAllActions();

@@ -335,12 +335,14 @@ class logics
 {
 public:
 	logics() {
-		mIsFinalized = false;
-		hInst = this;
-		srand((int)time(0));		
-		mRaceParticipants = new raceParticipants;
-		for (int n = 0; n < race_mode_max; n++)
-			mRaceModeCnt[n] = 0;
+		if (hInst == NULL) {
+			mIsFinalized = false;
+			hInst = this;
+			srand((int)time(0));
+			mRaceParticipants = new raceParticipants;
+			for (int n = 0; n < race_mode_max; n++)
+				mRaceModeCnt[n] = 0;
+		}		
 	};
 	~logics() {
 		if(!mIsFinalized)
@@ -432,7 +434,7 @@ public:
 	errorCode farmingHarvest(int idx, int &productId, int &earning);
 	errorCode farmingCare(int idx);
 	//돈 차감이랑 최대 밭 개수 지정
-	errorCode farmingExtend();
+	errorCode farmingExtend(int x, int y);
 
 	//Training 
 	errorCode isValidTraining(int id);

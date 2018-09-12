@@ -47,21 +47,26 @@ void farming::setStatus(int fieldIdx) {
 		mLock.unlock();
 		return;
 	}
-	
-	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + mSeed[seedId]->timeGrow;
+	int nGrown = min((int)((getNow() - mFields[fieldIdx]->timePlant) / mSeed[seedId]->timeGrow), 1 << mFields[fieldIdx]->level - 1);
+	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (mSeed[seedId]->timeGrow * mFields[fieldIdx]->level);
 	time_t finishedTime = mFields[fieldIdx]->finishTime;
-	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)mSeed[seedId]->timeGrow * 100.0f;
+	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)(mSeed[seedId]->timeGrow * mFields[fieldIdx]->level) * 100.0f;
 
 	if (finishedTime + mSeed[seedId]->maxOvertime < now) {
 		if(mFields[fieldIdx]->status != farming_status_decay)
 			mFields[fieldIdx]->status = farming_status_decay;
-	}		
+	}	
 	else if (finishedTime <= now) {
-		if (mFields[fieldIdx]->status != farming_status_grown) {
-			mFields[fieldIdx]->status = farming_status_grown;
+		if (mFields[fieldIdx]->status != farming_status_harvest) {
+			mFields[fieldIdx]->status = farming_status_harvest;
 			mNoticeFn(fieldIdx);
-		}		
-	}		
+		}
+	}
+	else if (mFields[fieldIdx]->accumulation < mFields[fieldIdx]->level && nGrown > mFields[fieldIdx]->accumulation) {
+		if (mFields[fieldIdx]->status != farming_status_grown) {
+			mFields[fieldIdx]->status = farming_status_grown;			
+		}
+	}	
 	else if (mSeed[seedId]->cares - mFields[fieldIdx]->cntCare > 0) {
 		if(mFields[fieldIdx]->status != farming_status_week)
 			mFields[fieldIdx]->status = farming_status_week;
@@ -83,19 +88,29 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	}
 	field * f = mFields[fieldIdx];
 	seed * s = mSeed[f->seedId];
+	int nGrown = min((int)((getNow() - f->timePlant) / s->timeGrow), 1 << (f->level - 1));
 	output = 0;
 	farmProductId = 0;
 	//time_t now = getNow();
 	//if (f->timePlant + s->timeGrow >= now) {
-	if (f->status == farming_status_grown || f->status == farming_status_decay){
-		int sum = 0;
-		if (f->status == farming_status_grown) {
-			output = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
+	if (f->status == farming_status_harvest || f->status == farming_status_decay) {
+		if (f->status == farming_status_harvest) {
 			farmProductId = s->farmProductId;
+			//output = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
+			//output *= f->level;
+			output = nGrown - f->accumulation;
 		}
-			
+
 		//제거
 		mFields[fieldIdx]->init();
+		mLock.unlock();
+		return true;
+	}
+	else if (f->status == farming_status_grown){				
+		farmProductId = s->farmProductId;		
+		output = nGrown - f->accumulation;
+		f->accumulation = nGrown;
+		
 		mLock.unlock();
         return true;
 	}

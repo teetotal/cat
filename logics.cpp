@@ -135,6 +135,7 @@ bool logics::initActor(rapidjson::Document &d)
 	insertInventory(d["inventory"]["farming"], inventoryType_farming);
 
 	//farming
+	/*
 	const rapidjson::Value& farms = d["farming"];
 	for (rapidjson::SizeType i = 0; i < farms.Size(); i++) {
 		mFarming.addField(
@@ -149,7 +150,7 @@ bool logics::initActor(rapidjson::Document &d)
 			, farms[rapidjson::SizeType(i)]["boost"].GetInt()
 		);
 	}
-
+	*/
 	
 	//save backup
 	//saveFile(CONFIG_ACTOR_BACKUP, sz);
@@ -1472,14 +1473,14 @@ errorCode logics::farmingCare(int idx) {
 	}
 	return error_farming_failure;
 }
-errorCode logics::farmingExtend()
+errorCode logics::farmingExtend(int x, int y)
 {
 	if (mActor->point < mFarmingExtendFee)
 		return error_not_enough_point;
 	
 	mActor->point -= mFarmingExtendFee;
 
-	mFarming.addField(mFarming.countField(), 0);
+	mFarming.addField(x, y);
 	if (increaseExp())
 		return error_levelup;
 	return error_success;
@@ -1597,7 +1598,7 @@ void logics::saveActor() {
 		if(it->second == true)
 			d["collection"].PushBack(it->first, d.GetAllocator());
 	}
-
+	/*
 	d["farming"].Clear();
 	farming::fields* f = mFarming.getFields();
 	for (int n = 0; n < (int)f->size(); n++) {
@@ -1617,7 +1618,7 @@ void logics::saveActor() {
 			d["farming"].PushBack(objValue, d.GetAllocator());
 		}
 	}
-
+	*/
 	d["achievement"]["quests"].Clear();	
 	
 	for (int n = 0; n < LEVEL_MAX; n++) {

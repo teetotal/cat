@@ -15,7 +15,8 @@ public:
 		farming_status_week, //돌봄 필요
 		farming_status_good,	 //건강
 		farming_status_decay,	 //썩음
-		farming_status_grown,	//다 자람
+		farming_status_grown,	//수확할게 있음
+		farming_status_harvest,	//다 자람
 		farming_status_max
 	};
 
@@ -37,6 +38,9 @@ public:
 		int cntCare;	//돌본 횟수
 		time_t timeLastGrow; //지난 돌봄 시간
 		int boost;		// 추가 output
+		//
+		int level;
+		int accumulation;	//현재까지 누적 수확
 
 		crop() {
 			init();
@@ -49,14 +53,21 @@ public:
 			timeLastGrow = 0; //지난 돌봄 시간
 			boost = 0;		// 추가 output
 			percent = 0;
-
+			
+			level = 0;
+			accumulation = 0;
 		}
 		void plant(int seedId) {
 			this->seedId = seedId;
+			level = 1;
 			status = farming_status_sprout;			
 			timePlant = getNow();
 			timeLastGrow = timePlant; //처음 심을때 한번은 돌본 걸로 설정
 			cntCare++;
+		}
+
+		int getGrownCnt() { //현재 수확 가능한 작물
+			return 1;
 		}
 	};	
 
@@ -65,11 +76,16 @@ public:
 		int x;
 		int y;	
 		time_t finishTime; // 다 자라는 시간
+		field() {};
 		field(int x, int y) {			
 			this->x = x;
 			this->y = y;
 			finishTime = 0;
-		}
+		};
+		void init() {
+			finishTime = 0;
+			crop::init();
+		};
 	};
 	//소유중인 밭
 	typedef vector<field*> fields;
@@ -79,6 +95,23 @@ public:
 	*/
 	bool init(farmingFinshedNotiCallback fn);
 	void finalize();
+	//추가
+	void addField(field * f) {
+		mFields.push_back(f);
+	};
+	void swap(field * f1, field * f2) {
+		crop temp;
+		::memcpy(&temp, (crop*)f1, sizeof(temp));		
+		::memcpy((crop*)f1, (crop*)f2, sizeof(crop));		
+		::memcpy((crop*)f2, &temp, sizeof(temp));
+	};
+	void levelup(field * f) {
+		f->level++;
+	};
+	void clear(field * f) {
+		f->init();
+	};
+	//
 	void addField(int x, int y);	//밭 늘리기	
 	void addField(int id
 		, int x
@@ -104,6 +137,13 @@ public:
         if(s)
             mSeed[s->id] = s;
 	};
+	seed * getSeed(int id) {
+		if (mSeed.find(id) != mSeed.end()) {
+			return mSeed[id];
+		}
+		return NULL;
+	};
+
 private:	
 	fields mFields;	
 	map<int, seed*> mSeed;
