@@ -135,7 +135,7 @@ bool logics::initActor(rapidjson::Document &d)
 	insertInventory(d["inventory"]["farming"], inventoryType_farming);
 
 	//farming
-	/*
+	
 	const rapidjson::Value& farms = d["farming"];
 	for (rapidjson::SizeType i = 0; i < farms.Size(); i++) {
 		mFarming.addField(
@@ -148,9 +148,11 @@ bool logics::initActor(rapidjson::Document &d)
 			, farms[rapidjson::SizeType(i)]["cntCare"].GetInt()
 			, farms[rapidjson::SizeType(i)]["timeLastGrow"].GetInt64()
 			, farms[rapidjson::SizeType(i)]["boost"].GetInt()
+			, farms[rapidjson::SizeType(i)]["level"].GetInt()
+			, farms[rapidjson::SizeType(i)]["accumulation"].GetInt()
 		);
 	}
-	*/
+	
 	
 	//save backup
 	//saveFile(CONFIG_ACTOR_BACKUP, sz);
@@ -1598,7 +1600,7 @@ void logics::saveActor() {
 		if(it->second == true)
 			d["collection"].PushBack(it->first, d.GetAllocator());
 	}
-	/*
+	
 	d["farming"].Clear();
 	farming::fields* f = mFarming.getFields();
 	for (int n = 0; n < (int)f->size(); n++) {
@@ -1614,11 +1616,12 @@ void logics::saveActor() {
 			objValue.AddMember("cntCare", (int)f->at(n)->cntCare, d.GetAllocator());
 			objValue.AddMember("timeLastGrow", (int64_t)f->at(n)->timeLastGrow, d.GetAllocator());
 			objValue.AddMember("boost", (int)f->at(n)->boost, d.GetAllocator());
-		
+			objValue.AddMember("level", (int)f->at(n)->level, d.GetAllocator());
+			objValue.AddMember("accumulation", (int)f->at(n)->accumulation, d.GetAllocator());
 			d["farming"].PushBack(objValue, d.GetAllocator());
 		}
 	}
-	*/
+	
 	d["achievement"]["quests"].Clear();	
 	
 	for (int n = 0; n < LEVEL_MAX; n++) {

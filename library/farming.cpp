@@ -16,7 +16,7 @@ void farming::addField(int x, int y) {
 	mFields.push_back(f);
 }
 
-void farming::addField(int id, int x, int y, int seedId, farming_status status, time_t timePlant, int cntCare, time_t timeLastGrow, int boost)
+void farming::addField(int id, int x, int y, int seedId, farming_status status, time_t timePlant, int cntCare, time_t timeLastGrow, int boost, int level, int accumulation)
 {
 	mFields.resize(id + 1);
 	field* f = new field(x, y);
@@ -27,6 +27,9 @@ void farming::addField(int id, int x, int y, int seedId, farming_status status, 
 	f->cntCare = cntCare;
 	f->timeLastGrow = timeLastGrow;
 	f->boost = boost;
+
+	f->level = level;
+	f->accumulation = accumulation;
 	mFields[id] = f;
 }
 

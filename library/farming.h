@@ -121,7 +121,10 @@ public:
 		, time_t timePlant
 		, int cntCare
 		, time_t timeLastGrow
-		, int boost);
+		, int boost
+		, int level
+		, int accumulation
+	);
 	fields* getFields() {			//밭 목록
 		return &mFields;
 	};			
