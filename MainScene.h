@@ -57,6 +57,7 @@ enum SCENECODE{
 
 };
 
+
 class MainScene : public Scene{
 public:
     static Scene* createScene();
@@ -74,7 +75,26 @@ public:
 
 	static LayerColor * createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle);
 	static string getItemImg(int id);
+
+
+	struct field : farming::field {
+		Layout * l;
+		Label * label;
+		Sprite * sprite;
+		bool isHarvestAction;
+		field() {
+
+		};
+		field(int x, int y) : farming::field(x, y) {
+			isHarvestAction = false;
+		};
+	};
+
+
 private:
+
+	bool initFarm();
+
 	int mLevel;
     gui mGrid;
     ui_gacha  mGacha;

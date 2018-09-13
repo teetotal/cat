@@ -18,6 +18,7 @@
 #include "library/inventory.h"
 #include "library/trade.h"
 #include "library/achievement.h"
+#include "library/sql.h"
 
 #include <locale>
 #include <algorithm>
@@ -28,6 +29,8 @@
 #define CONFIG_ACTOR_BACKUP "actor_backup.json"
 #define CONFIG_META "meta.json"
 #define CONFIG_ACTIONS "actions.json"
+
+#define CONFIG_SQLITE3 "cat.s3db"
 
 //만랩
 #define LEVEL_MAX	12
@@ -349,7 +352,7 @@ public:
 			finalize();
 		hInst = NULL;
 	};
-	bool init(farmingFinshedNotiCallback, tradeUpdatedCallback, achievementCallback);
+	bool init(farmingFinshedNotiCallback, tradeUpdatedCallback, achievementCallback, bool isFarmingDataLoad = true);
 	void finalize();
 	void saveActor(); //현재 정보 저장
 	bool insertItem(_item);	
@@ -435,6 +438,8 @@ public:
 	errorCode farmingCare(int idx);
 	//돈 차감이랑 최대 밭 개수 지정
 	errorCode farmingExtend(int x, int y);
+	farming::field * farmingAddField(int x, int y);
+	void farmingAddField(farming::field * f);
 
 	//Training 
 	errorCode isValidTraining(int id);
@@ -546,7 +551,7 @@ private:
 	//set jobTitle
 	void setJobTitle();
 		
-	bool initActor(rapidjson::Document &p);
+	bool initActor(rapidjson::Document &p, bool isFarmingDataLoad);
 	void insertInventory(rapidjson::Value &p, inventoryType type);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p);
@@ -575,5 +580,7 @@ private:
 	int mRaceModeCnt[race_mode_max];
 	//actor.json 파일 내용
 	string mActorStringFromJSON;
+
+	Sql mSql;
 };
 

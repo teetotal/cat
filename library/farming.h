@@ -95,24 +95,39 @@ public:
 	*/
 	bool init(farmingFinshedNotiCallback fn);
 	void finalize();
-	//추가
-	void addField(field * f) {
-		mFields.push_back(f);
-	};
+
+	//추가	
 	void swap(field * f1, field * f2) {
 		crop temp;
 		::memcpy(&temp, (crop*)f1, sizeof(temp));		
 		::memcpy((crop*)f1, (crop*)f2, sizeof(crop));		
 		::memcpy((crop*)f2, &temp, sizeof(temp));
 	};
-	void levelup(field * f) {
-		f->level++;
+	void levelup(int id) {
+		mLock.lock();
+		for (int n = 0; n < mFields.size(); n++) {
+			if (mFields[n]->id == id) {
+				mFields[n]->level++;
+				break;
+			}
+		}		
+		mLock.unlock();
 	};
-	void clear(field * f) {
-		f->init();
+	void clear(int id) {
+		mLock.lock();
+		for (int n = 0; n < mFields.size(); n++) {
+			if (mFields[n]->id == id) {
+				mFields[n]->init();
+				break;
+			}
+		}
+		mLock.unlock();		
+	};
+	void addField(field * f) {
+		mFields.push_back(f);
 	};
 	//
-	void addField(int x, int y);	//밭 늘리기	
+	field * addField(int x, int y);	//밭 늘리기	
 	void addField(int id
 		, int x
 		, int y
@@ -125,9 +140,20 @@ public:
 		, int level
 		, int accumulation
 	);
-	fields* getFields() {			//밭 목록
+	fields* getFields() {			//밭 목록 
 		return &mFields;
 	};			
+	bool getField(int idx, field *&pField) {
+		bool p = false;
+		mLock.lock();
+		if (idx < mFields.size()) {						
+			//::memcpy(&pField, mFields[idx], sizeof(field));
+			pField = mFields[idx];
+			p = true;
+		}
+		mLock.unlock();
+		return p;
+	}
 	int countField() {
 		return (int)mFields.size();
 	};

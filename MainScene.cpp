@@ -46,7 +46,7 @@ bool MainScene::init()
 	mAlertLayer = NULL;
     hInst = this;
     mParitclePopup = NULL;
-	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB))
+	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB, false))
 		return false;
 
     //////////////////////////////
@@ -69,6 +69,10 @@ bool MainScene::init()
 	this->addChild(bg);
 
     mGrid.init("fonts/Goyang.ttf", 14);
+
+	//farming init
+	if (!initFarm())
+		return false;
 
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
@@ -162,7 +166,7 @@ bool MainScene::init()
 	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
     gui::inst()->addTextButton(1,6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, fontColor);
     mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32, ALIGNMENT_CENTER, fontColor);
-	gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
+	//gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
 
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	
@@ -203,6 +207,73 @@ bool MainScene::init()
   	
     return true;
 }
+
+bool MainScene::initFarm() {
+	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
+	Vec2 a2 = gui::inst()->getPointVec2(1, 1, ALIGNMENT_NONE);
+	Size gridSize = Size(a2.x - a1.x, a1.y - a2.y);
+	int id = 0;
+	//farm init or load	
+	sqlite3_stmt * stmt = Sql::inst()->select("select * from farm");
+	if (stmt == NULL)
+		return false;
+
+	int result = 0;
+	while (true)
+	{
+		result = sqlite3_step(stmt);
+
+		if (result == SQLITE_ROW)
+		{
+			int idx = 0;
+			int id = sqlite3_column_int(stmt, idx++);
+			int x = sqlite3_column_int(stmt, idx++);
+			int y = sqlite3_column_int(stmt, idx++);
+			int seedId = sqlite3_column_int(stmt, idx++);
+			//farming::farming_status status = (farming::farming_status)sqlite3_column_int(stmt, idx++);
+			time_t timePlant = sqlite3_column_int64(stmt, idx++);
+			int cntCare = sqlite3_column_int(stmt, idx++);
+			time_t timeLastGrow = sqlite3_column_int64(stmt, idx++);
+			int boost = sqlite3_column_int(stmt, idx++);
+			int level = sqlite3_column_int(stmt, idx++);
+			int accumulation = sqlite3_column_int(stmt, idx++);
+
+			field * p = new field();
+			p->id = id;
+			p->x = x;
+			p->y = y;
+			p->seedId = seedId;
+			p->status = farming::farming_status_max;
+			p->timePlant = timePlant;
+			p->cntCare = cntCare;
+			p->timeLastGrow = timeLastGrow;
+			p->boost = boost;
+			p->level = level;
+			p->accumulation = accumulation;
+
+			logics::hInst->farmingAddField((farming::field *)p);
+		}
+		else
+			break;
+	}
+
+	if (logics::hInst->getFarm()->countField() == 0) {
+		for (int x = 2; x < 7; x++) {
+			for (int y = 2; y < 7; y++) {
+				field * node = new field(x, y - 1);
+				//node->sprite = NULL;
+				//node->l = gui::inst()->createLayout(gridSize, "", true, c[rand() % 5]);
+				node->id = id;
+				//node->label = gui::inst()->addLabelAutoDimension(0, 2, "", node->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
+				//node->l->setPosition(gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE));
+				logics::hInst->farmingAddField(node);
+				id++;
+			}
+		}
+	}
+	return true;
+}
+
 //get Idle
 RepeatForever * MainScene::getIdleAnimation(int id) {
 	string prefix = "action/" + to_string(id) + "/";
@@ -552,9 +623,11 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	mCurrentScene = type;
 
    	switch (type) {
+		/*
 	case SCENECODE_TEMP:
 		Director::getInstance()->pushScene(HelloWorld::createScene());
 		break;
+		*/
 	case SCENECODE_CLOSEPOPUP:
 		closePopup();
 		break;
@@ -582,7 +655,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	case SCENECODE_FARMING: //farming		
 		mFarming->stopAllActions();
 		mFarming->setScale(1);
-		Director::getInstance()->pushScene(FarmingScene::createScene());
+		Director::getInstance()->pushScene(HelloWorld::createScene());
 		break;
 	case SCENECODE_RACE://RACE
 		showRace();

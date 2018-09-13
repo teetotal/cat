@@ -7,7 +7,7 @@
 
 logics * logics::hInst = NULL;
 
-bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB) {
+bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB, bool isFarmingDataLoad) {
 	srand(getNow());
     string szMeta, szActor, szActions;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
@@ -24,6 +24,15 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 			FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
 		}
 		szActor = FileUtils::getInstance()->getStringFromFile(fileFullPath);
+		
+		//sqlite3
+		string sqliteFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_SQLITE3;
+		if (!FileUtils::getInstance()->isFileExist(sqliteFullPath)) {
+			//writable 경로에 파일 복사
+			FileUtils::getInstance()->writeDataToFile(FileUtils::getInstance()->getDataFromFile(CONFIG_SQLITE3), sqliteFullPath);
+		}
+		if(!Sql::inst()->init(sqliteFullPath))
+			return false;
 #endif
 
 	rapidjson::Document d;
@@ -54,7 +63,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	if (!initRace(d["race"]))
 		return false;
 		
-	if (!initActor(dActor))
+	if (!initActor(dActor, isFarmingDataLoad))
 		return false;	
 	
 	if (!initAchievement(d["achievement"], dActor["achievement"]))
@@ -83,21 +92,8 @@ void logics::insertInventory(rapidjson::Value &p, inventoryType type)
 	}
 }
 /* private initialize */
-bool logics::initActor(rapidjson::Document &d)
-{
-	/*
-	string sz;
-#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
-		sz = loadJsonString(CONFIG_ACTOR);
-#else
-    string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
-    if(!FileUtils::getInstance()->isFileExist(fileFullPath)){
-        //writable 경로에 파일 복사
-        FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
-    }
-    sz = FileUtils::getInstance()->getStringFromFile(fileFullPath);
-#endif
-	*/
+bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
+{	
 	_actor* actor = new _actor;
 	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
 	actor->userId = d["userId"].GetString();
@@ -135,7 +131,38 @@ bool logics::initActor(rapidjson::Document &d)
 	insertInventory(d["inventory"]["farming"], inventoryType_farming);
 
 	//farming
-	
+	if (isFarmingDataLoad) {
+		sqlite3_stmt * stmt = Sql::inst()->select("select * from farm");
+		if (stmt == NULL)
+			return false;
+
+		int result = 0;
+		while (true)
+		{
+			result = sqlite3_step(stmt);
+
+			if (result == SQLITE_ROW)
+			{
+				int idx = 0;
+				int id = sqlite3_column_int(stmt, idx++);
+				int x = sqlite3_column_int(stmt, idx++);
+				int y = sqlite3_column_int(stmt, idx++);
+				int seedId = sqlite3_column_int(stmt, idx++);
+				//farming::farming_status status = (farming::farming_status)sqlite3_column_int(stmt, idx++);
+				time_t timePlant = sqlite3_column_int64(stmt, idx++);
+				int cntCare = sqlite3_column_int(stmt, idx++);
+				time_t timeLastGrow = sqlite3_column_int64(stmt, idx++);
+				int boost = sqlite3_column_int(stmt, idx++);
+				int level = sqlite3_column_int(stmt, idx++);
+				int accumulation = sqlite3_column_int(stmt, idx++);
+
+				mFarming.addField(id, x, y, seedId, farming::farming_status_max, timePlant, cntCare, timeLastGrow, boost, level, accumulation);
+			}
+			else
+				break;
+		}
+	}
+	/*
 	const rapidjson::Value& farms = d["farming"];
 	for (rapidjson::SizeType i = 0; i < farms.Size(); i++) {
 		mFarming.addField(
@@ -152,7 +179,7 @@ bool logics::initActor(rapidjson::Document &d)
 			, farms[rapidjson::SizeType(i)]["accumulation"].GetInt()
 		);
 	}
-	
+	*/
 	
 	//save backup
 	//saveFile(CONFIG_ACTOR_BACKUP, sz);
@@ -426,6 +453,7 @@ void logics::finalize() {
 	mFarming.finalize();
 	mTrade.finalize();
 	mAchievement.finalize();	
+	Sql::inst()->finalize();
 }
 /* temporary print */
 void logics::printInven(inventoryType type, wstring &sz) {
@@ -1482,12 +1510,22 @@ errorCode logics::farmingExtend(int x, int y)
 	
 	mActor->point -= mFarmingExtendFee;
 
-	mFarming.addField(x, y);
+	farmingAddField(x, y);
+	
 	if (increaseExp())
 		return error_levelup;
 	return error_success;
 }
-;
+
+farming::field * logics::farmingAddField(int x, int y) {	
+	return mFarming.addField(x, y);	
+}
+
+void logics::farmingAddField(farming::field * f) {
+	mFarming.addField(f);
+}
+
+//farming end
 
 void logics::achievementCallbackFn(int type, int idx) {
 	printf("%d achievementCallback \n", idx);
@@ -1600,17 +1638,20 @@ void logics::saveActor() {
 		if(it->second == true)
 			d["collection"].PushBack(it->first, d.GetAllocator());
 	}
+
 	
 	d["farming"].Clear();
+	/*	
 	farming::fields* f = mFarming.getFields();
 	for (int n = 0; n < (int)f->size(); n++) {
 		if (f->at(n)) {
+			const int seedId = f->at(n)->seedId;
 			rapidjson::Value objValue;
 			objValue.SetObject();
 			objValue.AddMember("id"	, (int)f->at(n)->id, d.GetAllocator());
 			objValue.AddMember("x"	, (int)f->at(n)->x, d.GetAllocator());
 			objValue.AddMember("y"	, (int)f->at(n)->y, d.GetAllocator());
-			objValue.AddMember("seedId", (int)f->at(n)->seedId, d.GetAllocator());
+			objValue.AddMember("seedId", seedId, d.GetAllocator());
 			objValue.AddMember("status", (int)f->at(n)->status, d.GetAllocator());
 			objValue.AddMember("timePlant", (int64_t)f->at(n)->timePlant, d.GetAllocator());
 			objValue.AddMember("cntCare", (int)f->at(n)->cntCare, d.GetAllocator());
@@ -1621,7 +1662,43 @@ void logics::saveActor() {
 			d["farming"].PushBack(objValue, d.GetAllocator());
 		}
 	}
+	*/
+
+	int n = 0;
+	int rc = 0;
+	string szFarmQuery = "DELETE FROM farm; \nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
+	char buffer[8 * 1024] = { 0, };
+	int len = 0;
+
+	farming::field * f;
+	while (mFarming.getField(n++, f)) {		
+		if (n > 1)
+			len += sprintf(buffer + len, ",");
+
+		len += sprintf(buffer + len, "(%d, %d, %d, %d, %lld, %d, %lld, %d, %d, %d)"
+			, f->id
+			, f->x
+			, f->y
+			, f->seedId
+			, f->timePlant
+			, f->cntCare
+			, f->timeLastGrow
+			, f->boost
+			, f->level
+			, f->accumulation
+		);
+	}
+
+	szFarmQuery += buffer;
+	szFarmQuery += ";";
+
+	rc = Sql::inst()->exec(szFarmQuery);
+	if (rc != 0) {
+		CCLOG("Farming data inserting failure !!! %d len: %d \n%s", rc, len, szFarmQuery.c_str());
+	}
 	
+	
+
 	d["achievement"]["quests"].Clear();	
 	
 	for (int n = 0; n < LEVEL_MAX; n++) {
@@ -1696,14 +1773,18 @@ void logics::saveActor() {
 		}
 	}
 
-	rapidjson::StringBuffer buffer;
-	buffer.Clear();
-	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	rapidjson::StringBuffer bufferJson;
+	bufferJson.Clear();
+	rapidjson::Writer<rapidjson::StringBuffer> writer(bufferJson);
 	d.Accept(writer);
 	//printf("%s \n", buffer.GetString());
 		
-	string input(buffer.GetString());
-	saveFile(CONFIG_ACTOR, input);
+	string input(bufferJson.GetString());
+	//saveFile(CONFIG_ACTOR, input);
+	string fullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
+	bool ret = FileUtils::getInstance()->writeStringToFile(input, fullPath);
+	if (!ret)
+		CCLOG("failure save Actor");
 
 	while (gabages.size() > 0) {
 		string p = gabages.front();

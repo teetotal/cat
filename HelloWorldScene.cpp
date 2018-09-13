@@ -1,4 +1,4 @@
-/****************************************************************************
+ï»¿/****************************************************************************
  Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
  
  http://www.cocos2d-x.org
@@ -25,7 +25,6 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
-#include "MainScene.h"
 
 USING_NS_CC;
 
@@ -82,57 +81,43 @@ bool HelloWorld::init()
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
 
-	
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(HelloWorld::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
 		
-	const int max = 3;
-	int id = 0;
+	int n = 0;
+	farming::field * f = NULL;
 	Color3B c[] = { Color3B(135, 118, 38), Color3B(123, 108, 5), Color3B(180, 164, 43), Color3B(72, 63, 4), Color3B(128, 104, 32) };
-	
-	//farm init or load
-	if (logics::hInst->getFarm()->countField() == 0) {
-		for (int x = 2; x < 7; x++) {
-			for (int y = 2; y < 7; y++) {
-				field * node = new field(x, y - 1);
-				node->sprite = NULL;
-				node->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
-				node->id = id;
-				node->label = gui::inst()->addLabelAutoDimension(0, 2, "", node->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
-				//node->l->setTag(id);
-				node->l->setPosition(gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE));
-				this->addChild(node->l);
-				logics::hInst->getFarm()->addField(node);
-				//mMap[id] = node;
-				id++;
-			}
-		}
-	}
-	else {
-		farming::fields * fields = logics::hInst->getFarm()->getFields();
-		int nCnt = fields->size();
-		for (int n = 0; n < nCnt; n++) {
-			field * p = (field*)fields->at(n);
 
+
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * p = (MainScene::field*)f;
+		p->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
+		string sz = p->level > 0 ? to_string(p->level) : "";
+		p->label = gui::inst()->addLabelAutoDimension(0, 2, sz, p->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
+		p->l->setPosition(gui::inst()->getPointVec2(p->x, p->y + 1, ALIGNMENT_NONE));
+		p->isHarvestAction = false;
+
+		if (p->seedId != 0) {
+			if (p->seedId > 0 && p->seedId < 400)
+				CCLOG("init error. id = %d, seedId = %d", p->id, p->seedId);
+
+			p->sprite = Sprite::create(MainScene::getItemImg(p->seedId));
+			Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
+			p->sprite->setPosition(position);
+		}
+		else {
 			p->sprite = NULL;
-			p->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
-			string sz = p->level > 0 ? to_string(p->level) : "";
-			p->label = gui::inst()->addLabelAutoDimension(0, 2, sz, p->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
-			p->l->setPosition(gui::inst()->getPointVec2(p->x, p->y + 1, ALIGNMENT_NONE));
-			this->addChild(p->l);
-
-			if (p->seedId != 0) {
-				addSprite(p, p->seedId);
-
-			}
 		}
+
+		this->addChild(p->l);
+		if (p->sprite)
+			this->addChild(p->sprite);
 	}
-	
 	
 	createSeedMenu();
 
 	//gui::inst()->drawGrid(this);
 	
-	//Ä³¸¯ÅÍ
+	//ìºë¦­??
 	mCharacterInitPosition = Vec2(0, 6);
 	mCharacter = MainScene::getIdle();
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
@@ -145,12 +130,19 @@ bool HelloWorld::init()
 }
 
 
-void HelloWorld::updateFarming(float f) {
-	farming::fields * fields = logics::hInst->getFarm()->getFields();
-	for (int n = 0; n < fields->size(); n++) {
-		int cnt = 0;		
-		field * p = (field*)fields->at(n);
-		switch (fields->at(n)->status) {
+void HelloWorld::updateFarming(float fTimer) {
+	int n = 0;
+	farming::field * f;
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * p = (MainScene::field*)f;
+
+        if(p->seedId > 0 && p->seedId < 400)
+            CCLOG("id = %d, seedId = %d", p->id, p->seedId);
+
+		switch (p->status) {
+		case farming::farming_status_decay:
+			p->sprite->setColor(Color3B::RED);
+			break;
 		case farming::farming_status_grown:
 			this->addChild(createClinkParticle(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER)), 100);
 			break;
@@ -169,7 +161,7 @@ void HelloWorld::updateFarming(float f) {
 
 bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	mTouchDownPosition = touch->getLocation();
-	//Ã£±â
+	//ì°¾ê¸°
 	if (mCharacter->getBoundingBox().containsPoint(touch->getLocation())) {
 		mMode = Mode_Farming;
 		stopAction(mCharacter);
@@ -177,13 +169,12 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 		return true;
 	}
 
-	farming::fields * fields = logics::hInst->getFarm()->getFields();
-	for (int n = 0; n < fields->size(); n++) {
-	//for (plantMap::iterator it = mPlantMap.begin(); it != mPlantMap.end(); ++it) {
-		field * p = (field*)fields->at(n);
+	int n = 0;
+	farming::field * f;
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * p = (MainScene::field*)f;
 		if (p->sprite != NULL && p->sprite->getBoundingBox().containsPoint(touch->getLocation())) {
-			//CCLOG("%d", it->first);
-			mCurrentNodeId = n;
+			mCurrentNodeId = p->id;
 			p->sprite->setAnchorPoint(Vec2(0.5, 0.5));
 			setOpacity();
 			mMode = Mode_Seed;
@@ -196,8 +187,8 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	return true;
 }
 
-void HelloWorld::swap(field* a, field * b) {
-	field temp;
+void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
+	MainScene::field temp;
 	::memcpy(&temp, a, sizeof(temp));
 
 	//a->l = b->l;
@@ -236,17 +227,18 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 
 	clearOpacity();
 
-	field * p = (field *)logics::hInst->getFarm()->getFields()->at(mCurrentNodeId);
-	
+	farming::field * f;
+	logics::hInst->getFarm()->getField(mCurrentNodeId, f);
+	MainScene::field * p = (MainScene::field*)f;
 	if (abs(mTouchDownPosition.x - touch->getLocation().x) < (mGridSize.width / 2) && abs(mTouchDownPosition.y - touch->getLocation().y) < (mGridSize.height / 2)) {
 		p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
 		return true;
 	}
 		
 	//swap
-	int nFileds = logics::hInst->getFarm()->countField();
-	for (int n = 0; n < nFileds; n++) {
-		field * pField = (field *)logics::hInst->getFarm()->getFields()->at(n);
+	int n = 0;	
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * pField = (MainScene::field*)f;
 		if (pField->id == p->id)
 			continue;
 		
@@ -265,7 +257,6 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 		}
 	}
 
-	//Á¦ ÀÚ¸®·Î
 	p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
 	
 	return true;
@@ -275,30 +266,41 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	//int cnt = 0;
 	bool isRemove = false;
 	int nFileds = 0;
+	int productId = 0;
+	int earning = 0;
+	errorCode err;
+	int n = 0;
+	farming::field * f;
+
 	switch (mMode) {
 	case Mode_Farming:
 		mCharacter->setPosition(touch->getLocation());
-		//harvest
-		nFileds = logics::hInst->getFarm()->countField();
-		for (int n = 0; n < nFileds; n++) {
-			field * pField = (field *)logics::hInst->getFarm()->getFields()->at(n);
-		
+		//harvest		
+		while (logics::hInst->getFarm()->getField(n++, f)) {
+			MainScene::field * pField = (MainScene::field*)f;
+
+			if (pField->seedId > 0 && pField->seedId < 400)
+				CCLOG("id = %d, seedId = %d", pField->id, pField->seedId);
+
 			if (pField->sprite != NULL && mCharacter->getBoundingBox().intersectsRect(pField->sprite->getBoundingBox())) {
 				stopAction(pField->sprite);
-								
+				
 				switch (pField->status) {
+				case farming::farming_status_decay:
 				case farming::farming_status_harvest:
 					isRemove = true;					
-				case farming::farming_status_grown:
-					//¼öÈ®ÇÑ ¸¸Å­ ÀÎº¥Åä¸®·Î
-					if (pField->getGrownCnt() > 0) {
-						int productId = 0;
-						int earning = 0;
-						logics::hInst->farmingHarvest(pField->id, productId, earning);						
-						plantAnimation(pField, productId, earning);
+				case farming::farming_status_grown:											
+					err = logics::hInst->farmingHarvest(pField->id, productId, earning);
+					if (err != error_success) {
+						CCLOG("errorCode = %d, seedId = %d,  %s", err, pField->seedId, wstring_to_utf8(logics::hInst->getErrorMessage(err)).c_str());
+						return;
 					}
+					if(earning > 0)
+						plantAnimation(pField, productId, earning);
+					
 					break;
-				case Plant_Status_Max:
+
+                    default:
 					break;
 				}
 
@@ -311,7 +313,8 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 		break;
 	case Mode_Seed:
 		if (mCurrentNodeId != -1) {			
-			field * pField = (field *)logics::hInst->getFarm()->getFields()->at(mCurrentNodeId);
+			logics::hInst->getFarm()->getField(mCurrentNodeId, f);
+			MainScene::field * pField = (MainScene::field *)f;
 			pField->sprite->setPosition(touch->getLocation());
 		}
 			
@@ -321,7 +324,7 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	}
 }
 
-void HelloWorld::plantAnimation(field * node, int productId, int cnt) {
+void HelloWorld::plantAnimation(MainScene::field * node, int productId, int cnt) {
 	for (int n = 0; n < cnt; n++) {
 		auto sprite1 = Sprite::create(MainScene::getItemImg(productId));
 		sprite1->setPosition(gui::inst()->getPointVec2(node->x, node->y));
@@ -336,30 +339,32 @@ void HelloWorld::plantAnimation(field * node, int productId, int cnt) {
 	}
 }
 
-void HelloWorld::levelUp(field * p) {
-	logics::hInst->getFarm()->levelup(p);
+void HelloWorld::levelUp(MainScene::field * p) {
+	logics::hInst->getFarm()->levelup(p->id);
 	p->label->setString(to_string(p->level));
 	p->isHarvestAction = false;
 	stopAction(p->sprite);
 	p->sprite->runAction(Sequence::create(ScaleTo::create(0.1, 1.5), ScaleTo::create(0.1, 1), NULL));
 }
-void HelloWorld::clear(field * p) {
+void HelloWorld::clear(MainScene::field * p) {
 	p->label->setString("");
 	p->isHarvestAction = false;
 	this->removeChild(p->sprite);
 	p->sprite = NULL;
-	logics::hInst->getFarm()->clear(p);
+	logics::hInst->getFarm()->clear(p->id);
 }
 
 void HelloWorld::setOpacity() {
 	if (mCurrentNodeId == EMPTY_PLANT_TAG)
 		return;
 
-	field * p = (field *)logics::hInst->getFarm()->getFields()->at(mCurrentNodeId);
-	//plant* p = mPlantMap[mCurrentNodeId];
-	int nFileds = logics::hInst->getFarm()->countField();
-	for (int n = 0; n < nFileds; n++) {
-		field * pField = (field *)logics::hInst->getFarm()->getFields()->at(n);	
+	farming::field * p;
+	logics::hInst->getFarm()->getField(mCurrentNodeId, p);
+
+	int n = 0;
+	farming::field *f;
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * pField = (MainScene::field*)f;
 		
 		if (pField->id == mCurrentNodeId || pField->sprite == NULL)
 			continue;
@@ -372,9 +377,11 @@ void HelloWorld::setOpacity() {
 	}
 }
 void HelloWorld::clearOpacity() {
-	int nFileds = logics::hInst->getFarm()->countField();
-	for (int n = 0; n < nFileds; n++) {
-		field * pField = (field *)logics::hInst->getFarm()->getFields()->at(n);	
+	int n = 0;
+	farming::field *f;
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * pField = (MainScene::field*)f;
+
 		if(pField->sprite)
 			pField->sprite->setOpacity(OPACITY_MAX);
 	}
@@ -420,7 +427,7 @@ void HelloWorld::addSeedMenu() {
 	}	
 }
 
-void HelloWorld::addSprite(field * p, int seedId) {
+void HelloWorld::addSprite(MainScene::field * p, int seedId) {
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
 	p->sprite->setPosition(position);
@@ -432,9 +439,10 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 	seed * s = mSeedVector[seedIdx];
 	s->itemQuantity--;	
 	
-	int nFileds = logics::hInst->getFarm()->countField();
-	for (int n = 0; n < nFileds; n++) {
-		field * p = (field *)logics::hInst->getFarm()->getFields()->at(n);
+	int n = 0;
+	farming::field *f;
+	while (logics::hInst->getFarm()->getField(n++, f)) {
+		MainScene::field * p = (MainScene::field*)f;
 	
 		if (p->seedId != 0)
 			continue;
@@ -453,7 +461,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 	}
 
 	if (s->itemQuantity <= 0) {
-		//seed menu °»½Å
+		//seed menu ê°±ì‹ 
 		mScrollView->removeChild(s->layout);
 		mSeedVector.erase(mSeedVector.begin() + seedIdx);
 		delete s;

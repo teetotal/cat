@@ -45,15 +45,12 @@ string loadJsonString(const char *path) {
 }
 
 void saveFile(const char* path, string sz) {
-#ifdef _WIN32
-#ifdef COCOS2D_DEBUG
-	return;
-#endif // COCOS2D_DEBUG
-
+#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 	std::ofstream out(path);
 	out << sz;
 	out.close();
 #else
+    /*
     string fullPath = FileUtils::getInstance()->getWritablePath() + path;
 
 	bool ret = FileUtils::getInstance()->writeStringToFile(sz
@@ -61,7 +58,7 @@ void saveFile(const char* path, string sz) {
     );
 	if(!ret)
 		CCLOG("failure save Actor");
-
+*/
 #endif
 }
 

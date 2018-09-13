@@ -28,6 +28,7 @@
 #include "cocos2d.h"
 #include "ui/ui.h"
 #include "library/farming.h"
+#include "MainScene.h"
 
 class HelloWorld : public cocos2d::Scene
 {
@@ -64,19 +65,6 @@ private:
 	Mode mMode;
 	Vec2 mCharacterInitPosition;
 
-	struct field : farming::field {		
-		Layout * l;
-		Label * label;		
-		Sprite * sprite;
-		bool isHarvestAction;
-		field() {
-
-		};
-		field(int x, int y) : farming::field(x, y) {
-			isHarvestAction = false;
-		};
-	};
-	
 	struct seed {
 		Layout * layout;
 		MenuItemFont * label;
@@ -96,16 +84,16 @@ private:
 
 	int mCurrentNodeId;
 	
-	void levelUp(field * p);	
-	void clear(field * p);
-	void swap(field* a, field * b);
+	void levelUp(MainScene::field * p);
+	void clear(MainScene::field * p);
+	void swap(MainScene::field* a, MainScene::field * b);
 	
 	void setOpacity();
 	void clearOpacity();
 	void createSeedMenu();
 	void addSeedMenu();
-	void addSprite(field * p, int seedId);
-	void plantAnimation(field * node, int productId, int cnt);
+	void addSprite(MainScene::field * p, int seedId);
+	void plantAnimation(MainScene::field * node, int productId, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
 	void closeCallback(Ref * pSender) {

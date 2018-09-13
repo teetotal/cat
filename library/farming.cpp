@@ -10,10 +10,12 @@ void farming::finalize() {
 	mThread->join();	
 	delete mThread;
 };
-void farming::addField(int x, int y) {
+farming::field * farming::addField(int x, int y) {
 	field* f = new field(x, y);
 	f->id = (int)mFields.size();
 	mFields.push_back(f);
+
+	return f;
 }
 
 void farming::addField(int id, int x, int y, int seedId, farming_status status, time_t timePlant, int cntCare, time_t timeLastGrow, int boost, int level, int accumulation)
@@ -46,16 +48,24 @@ void farming::setStatus(int fieldIdx) {
 		return;
 	}
 	int seedId = mFields[fieldIdx]->seedId;
+    if(seedId == 0){
+        mLock.unlock();
+        return;
+    }
+
 	if (mSeed.find(seedId) == mSeed.end()) {
 		mLock.unlock();
 		return;
 	}
-	int nGrown = min((int)((getNow() - mFields[fieldIdx]->timePlant) / mSeed[seedId]->timeGrow), 1 << mFields[fieldIdx]->level - 1);
-	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (mSeed[seedId]->timeGrow * mFields[fieldIdx]->level);
-	time_t finishedTime = mFields[fieldIdx]->finishTime;
-	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)(mSeed[seedId]->timeGrow * mFields[fieldIdx]->level) * 100.0f;
 
-	if (finishedTime + mSeed[seedId]->maxOvertime < now) {
+	seed * s = mSeed[seedId];
+
+	int nGrown = min((int)((getNow() - mFields[fieldIdx]->timePlant) / s->timeGrow), 1 << mFields[fieldIdx]->level - 1);
+	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (s->timeGrow * mFields[fieldIdx]->level);
+	time_t finishedTime = mFields[fieldIdx]->finishTime;
+	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)(s->timeGrow * mFields[fieldIdx]->level) * 100.0f;
+
+	if (finishedTime + s->maxOvertime < now) {
 		if(mFields[fieldIdx]->status != farming_status_decay)
 			mFields[fieldIdx]->status = farming_status_decay;
 	}	
@@ -70,7 +80,7 @@ void farming::setStatus(int fieldIdx) {
 			mFields[fieldIdx]->status = farming_status_grown;			
 		}
 	}	
-	else if (mSeed[seedId]->cares - mFields[fieldIdx]->cntCare > 0) {
+	else if (s->cares - mFields[fieldIdx]->cntCare > 0) {
 		if(mFields[fieldIdx]->status != farming_status_week)
 			mFields[fieldIdx]->status = farming_status_week;
 	}		
@@ -85,7 +95,7 @@ void farming::setStatus(int fieldIdx) {
 //수확
 bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	mLock.lock();
-	if (mFields[fieldIdx] == NULL) {
+	if (mFields[fieldIdx] == NULL ||  mSeed[mFields[fieldIdx]->seedId] == NULL) {
 		mLock.unlock();
 		return false;
 	}
