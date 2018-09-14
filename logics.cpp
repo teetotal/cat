@@ -6,6 +6,7 @@
 #endif
 
 logics * logics::hInst = NULL;
+bool logics::hIsSync = false;
 
 bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB, bool isFarmingDataLoad) {
 	srand(getNow());
@@ -34,6 +35,8 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		if(!Sql::inst()->init(sqliteFullPath))
 			return false;
 #endif
+
+	hIsSync = false;
 
 	rapidjson::Document d;
 	d.Parse(szMeta.c_str());
@@ -67,10 +70,9 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		return false;	
 	
 	if (!initAchievement(d["achievement"], dActor["achievement"]))
-		return false;
+		return false;	
 
-
-	mFarming.init(farmCB);
+	mFarming.init(farmCB, mAchievement.getAccumulation(achievement_category_farming, achievement_farming_id_output));
 	mAchieveCB = achieveCB;
 	
 	//trade
@@ -83,18 +85,11 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 
 	return true;
 }
-void logics::insertInventory(rapidjson::Value &p, inventoryType type)
-{	
-	for (rapidjson::SizeType i = 0; i < p.Size(); i++) {
-		int id = p[rapidjson::SizeType(i)]["id"].GetInt();
-		int quantity = p[rapidjson::SizeType(i)]["quantity"].GetInt();
-		mActor->inven.pushItem(type, id, quantity);
-	}
-}
 /* private initialize */
 bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 {	
 	_actor* actor = new _actor;
+	/*
 	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
 	actor->userId = d["userId"].GetString();
 
@@ -116,7 +111,45 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 	actor->property.strength = d["property"]["strength"].GetInt();
 	actor->property.intelligence = d["property"]["intelligence"].GetInt();
 	actor->property.appeal = d["property"]["appeal"].GetInt();
+	*/
+	//actor
+	{
+		sqlite3_stmt * stmt = Sql::inst()->select("SELECT * FROM actor WHERE idx = 1");
+		if (stmt == NULL)
+			return false;
 
+		int result = sqlite3_step(stmt);
+
+		if (result == SQLITE_ROW)
+		{
+			int idx = 0;
+			int index = sqlite3_column_int(stmt, idx++);			
+			actor->userId = (const char*)sqlite3_column_text(stmt, idx++);
+			actor->userName = (const char*)sqlite3_column_text(stmt, idx++);
+			actor->id = (const char*)sqlite3_column_text(stmt, idx++);
+			actor->name = (const char*)sqlite3_column_text(stmt, idx++);		
+
+			actor->lastLoginLoginTime = sqlite3_column_int64(stmt, idx++);
+			actor->lastLoginLoginTime = getNow();
+
+			actor->lastLoginLogoutTime = sqlite3_column_int64(stmt, idx++);
+			actor->lastHPUpdateTime = sqlite3_column_int64(stmt, idx++);
+			CCLOG("lastLoginLogoutTime = %lld, lastHPUpdateTime =  %lld", actor->lastLoginLogoutTime, actor->lastHPUpdateTime);
+
+			const char * szJobTitle = (const char*)sqlite3_column_text(stmt, idx++);
+			actor->jobTitle = szJobTitle == NULL ? "" : szJobTitle;
+
+			actor->point = sqlite3_column_int(stmt, idx++);
+			actor->hp = sqlite3_column_int(stmt, idx++);
+			actor->exp = sqlite3_column_int(stmt, idx++);
+			actor->level = sqlite3_column_int(stmt, idx++);
+
+			actor->property.strength = sqlite3_column_int(stmt, idx++);
+			actor->property.intelligence = sqlite3_column_int(stmt, idx++);
+			actor->property.appeal = sqlite3_column_int(stmt, idx++);			
+		}
+			
+	}
 	const rapidjson::Value& collection = d["collection"];
 	for (rapidjson::SizeType i = 0; i < collection.Size(); i++) {
 		int id = collection[rapidjson::SizeType(i)].GetInt();
@@ -124,12 +157,30 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 	}
 
 	mActor = actor;
-	insertInventory(d["inventory"]["growth"], inventoryType_growth);
-	insertInventory(d["inventory"]["HP"], inventoryType_HP);
-	insertInventory(d["inventory"]["race"], inventoryType_race);
-	insertInventory(d["inventory"]["adorn"], inventoryType_adorn);
-	insertInventory(d["inventory"]["farming"], inventoryType_farming);
+	//inventory
+	{
+		sqlite3_stmt * stmt = Sql::inst()->select("select * from inventory");
+		if (stmt == NULL)
+			return false;
 
+		int result = 0;
+		while (true)
+		{
+			result = sqlite3_step(stmt);
+
+			if (result == SQLITE_ROW)
+			{
+				int idx = 0;
+				int category = sqlite3_column_int(stmt, idx++);
+				int id = sqlite3_column_int(stmt, idx++);
+				int quantity = sqlite3_column_int(stmt, idx++);
+
+				mActor->inven.pushItem(category, id, quantity);
+			}
+			else
+				break;
+		}
+	}	
 	//farming
 	if (isFarmingDataLoad) {
 		sqlite3_stmt * stmt = Sql::inst()->select("select * from farm");
@@ -162,28 +213,7 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 				break;
 		}
 	}
-	/*
-	const rapidjson::Value& farms = d["farming"];
-	for (rapidjson::SizeType i = 0; i < farms.Size(); i++) {
-		mFarming.addField(
-			farms[rapidjson::SizeType(i)]["id"].GetInt()
-			, farms[rapidjson::SizeType(i)]["x"].GetInt()
-			, farms[rapidjson::SizeType(i)]["y"].GetInt()
-			, farms[rapidjson::SizeType(i)]["seedId"].GetInt()
-			, (farming::farming_status)farms[rapidjson::SizeType(i)]["status"].GetInt()
-			, farms[rapidjson::SizeType(i)]["timePlant"].GetInt64()
-			, farms[rapidjson::SizeType(i)]["cntCare"].GetInt()
-			, farms[rapidjson::SizeType(i)]["timeLastGrow"].GetInt64()
-			, farms[rapidjson::SizeType(i)]["boost"].GetInt()
-			, farms[rapidjson::SizeType(i)]["level"].GetInt()
-			, farms[rapidjson::SizeType(i)]["accumulation"].GetInt()
-		);
-	}
-	*/
 	
-	//save backup
-	//saveFile(CONFIG_ACTOR_BACKUP, sz);
-
 	mIsRunThread = true;
 	mThread = new thread(threadRun);
 
@@ -1034,7 +1064,8 @@ void logics::setJobTitle() {
 
 	int sum = S + I + A;
 	if (sum < 0) {		
-		mActor->jobTitle = szPrefix + L" " + szBody;
+		//mActor->jobTitle = szPrefix + L" " + szBody;
+		mActor->jobTitle = wstring_to_utf8(szPrefix + L" " + szBody);
 		return;
 	}
 	int min = std::min(std::min(S, I), A);
@@ -1058,7 +1089,8 @@ void logics::setJobTitle() {
 		}
 	}
 
-	mActor->jobTitle = szPrefix + L" " + szBody;
+	//mActor->jobTitle = szPrefix + L" " + szBody;
+	mActor->jobTitle = wstring_to_utf8(szPrefix + L" " + szBody);
 	
 	return;
 }
@@ -1468,7 +1500,7 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 		return error_invalid_id;
 	
 	mActor->inven.pushItem(getInventoryType(productId), productId, earning);
-	increaseExp();
+	//increaseExp();
 
 	mAchievement.push(achievement_category_farming, achievement_farming_id_harvest, 1);
 	mAchievement.push(achievement_category_farming, achievement_farming_id_output, earning);
@@ -1512,8 +1544,7 @@ errorCode logics::farmingExtend(int x, int y)
 
 	farmingAddField(x, y);
 	
-	if (increaseExp())
-		return error_levelup;
+	//if (increaseExp())	return error_levelup;
 	return error_success;
 }
 
@@ -1525,6 +1556,39 @@ void logics::farmingAddField(farming::field * f) {
 	mFarming.addField(f);
 }
 
+int logics::farmingQuestReward(int idx) {
+	int money = 0;
+
+	farming::quest * q = mFarming.getQuest(idx);
+	if (q) {		
+		for (int n = 0; n < sizeof(q->items) / sizeof(q->items[0]); n++) {
+			if (q->items[n].itemId != -1) {
+				money += mTrade.getPriceBuy(q->items[n].itemId) * q->items[n].quantity;
+			}
+		}		
+	}
+
+	return money;
+}
+
+bool logics::farmingQuestDone(int idx) {
+	farming::quest * q = mFarming.getQuest(idx);
+	if (q) {
+		int money = 0;
+		for (int n = 0; n < sizeof(q->items) / sizeof(q->items[0]); n++) {
+			if (q->items[n].itemId != -1) {
+				money += mTrade.getPriceBuy(q->items[n].itemId) * q->items[n].quantity;
+
+				inventoryType type = getInventoryType(q->items[n].itemId);
+				if (!mActor->inven.popItem(type, q->items[n].itemId, q->items[n].quantity))
+					return false;
+			}
+		}
+		mActor->point += money;
+		mFarming.clearQuest(idx);
+	}
+	return true;
+};
 //farming end
 
 void logics::achievementCallbackFn(int type, int idx) {
@@ -1592,6 +1656,14 @@ void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inv
 
 void logics::saveActor() {
 
+	if (hIsSync) {
+		CCLOG("saveActor locked!!");
+		return;
+	}
+		
+
+	hIsSync = true;
+
 	if (mActorStringFromJSON.size() == 0) {
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		mActorStringFromJSON = loadJsonString(CONFIG_ACTOR);
@@ -1599,9 +1671,46 @@ void logics::saveActor() {
 		mActorStringFromJSON = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
 #endif
 	}
+	int rc = 0;
+
+	
+
     rapidjson::Document d;
 	d.Parse(mActorStringFromJSON.c_str());
+
+	string szQuery = "";
+	CCLOG("Save lastLoginLogoutTime = %lld, lastHPUpdateTime =  %lld", mActor->lastLoginLogoutTime, mActor->lastHPUpdateTime);
+	char bufActor[1024] = { 0 };
+	sprintf(bufActor
+		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d WHERE idx = 1;"
+		, mActor->userId.c_str()
+		, mActor->userName.c_str()
+		, mActor->id.c_str()
+		, mActor->name.c_str()
+		, mActor->lastLoginLoginTime
+		, mActor->lastLoginLogoutTime
+		, mActor->lastHPUpdateTime
+		, mActor->jobTitle.c_str()
+		, mActor->point
+		, mActor->hp
+		, mActor->exp
+		, mActor->level
+		, mActor->property.strength
+		, mActor->property.intelligence
+		, mActor->property.appeal
+	);
 	
+	szQuery += bufActor;
+	/*
+	rc = Sql::inst()->exec(szQuery);
+	if (rc != 0) {
+		CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
+	}*/
+	CCLOG("actor data inserting failure !!! %d \n%s", rc, szQuery.c_str());
+
+	szQuery = "";
+	
+	/*
 	string userName = wstring_to_utf8(mActor->userName);
 	d["userName"] = rapidjson::StringRef(userName.c_str());
 	d["userId"] = rapidjson::StringRef(mActor->userId.c_str());
@@ -1621,7 +1730,8 @@ void logics::saveActor() {
 	d["property"]["strength"].SetInt(mActor->property.strength);
 	d["property"]["intelligence"].SetInt(mActor->property.intelligence);
 	d["property"]["appeal"].SetInt(mActor->property.appeal);
-
+	*/
+	/*
 	d["inventory"]["growth"].Clear();
 	saveActorInventory(d, d["inventory"]["growth"], inventoryType_growth);
 	d["inventory"]["race"].Clear();
@@ -1632,72 +1742,79 @@ void logics::saveActor() {
 	saveActorInventory(d, d["inventory"]["HP"], inventoryType_HP);
 	d["inventory"]["farming"].Clear();
 	saveActorInventory(d, d["inventory"]["farming"], inventoryType_farming);
-
+	*/
 	d["collection"].Clear();		
 	for (keyBoolMap::iterator it = mActor->collection.begin(); it != mActor->collection.end(); ++it) {		
 		if(it->second == true)
 			d["collection"].PushBack(it->first, d.GetAllocator());
 	}
 
+	//inventory
 	
-	d["farming"].Clear();
-	/*	
-	farming::fields* f = mFarming.getFields();
-	for (int n = 0; n < (int)f->size(); n++) {
-		if (f->at(n)) {
-			const int seedId = f->at(n)->seedId;
-			rapidjson::Value objValue;
-			objValue.SetObject();
-			objValue.AddMember("id"	, (int)f->at(n)->id, d.GetAllocator());
-			objValue.AddMember("x"	, (int)f->at(n)->x, d.GetAllocator());
-			objValue.AddMember("y"	, (int)f->at(n)->y, d.GetAllocator());
-			objValue.AddMember("seedId", seedId, d.GetAllocator());
-			objValue.AddMember("status", (int)f->at(n)->status, d.GetAllocator());
-			objValue.AddMember("timePlant", (int64_t)f->at(n)->timePlant, d.GetAllocator());
-			objValue.AddMember("cntCare", (int)f->at(n)->cntCare, d.GetAllocator());
-			objValue.AddMember("timeLastGrow", (int64_t)f->at(n)->timeLastGrow, d.GetAllocator());
-			objValue.AddMember("boost", (int)f->at(n)->boost, d.GetAllocator());
-			objValue.AddMember("level", (int)f->at(n)->level, d.GetAllocator());
-			objValue.AddMember("accumulation", (int)f->at(n)->accumulation, d.GetAllocator());
-			d["farming"].PushBack(objValue, d.GetAllocator());
+	vector<intPair> vec;
+	mActor->inven.getWarehouse(vec);
+	if (vec.size() > 0) {
+		rc = Sql::inst()->exec("DELETE FROM inventory;");
+		if (rc != 0) {
+			CCLOG("inventory deleting data failure !!! %d", rc);
+		}
+
+		szQuery += "INSERT INTO inventory(category, id, quantity) VALUES";
+		for (int n = 0; n < (int)vec.size(); n++) {
+			if (n > 0) {
+				szQuery += ",";
+			}
+			szQuery += "(" + to_string((int)getInventoryType(vec[n].key)) + ", " + to_string(vec[n].key) + ", " + to_string(vec[n].val) + ")";
+		}
+		szQuery += ";";
+
+		rc = Sql::inst()->exec(szQuery);
+		if (rc != 0) {
+			CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
+		}
+		szQuery = "";
+	}
+	
+	
+	//farming
+	if (mFarming.countField() > 0) {
+		rc = Sql::inst()->exec("DELETE FROM farm;");
+		if (rc != 0) {
+			CCLOG("Farming deleting data failure !!! %d", rc);
+		}
+
+		int n = 0;		
+		szQuery += "INSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
+		char buffer[8 * 1024] = { 0, };
+		int len = 0;
+
+		farming::field * f;
+		while (mFarming.getField(n++, f)) {
+			if (n > 1)
+				len += sprintf(buffer + len, ",");
+
+			len += sprintf(buffer + len, "(%d, %d, %d, %d, %lld, %d, %lld, %d, %d, %d)"
+				, f->id
+				, f->x
+				, f->y
+				, f->seedId
+				, f->timePlant
+				, f->cntCare
+				, f->timeLastGrow
+				, f->boost
+				, f->level
+				, f->accumulation
+			);
+		}
+
+		szQuery += buffer;
+		szQuery += ";";
+		
+		rc = Sql::inst()->exec(szQuery);
+		if (rc != 0) {
+			CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
 		}
 	}
-	*/
-
-	int n = 0;
-	int rc = 0;
-	string szFarmQuery = "DELETE FROM farm; \nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
-	char buffer[8 * 1024] = { 0, };
-	int len = 0;
-
-	farming::field * f;
-	while (mFarming.getField(n++, f)) {		
-		if (n > 1)
-			len += sprintf(buffer + len, ",");
-
-		len += sprintf(buffer + len, "(%d, %d, %d, %d, %lld, %d, %lld, %d, %d, %d)"
-			, f->id
-			, f->x
-			, f->y
-			, f->seedId
-			, f->timePlant
-			, f->cntCare
-			, f->timeLastGrow
-			, f->boost
-			, f->level
-			, f->accumulation
-		);
-	}
-
-	szFarmQuery += buffer;
-	szFarmQuery += ";";
-
-	rc = Sql::inst()->exec(szFarmQuery);
-	if (rc != 0) {
-		CCLOG("Farming data inserting failure !!! %d len: %d \n%s", rc, len, szFarmQuery.c_str());
-	}
-	
-	
 
 	d["achievement"]["quests"].Clear();	
 	
@@ -1791,4 +1908,6 @@ void logics::saveActor() {
 		gabages.pop();
 		//delete p;
 	}
+
+	hIsSync = false;
 }

@@ -1,8 +1,11 @@
 ﻿#include "farming.h"
 
-bool farming::init(farmingFinshedNotiCallback fn) {
+bool farming::init(farmingFinshedNotiCallback fn, int cntHarvest, bool isThreadRun) {
+	mCntHarvest = cntHarvest;
 	mNoticeFn = fn;
-	mThread = new thread(threadRun, this);
+
+	if(isThreadRun)
+		mThread = new thread(threadRun, this);
 	return true;
 }
 void farming::finalize() {
@@ -98,20 +101,19 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	if (mFields[fieldIdx] == NULL ||  mSeed[mFields[fieldIdx]->seedId] == NULL) {
 		mLock.unlock();
 		return false;
-	}
+	}	
+
 	field * f = mFields[fieldIdx];
 	seed * s = mSeed[f->seedId];
 	int nGrown = min((int)((getNow() - f->timePlant) / s->timeGrow), 1 << (f->level - 1));
 	output = 0;
 	farmProductId = 0;
-	//time_t now = getNow();
-	//if (f->timePlant + s->timeGrow >= now) {
+	
 	if (f->status == farming_status_harvest || f->status == farming_status_decay) {
 		if (f->status == farming_status_harvest) {
-			farmProductId = s->farmProductId;
-			//output = (int)((float)(s->outputMax + f->boost) * ((float)f->cntCare / (float)s->cares));
-			//output *= f->level;
+			farmProductId = s->farmProductId;	
 			output = nGrown - f->accumulation;
+			mCntHarvest += output;
 		}
 
 		//제거
@@ -122,6 +124,8 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	else if (f->status == farming_status_grown){				
 		farmProductId = s->farmProductId;		
 		output = nGrown - f->accumulation;
+		mCntHarvest += output;
+
 		f->accumulation = nGrown;
 		
 		mLock.unlock();
@@ -157,3 +161,40 @@ bool farming::care(int fieldIdx, int boost) {
 
 	return true;
 }
+
+void farming::makeQuest(int cnt) {
+	int nMax = cnt - mQuestVector.size();
+	//level 
+	int level = min((int)(mSeedProducts.size() - 1), (int)(mCntHarvest / FARM_LEVEL_PER_HARVEST));
+	int exp = mCntHarvest % FARM_LEVEL_PER_HARVEST;
+
+	for (int n = 0; n < nMax; n++) {
+
+		quest q;
+		q.timeStamp = getNow();
+		//현재 레벨은 무조건 할당
+		q.items[0].itemId = mSeedProducts[level];
+		q.items[0].quantity = getRandValue((exp + 1) * FARM_HARVEST_QUANTITY_PER_EXP);
+		int k = 1;
+		int i = FARM_QUEST_ITEM_MAX - 1;
+		while (i > 0) {
+			int itemId = mSeedProducts[getRandValue(level)];
+			bool isValid = true;
+			for (int j = 0; j < FARM_QUEST_ITEM_MAX; j++) {
+				if (q.items[j].itemId == itemId) {
+					isValid = false;
+					break;
+				}
+			}
+			if (isValid) {
+				q.items[k].itemId = itemId;				
+				q.items[k].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST * FARM_HARVEST_QUANTITY_PER_EXP);
+				k++;
+			}
+			i--;
+		}
+
+		mQuestVector.push_back(q);
+
+	}
+};

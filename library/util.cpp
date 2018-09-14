@@ -22,7 +22,12 @@ string getRomeNumber(int n) {
 void sleepThisThread(size_t msec) {
 	std::this_thread::sleep_for(std::chrono::milliseconds(msec));
 }
-
+int getRandValueOverZero(int max) {
+	int n = getRandValue(max);
+	if (n == 0)
+		n = 1;
+	return n;
+}
 int getRandValue(int max) {
 	if (max == 0)
 		return 0;

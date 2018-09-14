@@ -76,6 +76,13 @@ public:
 	//상품 수령
 	bool rewardReceive(int type, int idx);
 
+	int getAccumulation(int category, int id) {
+		if (hasAccumulation(category, id)) {
+			return mAccumulation[category]->at(id);
+		}
+		return 0;
+	};
+
 	intDoubleDepthMap * getAccumulation() {
 		return &mAccumulation;
 	};

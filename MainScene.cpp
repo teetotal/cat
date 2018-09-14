@@ -153,14 +153,17 @@ bool MainScene::init()
 	this->addChild(pCharacter);
 
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
+    //string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
+	string name = logics::hInst->getActor()->name;
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
 
     mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE, fontColor);
 
     //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
-    mJobTitle = gui::inst()->addLabel(4,0,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
+    //mJobTitle = gui::inst()->addLabel(4,0,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
+	mJobTitle = gui::inst()->addLabel(4, 0, logics::hInst->getActor()->jobTitle, this, 12, ALIGNMENT_CENTER, fontColor);
+
 	mJobTitle->setPosition(Vec2(mJobTitle->getPosition().x, mJobTitle->getPosition().y + 15));
 
 	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
@@ -391,7 +394,8 @@ void MainScene::updateState(bool isInventoryUpdated) {
     float returnDuration = 0.1;
     float scale = 1.5f;
 
-    string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
+    //string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
+	string name = logics::hInst->getActor()->name;
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
     if(name.compare(mName->getString()) != 0 ){
@@ -402,7 +406,8 @@ void MainScene::updateState(bool isInventoryUpdated) {
 
     mName->setString(name);
 
-    mJobTitle->setString(wstring_to_utf8(logics::hInst->getActor()->jobTitle, true));
+    //mJobTitle->setString(wstring_to_utf8(logics::hInst->getActor()->jobTitle, true));
+	mJobTitle->setString(logics::hInst->getActor()->jobTitle);
 
     string szExp;
     szExp += to_string(logics::hInst->getActor()->exp);
@@ -1645,6 +1650,9 @@ string MainScene::getItemImg(int id) {
 	_item item = logics::hInst->getItem(id);
 	if (item.type == itemType_farming) {
 		return "fruit/" + to_string(id - itemType_farming) + ".png";
+	}
+	if (item.type == itemType_hp_meal) {
+		return "fruit/" + to_string(id - itemType_hp) + ".png";
 	}
 
 	return "items/" + to_string(id % 20) + ".png";

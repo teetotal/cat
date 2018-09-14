@@ -47,7 +47,9 @@ bool ActionScene::init() {
 	txtColors[idx] = Color3B::MAGENTA;
 	names[idx++] = L"인절미";
 	txtColors[idx] = Color3B::ORANGE;
-	names[idx++] = logics::hInst->getActor()->name;
+	//names[idx++] = logics::hInst->getActor()->name;	
+	names[idx++] = utf8_to_utf16(logics::hInst->getActor()->name);
+
 	txtColors[idx] = Color3B::WHITE;
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));

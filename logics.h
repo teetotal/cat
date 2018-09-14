@@ -73,7 +73,7 @@
 //farming 최대 밭개수
 #define farmMaxField 3
 //Actor save interval
-#define actorSaveInterval	10
+#define actorSaveInterval 10
 
 enum errorCode {
 	error_success = 0,
@@ -234,10 +234,10 @@ typedef map<int, bool> keyBoolMap;
 //캐릭터
 struct _actor {
 	string userId;		//사용자ID
-	wstring userName;	//사용자명
+	string userName;	//사용자명
 	string id;			//고양이ID
-	wstring name;		//고양이 이름
-	wstring jobTitle;		//타이틀. 속성 합산이 0 이하면 이번생은 망했어묘
+	string name;		//고양이 이름
+	string jobTitle;		//타이틀. 속성 합산이 0 이하면 이번생은 망했어묘
 	int point;			//보유캐시
 	int hp;				//피로도
 	int exp;			//경험치
@@ -423,7 +423,7 @@ public:
 		return mAchievement.getDetail(p, type, idx);
 	};
     
-
+	//----------------------------------------------------------------------Farm
 	//farming
 	farming * getFarm() {
 		return &mFarming;
@@ -440,7 +440,12 @@ public:
 	errorCode farmingExtend(int x, int y);
 	farming::field * farmingAddField(int x, int y);
 	void farmingAddField(farming::field * f);
-
+	farming::questVector * farmingGetQuest(int cnt) {
+		return mFarming.createQuest(cnt);
+	};
+	bool farmingQuestDone(int idx);
+	int farmingQuestReward(int idx);
+	//----------------------------------------------------------------------Action
 	//Training 
 	errorCode isValidTraining(int id);
 	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type, float preservationRatio = 0.f);
@@ -552,7 +557,6 @@ private:
 	void setJobTitle();
 		
 	bool initActor(rapidjson::Document &p, bool isFarmingDataLoad);
-	void insertInventory(rapidjson::Value &p, inventoryType type);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p);
 	bool initSeed(rapidjson::Value &farming, rapidjson::Value &seed);
@@ -582,5 +586,6 @@ private:
 	string mActorStringFromJSON;
 
 	Sql mSql;
+	static bool hIsSync;
 };
 

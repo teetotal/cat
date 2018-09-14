@@ -30,6 +30,18 @@ bool inventory::popItem(int category, int itemId, int quantity) {
 	return true;
 }
 
+int inventory::getItemQuantuty(int category, int itemId) {
+	if (mCategory.find(category) == mCategory.end()) {
+		return 0;
+	}
+
+	if (mWarehouses[mCategory[category]].find(itemId) == mWarehouses[mCategory[category]].end()) {
+		return 0;
+	}
+
+	return mWarehouses[mCategory[category]][itemId];
+}
+
 bool inventory::checkItemQuantity(int category, int itemId, int quantity) {
 	if (mCategory.find(category) == mCategory.end()) {
 		return false;

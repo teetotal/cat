@@ -10,6 +10,10 @@ public:
 	virtual ~farming() {
 	};
 
+#define FARM_QUEST_ITEM_MAX 3 //quest당 최대 생산물
+#define FARM_LEVEL_PER_HARVEST 50 //FARM_LEVEL_PER_HARVEST 마다 level up
+#define FARM_HARVEST_QUANTITY_PER_EXP 8
+	//----------------------------------------------------Field
 	enum farming_status {
 		farming_status_sprout = 0, //새싹
 		farming_status_week, //돌봄 필요
@@ -87,13 +91,49 @@ public:
 			crop::init();
 		};
 	};
-	//소유중인 밭
+	
 	typedef vector<field*> fields;
-	bool mIsThreadRun;
-	/*
-	functions
-	*/
-	bool init(farmingFinshedNotiCallback fn);
+	//-----------------------------------------------------Quest
+	struct questItem {
+		int itemId;
+		int quantity;
+	};
+	struct quest {
+		questItem items[FARM_QUEST_ITEM_MAX];
+		time_t timeStamp;
+
+		quest() {
+			items[0].itemId = -1;
+			items[1].itemId = -1;
+			items[2].itemId = -1;
+		};
+	};
+	typedef vector<quest> questVector;
+
+	questVector * createQuest(int cnt) {
+		if (cnt > mQuestVector.size() && mSeedProducts.size() > 0) {
+			// make quest
+			makeQuest(cnt);
+		}			
+		return &mQuestVector;
+	};
+
+	void clearQuest(int idx) {
+		if (mQuestVector.size() <= idx)
+			return;
+
+		mQuestVector.erase(mQuestVector.begin() + idx);		
+	};
+	
+	farming::quest * getQuest(int idx) {
+		if (mQuestVector.size() <= idx)
+			return NULL;
+
+		return &mQuestVector[idx];
+	};
+
+	//------------------------------------------------------functions	
+	bool init(farmingFinshedNotiCallback fn, int cntHarvest, bool isThreadRun = true);
 	void finalize();
 
 	//추가	
@@ -157,14 +197,16 @@ public:
 	int countField() {
 		return (int)mFields.size();
 	};
-	void setStatus();				//농작물 상태 설정	
-	void setStatus(int fieldIdx);	
+	void setStatus();				//농작물 상태 설정		
 	bool harvest(int fieldIdx, int &farmProductId, int &output); //수확
 	bool plant(int fieldIdx, int seedId);	//심기		
 	bool care(int fieldIdx, int boost = 0); //가꾸기
 	void addSeed(seed *s) {	//씨앗 등록
-        if(s)
-            mSeed[s->id] = s;
+		if (s) {
+			mSeed[s->id] = s;
+			mSeedProducts.push_back(s->farmProductId);
+		}
+            
 	};
 	seed * getSeed(int id) {
 		if (mSeed.find(id) != mSeed.end()) {
@@ -179,7 +221,14 @@ private:
 	thread * mThread;
 	mutex mLock;
 	farmingFinshedNotiCallback mNoticeFn;
+	questVector mQuestVector;
+	int mCntHarvest; //수확량 카운팅. 수확 횟수 아님
+	vector<int> mSeedProducts; // seed 수확물에 대한 
 
+	bool mIsThreadRun;
+
+	void setStatus(int fieldIdx);
+	void makeQuest(int cnt);
 	static void threadRun(farming * inst) {
 		while (inst->mIsThreadRun)
 		{

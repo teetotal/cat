@@ -30,6 +30,12 @@
 #include "library/farming.h"
 #include "MainScene.h"
 
+#define EMPTY_PLANT_TAG -1
+#define OPACITY_MAX 255
+#define OPACITY_DIABLE 64
+#define PLANT_COMPLETE_SEC 10
+#define QUEST_CNT 3
+
 class HelloWorld : public cocos2d::Scene
 {
 public:
@@ -77,7 +83,7 @@ private:
 	Size mGridSize;
 	Sprite * mCharacter;
 	ScrollView * mScrollView;
-
+	Layout * mQuestLayer[QUEST_CNT];
 	
 	typedef std::vector<seed*> seedVector;	
 	seedVector mSeedVector;
@@ -96,6 +102,9 @@ private:
 	void plantAnimation(MainScene::field * node, int productId, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
+	void questCallback(cocos2d::Ref* pSender, int idx);
+	void setQuest();
+
 	void closeCallback(Ref * pSender) {
 		Director::getInstance()->popScene();
 	};

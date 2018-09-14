@@ -28,11 +28,6 @@
 
 USING_NS_CC;
 
-#define EMPTY_PLANT_TAG -1
-#define OPACITY_MAX 255
-#define OPACITY_DIABLE 64
-#define PLANT_COMPLETE_SEC 10
-
 Scene* HelloWorld::createScene()
 {
     return HelloWorld::create();
@@ -113,11 +108,21 @@ bool HelloWorld::init()
 			this->addChild(p->sprite);
 	}
 	
+	//seed Menu
 	createSeedMenu();
 
 	//gui::inst()->drawGrid(this);
 	
-	//캐릭??
+	//quest	
+	for (int n = 0; n < QUEST_CNT; n++) {
+		mQuestLayer[n] = gui::inst()->createLayout(mGridSize, "", true);
+		mQuestLayer[n]->setOpacity(128);
+		mQuestLayer[n]->setPosition(gui::inst()->getPointVec2(n + 2, 1, ALIGNMENT_NONE));
+
+		this->addChild(mQuestLayer[n]);
+	}
+	setQuest();
+	
 	mCharacterInitPosition = Vec2(0, 6);
 	mCharacter = MainScene::getIdle();
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
@@ -129,6 +134,57 @@ bool HelloWorld::init()
     return true;
 }
 
+void HelloWorld::setQuest() {
+	//init
+	for (int n = 0; n < QUEST_CNT; n++) 
+		mQuestLayer[n]->removeAllChildren();
+
+	//quest
+	farming::questVector * vec = logics::hInst->farmingGetQuest(QUEST_CNT);
+	Size imgSize = Size(mGridSize.height / 3, mGridSize.height / 3);
+	for (int n = 0; n < vec->size(); n++) {
+		Size gridSize = Size(3, 3);
+		string sz = "";
+		bool isComplete = true;
+
+		int money = 0;
+		for (int i = 0; i < sizeof(vec->at(n).items) / sizeof(vec->at(n).items[0]); i++) {
+			if (vec->at(n).items[i].itemId != -1) {
+
+				money += logics::hInst->farmingQuestReward(n);
+
+				gui::inst()->addSpriteAutoDimension(0, i, MainScene::getItemImg(vec->at(n).items[i].itemId), mQuestLayer[n], ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO)->setContentSize(imgSize);
+
+				int quantity = logics::hInst->getActor()->inven.getItemQuantuty(logics::hInst->getInventoryType(vec->at(n).items[i].itemId), vec->at(n).items[i].itemId);
+				if (quantity >= vec->at(n).items[i].quantity) {
+					gui::inst()->addSpriteAutoDimension(1, i, "check.png", mQuestLayer[n], ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO)->setContentSize(imgSize);
+				}
+				else {
+					gui::inst()->addLabelAutoDimension(1, i, to_string(quantity), mQuestLayer[n], 12, ALIGNMENT_CENTER, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
+					gui::inst()->addLabelAutoDimension(2, i, "/ " + to_string(vec->at(n).items[i].quantity), mQuestLayer[n], 12, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+					isComplete = false;
+				}
+			}
+		}
+
+		if (isComplete) {
+			mQuestLayer[n]->removeAllChildren();
+			gui::inst()->addTextButtonAutoDimension(0, 0, "Done", mQuestLayer[n]
+				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
+
+			gui::inst()->addTextButtonAutoDimension(0, 1, "$" + to_string(money), mQuestLayer[n]
+				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
+		}
+	}
+}
+
+void HelloWorld::questCallback(cocos2d::Ref* pSender, int idx) {
+	//done
+	if (!logics::hInst->farmingQuestDone(idx)) {
+		CCLOG("Failure. questCallback");
+	}
+	setQuest();
+}
 
 void HelloWorld::updateFarming(float fTimer) {
 	int n = 0;
@@ -219,6 +275,7 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 		stopAction(mCharacter);
 		mCharacter->runAction(MainScene::getIdleAnimation());
 		mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+		setQuest();
 		return true;
 	}
 
