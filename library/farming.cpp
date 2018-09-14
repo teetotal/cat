@@ -113,6 +113,8 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 		if (f->status == farming_status_harvest) {
 			farmProductId = s->farmProductId;	
 			output = nGrown - f->accumulation;
+			//level -1 만큼 더 줌.
+			output += f->level - 1;
 			mCntHarvest += output;
 		}
 

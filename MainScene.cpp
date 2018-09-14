@@ -40,14 +40,18 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+	
 	mQuantityItemId = 0;
 	layerGray = NULL;
 	layer = NULL;
 	mAlertLayer = NULL;
     hInst = this;
     mParitclePopup = NULL;
-	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB, false))
+	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB, false)) {
+		CCLOG("logics Init Failure !!!!!!!!!!!!!!");
 		return false;
+	}
+		
 
     //////////////////////////////
     // 1. super init first
@@ -71,8 +75,10 @@ bool MainScene::init()
     mGrid.init("fonts/Goyang.ttf", 14);
 
 	//farming init
-	if (!initFarm())
+	if (!initFarm()) {
+		CCLOG("Init Farm Failure !!!!!!!!!!!!!!");
 		return false;
+	}
 
     /////////////////////////////
     // 2. add a menu item with "X" image, which is clicked to quit the program
@@ -207,7 +213,7 @@ bool MainScene::init()
 		mLevel = logics::hInst->getActor()->level;
 	}, 0.5, "questTimer");
 
-  	
+	CCLOG("Init Done !!!!!!!!!!!!!!");
     return true;
 }
 

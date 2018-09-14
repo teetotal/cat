@@ -37,6 +37,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 #endif
 
 	hIsSync = false;
+	mAchieveCB = achieveCB;
 
 	rapidjson::Document d;
 	d.Parse(szMeta.c_str());
@@ -66,23 +67,32 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	if (!initRace(d["race"]))
 		return false;
 		
-	if (!initActor(dActor, isFarmingDataLoad))
-		return false;	
+	if (!initActor(dActor, isFarmingDataLoad)) {
+		log("init Actor failure !!!!!!!!!!!!!!!!!!!!!!!");
+		return false;
+	}
 	
-	if (!initAchievement(d["achievement"], dActor["achievement"]))
-		return false;	
+	if (!initAchievement(d["achievement"], dActor["achievement"])) {
+		log("init achievement failure !!!!!!!!!!!!!!!!!!!!!!!");
+		return false;
+	}
 
-	mFarming.init(farmCB, mAchievement.getAccumulation(achievement_category_farming, achievement_farming_id_output));
-	mAchieveCB = achieveCB;
+	if (!mFarming.init(farmCB, mAchievement.getAccumulation(achievement_category_farming, achievement_farming_id_output))) {
+		log("init farm failure !!!!!!!!!!!!!!!!!!!!!!!");
+		return false;
+	}
+	
 	
 	//trade
 	float trade_margin = d["trade"]["margin"].GetFloat();
 	int trade_interval = d["trade"]["updateInterval"].GetInt();
 	int trade_weight = d["trade"]["levelWeight"].GetInt();
 
-	if (!mTrade.init(trade_margin, trade_interval, trade_weight, tradeCB))
+	if (!mTrade.init(trade_margin, trade_interval, trade_weight, tradeCB)) {
+		log("init trade failure !!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
-
+	}
+	log("init logics Done!!!!!!!!!!!!!!!!!!!!!!!");
 	return true;
 }
 /* private initialize */
@@ -114,7 +124,7 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 	*/
 	//actor
 	{
-		sqlite3_stmt * stmt = Sql::inst()->select("SELECT * FROM actor WHERE idx = 1");
+		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal FROM actor WHERE idx = 1");
 		if (stmt == NULL)
 			return false;
 
@@ -123,21 +133,19 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 		if (result == SQLITE_ROW)
 		{
 			int idx = 0;
-			int index = sqlite3_column_int(stmt, idx++);			
 			actor->userId = (const char*)sqlite3_column_text(stmt, idx++);
 			actor->userName = (const char*)sqlite3_column_text(stmt, idx++);
 			actor->id = (const char*)sqlite3_column_text(stmt, idx++);
 			actor->name = (const char*)sqlite3_column_text(stmt, idx++);		
 
-			actor->lastLoginLoginTime = sqlite3_column_int64(stmt, idx++);
+			actor->lastLoginLoginTime = (time_t)sqlite3_column_int64(stmt, idx++);
 			actor->lastLoginLoginTime = getNow();
 
-			actor->lastLoginLogoutTime = sqlite3_column_int64(stmt, idx++);
-			actor->lastHPUpdateTime = sqlite3_column_int64(stmt, idx++);
-			CCLOG("lastLoginLogoutTime = %lld, lastHPUpdateTime =  %lld", actor->lastLoginLogoutTime, actor->lastHPUpdateTime);
+			actor->lastLoginLogoutTime = (time_t)sqlite3_column_int64(stmt, idx++);
+			actor->lastHPUpdateTime = (time_t)sqlite3_column_int64(stmt, idx++);
 
 			const char * szJobTitle = (const char*)sqlite3_column_text(stmt, idx++);
-			actor->jobTitle = szJobTitle == NULL ? "" : szJobTitle;
+			actor->jobTitle = (*szJobTitle == '!') ? "" : szJobTitle;
 
 			actor->point = sqlite3_column_int(stmt, idx++);
 			actor->hp = sqlite3_column_int(stmt, idx++);
@@ -150,6 +158,7 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 		}
 			
 	}
+	
 	const rapidjson::Value& collection = d["collection"];
 	for (rapidjson::SizeType i = 0; i < collection.Size(); i++) {
 		int id = collection[rapidjson::SizeType(i)].GetInt();
@@ -157,6 +166,7 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 	}
 
 	mActor = actor;
+
 	//inventory
 	{
 		sqlite3_stmt * stmt = Sql::inst()->select("select * from inventory");
@@ -200,9 +210,9 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 				int y = sqlite3_column_int(stmt, idx++);
 				int seedId = sqlite3_column_int(stmt, idx++);
 				//farming::farming_status status = (farming::farming_status)sqlite3_column_int(stmt, idx++);
-				time_t timePlant = sqlite3_column_int64(stmt, idx++);
+				time_t timePlant = (time_t)sqlite3_column_int64(stmt, idx++);
 				int cntCare = sqlite3_column_int(stmt, idx++);
-				time_t timeLastGrow = sqlite3_column_int64(stmt, idx++);
+				time_t timeLastGrow = (time_t)sqlite3_column_int64(stmt, idx++);
 				int boost = sqlite3_column_int(stmt, idx++);
 				int level = sqlite3_column_int(stmt, idx++);
 				int accumulation = sqlite3_column_int(stmt, idx++);
@@ -1673,13 +1683,10 @@ void logics::saveActor() {
 	}
 	int rc = 0;
 
-	
-
     rapidjson::Document d;
 	d.Parse(mActorStringFromJSON.c_str());
 
 	string szQuery = "";
-	CCLOG("Save lastLoginLogoutTime = %lld, lastHPUpdateTime =  %lld", mActor->lastLoginLogoutTime, mActor->lastHPUpdateTime);
 	char bufActor[1024] = { 0 };
 	sprintf(bufActor
 		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d WHERE idx = 1;"
@@ -1687,9 +1694,9 @@ void logics::saveActor() {
 		, mActor->userName.c_str()
 		, mActor->id.c_str()
 		, mActor->name.c_str()
-		, mActor->lastLoginLoginTime
-		, mActor->lastLoginLogoutTime
-		, mActor->lastHPUpdateTime
+		, (int64_t)mActor->lastLoginLoginTime
+		, (int64_t)mActor->lastLoginLogoutTime
+		, (int64_t)mActor->lastHPUpdateTime
 		, mActor->jobTitle.c_str()
 		, mActor->point
 		, mActor->hp
@@ -1706,9 +1713,8 @@ void logics::saveActor() {
 	if (rc != 0) {
 		CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
 	}*/
-	CCLOG("actor data inserting failure !!! %d \n%s", rc, szQuery.c_str());
 
-	szQuery = "";
+	//szQuery = "";
 	
 	/*
 	string userName = wstring_to_utf8(mActor->userName);
@@ -1754,12 +1760,13 @@ void logics::saveActor() {
 	vector<intPair> vec;
 	mActor->inven.getWarehouse(vec);
 	if (vec.size() > 0) {
+		/*
 		rc = Sql::inst()->exec("DELETE FROM inventory;");
 		if (rc != 0) {
 			CCLOG("inventory deleting data failure !!! %d", rc);
 		}
-
-		szQuery += "INSERT INTO inventory(category, id, quantity) VALUES";
+		*/
+		szQuery += "\nDELETE FROM inventory;\nINSERT INTO inventory(category, id, quantity) VALUES";
 		for (int n = 0; n < (int)vec.size(); n++) {
 			if (n > 0) {
 				szQuery += ",";
@@ -1767,24 +1774,26 @@ void logics::saveActor() {
 			szQuery += "(" + to_string((int)getInventoryType(vec[n].key)) + ", " + to_string(vec[n].key) + ", " + to_string(vec[n].val) + ")";
 		}
 		szQuery += ";";
-
+		/*
 		rc = Sql::inst()->exec(szQuery);
 		if (rc != 0) {
 			CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
 		}
 		szQuery = "";
+		*/
 	}
 	
 	
 	//farming
 	if (mFarming.countField() > 0) {
+		/*
 		rc = Sql::inst()->exec("DELETE FROM farm;");
 		if (rc != 0) {
 			CCLOG("Farming deleting data failure !!! %d", rc);
 		}
-
+		*/
 		int n = 0;		
-		szQuery += "INSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
+		szQuery += "\nDELETE FROM farm;\nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
 		char buffer[8 * 1024] = { 0, };
 		int len = 0;
 
@@ -1798,9 +1807,9 @@ void logics::saveActor() {
 				, f->x
 				, f->y
 				, f->seedId
-				, f->timePlant
+				, (int64_t)f->timePlant
 				, f->cntCare
-				, f->timeLastGrow
+				, (int64_t)f->timeLastGrow
 				, f->boost
 				, f->level
 				, f->accumulation
@@ -1810,11 +1819,13 @@ void logics::saveActor() {
 		szQuery += buffer;
 		szQuery += ";";
 		
-		rc = Sql::inst()->exec(szQuery);
-		if (rc != 0) {
-			CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
-		}
 	}
+	
+	rc = Sql::inst()->exec(szQuery);
+	if (rc != 0) {
+		CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, szQuery.c_str());
+	}
+	
 
 	d["achievement"]["quests"].Clear();	
 	

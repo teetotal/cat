@@ -167,7 +167,7 @@ void HelloWorld::setQuest() {
 			}
 		}
 
-		if (isComplete) {
+		if (isComplete && money > 0) {
 			mQuestLayer[n]->removeAllChildren();
 			gui::inst()->addTextButtonAutoDimension(0, 0, "Done", mQuestLayer[n]
 				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
@@ -336,9 +336,6 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 		while (logics::hInst->getFarm()->getField(n++, f)) {
 			MainScene::field * pField = (MainScene::field*)f;
 
-			if (pField->seedId > 0 && pField->seedId < 400)
-				CCLOG("id = %d, seedId = %d", pField->id, pField->seedId);
-
 			if (pField->sprite != NULL && mCharacter->getBoundingBox().intersectsRect(pField->sprite->getBoundingBox())) {
 				stopAction(pField->sprite);
 				
@@ -349,7 +346,7 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 				case farming::farming_status_grown:											
 					err = logics::hInst->farmingHarvest(pField->id, productId, earning);
 					if (err != error_success) {
-						CCLOG("errorCode = %d, seedId = %d,  %s", err, pField->seedId, wstring_to_utf8(logics::hInst->getErrorMessage(err)).c_str());
+						CCLOG("farmingHarvest error errorCode = %d, seedId = %d,  %s", err, pField->seedId, wstring_to_utf8(logics::hInst->getErrorMessage(err)).c_str());
 						return;
 					}
 					if(earning > 0)
@@ -494,8 +491,7 @@ void HelloWorld::addSprite(MainScene::field * p, int seedId) {
 void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 {
 	seed * s = mSeedVector[seedIdx];
-	s->itemQuantity--;	
-	
+		
 	int n = 0;
 	farming::field *f;
 	while (logics::hInst->getFarm()->getField(n++, f)) {
@@ -506,13 +502,8 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 		logics::hInst->farmingPlant(p->id, s->itemId);
 		
 		addSprite(p, s->itemId);
-		/*
-		p->sprite = Sprite::create(MainScene::getItemImg(s->itemId));
-		Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
-		p->sprite->setPosition(position);
-		this->addChild(p->sprite, 1);
-		*/
 		p->label->setString(to_string(p->level));
+		s->itemQuantity--;
 
 		break;
 	}
@@ -528,16 +519,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 		s->label->setString("x" + to_string(s->itemQuantity));
 	}
 }
-/*
-int HelloWorld::getPlantId() {
-	int max = mMap.size();
-	for (int n = 0; n < max; n++) {
-		if (mPlantMap.find(n) == mPlantMap.end())
-			return n;
-	}
-	return EMPTY_PLANT_TAG;
-}
-*/
+
 RepeatForever * HelloWorld::getFarmingAnimation() {
 
 	auto animation = Animation::create();
