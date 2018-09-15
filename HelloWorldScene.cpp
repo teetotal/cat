@@ -1,28 +1,4 @@
-﻿/****************************************************************************
- Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
- 
- http://www.cocos2d-x.org
- 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
- 
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
- 
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
- ****************************************************************************/
-
-#include "HelloWorldScene.h"
+﻿#include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
 
@@ -31,13 +7,6 @@ USING_NS_CC;
 Scene* HelloWorld::createScene()
 {
     return HelloWorld::create();
-}
-
-// Print useful error message instead of segfaulting when files are not there.
-static void problemLoading(const char* filename)
-{
-    printf("Error while loading: %s\n", filename);
-    printf("Depending on how you compiled you might have to add 'Resources/' in front of filenames in HelloWorldScene.cpp\n");
 }
 
 // on "init" you need to initialize your instance
@@ -58,12 +27,8 @@ bool HelloWorld::init()
 	listener->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan, this);
 	listener->onTouchEnded = CC_CALLBACK_2(HelloWorld::onTouchEnded, this);	
 	listener->onTouchMoved = CC_CALLBACK_2(HelloWorld::onTouchMoved, this);
-
-	
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-	//gui::inst()->init();
-	//srand(time(NULL));
 	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
 	Vec2 a2 = gui::inst()->getPointVec2(1, 1, ALIGNMENT_NONE);
 	mGridSize.width = a2.x - a1.x;
@@ -112,12 +77,12 @@ bool HelloWorld::init()
 	createSeedMenu();
 
 	//gui::inst()->drawGrid(this);
-	
+	gui::inst()->addSprite(2, 0, "owl.png", this);
 	//quest	
 	for (int n = 0; n < QUEST_CNT; n++) {
 		mQuestLayer[n] = gui::inst()->createLayout(mGridSize, "", true);
 		mQuestLayer[n]->setOpacity(128);
-		mQuestLayer[n]->setPosition(gui::inst()->getPointVec2(n + 2, 1, ALIGNMENT_NONE));
+		mQuestLayer[n]->setPosition(gui::inst()->getPointVec2(n + 3, 1, ALIGNMENT_NONE));
 
 		this->addChild(mQuestLayer[n]);
 	}
@@ -161,7 +126,7 @@ void HelloWorld::setQuest() {
 				}
 				else {
 					gui::inst()->addLabelAutoDimension(1, i, to_string(quantity), mQuestLayer[n], 12, ALIGNMENT_CENTER, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
-					gui::inst()->addLabelAutoDimension(2, i, "/ " + to_string(vec->at(n).items[i].quantity), mQuestLayer[n], 12, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+					gui::inst()->addLabelAutoDimension(2, i, "/" + to_string(vec->at(n).items[i].quantity), mQuestLayer[n], 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 					isComplete = false;
 				}
 			}
@@ -204,7 +169,6 @@ void HelloWorld::updateFarming(float fTimer) {
 			break;
 		case farming::farming_status_harvest:
 			if (p->isHarvestAction == false) {
-				//it->second->sprite->runAction(RepeatForever::create(TintTo::create(1, Color3B::RED)));
 				p->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, 1.1), ScaleTo::create(0.4, 1.f), NULL)));
 				p->isHarvestAction = true;
 			}
@@ -247,13 +211,8 @@ void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
 	MainScene::field temp;
 	::memcpy(&temp, a, sizeof(temp));
 
-	//a->l = b->l;
 	a->sprite = b->sprite;
-	//a->label = b->label;
-
-	//b->l = temp.l;
 	b->sprite = temp.sprite;
-	//b->label = temp.label;
 
 	logics::hInst->getFarm()->swap(a, b);
 	
@@ -353,14 +312,14 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 						plantAnimation(pField, productId, earning);
 					
 					break;
-
-                    default:
+                default:
 					break;
 				}
 
 				
 				if(isRemove)
 					clear(pField);
+
 				break;
 			}
 		}
@@ -370,8 +329,7 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 			logics::hInst->getFarm()->getField(mCurrentNodeId, f);
 			MainScene::field * pField = (MainScene::field *)f;
 			pField->sprite->setPosition(touch->getLocation());
-		}
-			
+		}			
 		break;
 	default:
 		break;
@@ -532,21 +490,4 @@ RepeatForever * HelloWorld::getFarmingAnimation() {
 	}
 
 	return RepeatForever::create(Animate::create(animation));
-}
-
-void HelloWorld::menuCloseCallback(Ref* pSender)
-{
-    //Close the cocos2d-x game scene and quit the application
-    Director::getInstance()->end();
-
-    #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-    exit(0);
-#endif
-
-    /*To navigate back to native iOS screen(if present) without quitting the application  ,do not use Director::getInstance()->end() and exit(0) as given above,instead trigger a custom event created in RootViewController.mm as below*/
-
-    //EventCustom customEndEvent("game_scene_close_event");
-    //_eventDispatcher->dispatchEvent(&customEndEvent);
-
-
 }

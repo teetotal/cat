@@ -68,6 +68,9 @@ public:
 	};
 	bool getDetail(detail &p, int type, int idx);
 
+	int getSize() {
+		return mMap.size();
+	};
 	int getSize(int type) {
 		if(mMap.find(type) != mMap.end())
 			return (int)mMap[type].size();

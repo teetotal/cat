@@ -13,19 +13,19 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
     string szMeta, szActor, szActions;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
-		szActor = loadJsonString(CONFIG_ACTOR);
+		//szActor = loadJsonString(CONFIG_ACTOR);
 		szActions = loadJsonString(CONFIG_ACTIONS);
 #else
 		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
 		szActions = FileUtils::getInstance()->getStringFromFile(CONFIG_ACTIONS);
-
+		/*
 		string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
 		if (!FileUtils::getInstance()->isFileExist(fileFullPath)) {
 			//writable 경로에 파일 복사
 			FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
 		}
 		szActor = FileUtils::getInstance()->getStringFromFile(fileFullPath);
-		
+		*/
 		//sqlite3
 		string sqliteFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_SQLITE3;
 		if (!FileUtils::getInstance()->isFileExist(sqliteFullPath)) {
@@ -43,12 +43,12 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	d.Parse(szMeta.c_str());
 	if (d.HasParseError())
 		return false;
-
+	/*
 	rapidjson::Document dActor;
 	dActor.Parse(szActor.c_str());
 	if (dActor.HasParseError())
 		return false;
-
+	*/
 	rapidjson::Document dActions;
 	dActions.Parse(szActions.c_str());
 	if (dActions.HasParseError())
@@ -67,12 +67,12 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	if (!initRace(d["race"]))
 		return false;
 		
-	if (!initActor(dActor, isFarmingDataLoad)) {
+	if (!initActor(isFarmingDataLoad)) {
 		log("init Actor failure !!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
 	}
 	
-	if (!initAchievement(d["achievement"], dActor["achievement"])) {
+	if (!initAchievement(d["achievement"])) {
 		log("init achievement failure !!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
 	}
@@ -81,7 +81,6 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		log("init farm failure !!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
 	}
-	
 	
 	//trade
 	float trade_margin = d["trade"]["margin"].GetFloat();
@@ -96,7 +95,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	return true;
 }
 /* private initialize */
-bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
+bool logics::initActor(bool isFarmingDataLoad)
 {	
 	_actor* actor = new _actor;
 	/*
@@ -158,13 +157,34 @@ bool logics::initActor(rapidjson::Document &d, bool isFarmingDataLoad)
 		}
 			
 	}
-	
+
+	//collection
+	{
+		sqlite3_stmt * stmt = Sql::inst()->select("select * from collection");
+		if (stmt == NULL)
+			return false;
+
+		int result = 0;
+		while (true)
+		{
+			result = sqlite3_step(stmt);
+
+			if (result == SQLITE_ROW)
+			{
+				int id = sqlite3_column_int(stmt, 0);
+				actor->collection[id] = true;
+			}
+			else
+				break;
+		}
+	}
+	/*
 	const rapidjson::Value& collection = d["collection"];
 	for (rapidjson::SizeType i = 0; i < collection.Size(); i++) {
 		int id = collection[rapidjson::SizeType(i)].GetInt();
 		actor->collection[id] = true;
 	}
-
+	*/
 	mActor = actor;
 
 	//inventory
@@ -388,7 +408,7 @@ bool logics::initRace(rapidjson::Value & race)
 	return true;
 }
 
-bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievement) {
+bool logics::initAchievement(rapidjson::Value & v) {
 	//basic 
 	int goals[] = { 0, 2, 18, 50, 114, 242, 498, 1010, 2034, 4082, 8178, 16370, 32754 };
 	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
@@ -418,7 +438,8 @@ bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievemen
 		);
 	}
 
-	//achievement			
+	//achievement		
+	/*
 	rapidjson::Value & pQuests = pAchievement["quests"];
 	for (rapidjson::SizeType i = 0; i < pQuests.Size(); i++) {
 		mAchievement.setAchievementAccumulation(
@@ -430,8 +451,37 @@ bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievemen
 			, pQuests[rapidjson::SizeType(i)]["isReceived"].GetBool()
 		);
 	}
+	*/
+	{
+		sqlite3_stmt * stmt = Sql::inst()->select("select level, category, id, accumulation, isFinished, isReceived from achievement_quest");
+		if (stmt == NULL)
+			return false;
+
+		int result = 0;
+		while (true)
+		{
+			result = sqlite3_step(stmt);
+
+			if (result == SQLITE_ROW)
+			{
+				int idx = 0;
+				int level = sqlite3_column_int(stmt, idx++);
+				int category = sqlite3_column_int(stmt, idx++);
+				int id = sqlite3_column_int(stmt, idx++);
+				int accumulation = sqlite3_column_int(stmt, idx++);
+				bool isFinished = (sqlite3_column_int(stmt, idx++) == 0) ? false : true;
+				bool isReceived = (sqlite3_column_int(stmt, idx++) == 0) ? false : true;
+
+				mAchievement.setAchievementAccumulation(level, category, id, accumulation, isFinished, isReceived);
+			}
+			else
+				break;
+		}
+	}
+	
 
 	//accumulation	
+	/*
 	rapidjson::Value & pAccumulation = pAchievement["accumulation"];
 	for (rapidjson::Value::ConstMemberIterator it = pAccumulation.MemberBegin();
 		it != pAccumulation.MemberEnd(); ++it)
@@ -449,7 +499,30 @@ bool logics::initAchievement(rapidjson::Value & v, rapidjson::Value& pAchievemen
 			);
 		}
 	}
-	
+	*/
+	{
+		sqlite3_stmt * stmt = Sql::inst()->select("select category, id, cnt from achievement_accumulation");
+		if (stmt == NULL)
+			return false;
+
+		int result = 0;
+		while (true)
+		{
+			result = sqlite3_step(stmt);
+
+			if (result == SQLITE_ROW)
+			{
+				int idx = 0;
+				int category = sqlite3_column_int(stmt, idx++);
+				int id = sqlite3_column_int(stmt, idx++);
+				int cnt = sqlite3_column_int(stmt, idx++);
+
+				mAchievement.setAccumulation(category, id, cnt);
+			}
+			else
+				break;
+		}
+	}	
 
 	if (!mAchievement.init(achievementCallbackFn, mActor->lastLoginLoginTime, true))
 		return false;
@@ -1670,10 +1743,9 @@ void logics::saveActor() {
 		CCLOG("saveActor locked!!");
 		return;
 	}
-		
 
 	hIsSync = true;
-
+	/*
 	if (mActorStringFromJSON.size() == 0) {
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		mActorStringFromJSON = loadJsonString(CONFIG_ACTOR);
@@ -1681,10 +1753,12 @@ void logics::saveActor() {
 		mActorStringFromJSON = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
 #endif
 	}
+	*/
+
 	int rc = 0;
 
-    rapidjson::Document d;
-	d.Parse(mActorStringFromJSON.c_str());
+    //rapidjson::Document d;
+	//d.Parse(mActorStringFromJSON.c_str());
 
 	string szQuery = "";
 	char bufActor[1024] = { 0 };
@@ -1708,14 +1782,7 @@ void logics::saveActor() {
 	);
 	
 	szQuery += bufActor;
-	/*
-	rc = Sql::inst()->exec(szQuery);
-	if (rc != 0) {
-		CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
-	}*/
-
-	//szQuery = "";
-	
+		
 	/*
 	string userName = wstring_to_utf8(mActor->userName);
 	d["userName"] = rapidjson::StringRef(userName.c_str());
@@ -1749,23 +1816,27 @@ void logics::saveActor() {
 	d["inventory"]["farming"].Clear();
 	saveActorInventory(d, d["inventory"]["farming"], inventoryType_farming);
 	*/
-	d["collection"].Clear();		
-	for (keyBoolMap::iterator it = mActor->collection.begin(); it != mActor->collection.end(); ++it) {		
-		if(it->second == true)
-			d["collection"].PushBack(it->first, d.GetAllocator());
+
+	//collection
+	//d["collection"].Clear();		
+	if (mActor->collection.size() > 0) {
+		szQuery += "\nDELETE FROM collection;\nINSERT INTO collection(id) VALUES";
+		for (keyBoolMap::iterator it = mActor->collection.begin(); it != mActor->collection.end(); ++it) {
+			if (it->second == true) {
+				//d["collection"].PushBack(it->first, d.GetAllocator());
+				if(it != mActor->collection.begin())
+					szQuery += ",";
+
+				szQuery += "(" + to_string(it->first) + ")";
+			}
+		}
+		szQuery += ";";
 	}
 
-	//inventory
-	
+	//inventory	
 	vector<intPair> vec;
 	mActor->inven.getWarehouse(vec);
 	if (vec.size() > 0) {
-		/*
-		rc = Sql::inst()->exec("DELETE FROM inventory;");
-		if (rc != 0) {
-			CCLOG("inventory deleting data failure !!! %d", rc);
-		}
-		*/
 		szQuery += "\nDELETE FROM inventory;\nINSERT INTO inventory(category, id, quantity) VALUES";
 		for (int n = 0; n < (int)vec.size(); n++) {
 			if (n > 0) {
@@ -1774,24 +1845,10 @@ void logics::saveActor() {
 			szQuery += "(" + to_string((int)getInventoryType(vec[n].key)) + ", " + to_string(vec[n].key) + ", " + to_string(vec[n].val) + ")";
 		}
 		szQuery += ";";
-		/*
-		rc = Sql::inst()->exec(szQuery);
-		if (rc != 0) {
-			CCLOG("Farming data inserting failure !!! %d \n%s", rc, szQuery.c_str());
-		}
-		szQuery = "";
-		*/
 	}
-	
 	
 	//farming
 	if (mFarming.countField() > 0) {
-		/*
-		rc = Sql::inst()->exec("DELETE FROM farm;");
-		if (rc != 0) {
-			CCLOG("Farming deleting data failure !!! %d", rc);
-		}
-		*/
 		int n = 0;		
 		szQuery += "\nDELETE FROM farm;\nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
 		char buffer[8 * 1024] = { 0, };
@@ -1818,89 +1875,108 @@ void logics::saveActor() {
 
 		szQuery += buffer;
 		szQuery += ";";
-		
 	}
-	
+
 	rc = Sql::inst()->exec(szQuery);
 	if (rc != 0) {
 		CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, szQuery.c_str());
 	}
-	
 
-	d["achievement"]["quests"].Clear();	
-	
-	for (int n = 0; n < LEVEL_MAX; n++) {
-		int nSize = mAchievement.getSize(n);
-		for (int i = 0; i < nSize; i++) {
-			achievement::detail p;
-			mAchievement.getDetail(p, n, i);
+	szQuery = "";
 
-			rapidjson::Value objValue;
-			objValue.SetObject();
-			objValue.AddMember("level", n, d.GetAllocator());
-			objValue.AddMember("category", p.category, d.GetAllocator());
-			objValue.AddMember("id", p.id, d.GetAllocator());
-			objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
-			objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
-			objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
+	//d["achievement"]["quests"].Clear();	
+	if (mAchievement.getSize() > 0) {
+		int nCnt = 0;
+		szQuery += "\nDELETE FROM achievement_quest;\nINSERT INTO achievement_quest(level, category, id, accumulation, isFinished, isReceived) VALUES";
 
-			d["achievement"]["quests"].PushBack(objValue, d.GetAllocator());			
+		for (int n = 0; n < LEVEL_MAX; n++) {
+			int nSize = mAchievement.getSize(n);
+			for (int i = 0; i < nSize; i++) {
+				achievement::detail p;
+				mAchievement.getDetail(p, n, i);
+				/*
+				rapidjson::Value objValue;
+				objValue.SetObject();
+				objValue.AddMember("level", n, d.GetAllocator());
+				objValue.AddMember("category", p.category, d.GetAllocator());
+				objValue.AddMember("id", p.id, d.GetAllocator());
+				objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
+				objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
+				objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
+
+				d["achievement"]["quests"].PushBack(objValue, d.GetAllocator());
+				*/
+				if (nCnt > 0) {
+					szQuery += ",";
+				}
+				int isFinished = p.isFinished ? 1 : 0;
+				int isReceived = p.isReceived ? 1 : 0;
+
+				szQuery += "(" + to_string(n) + "," + to_string(p.category) + "," + to_string(p.id) + "," + to_string(p.accumulation) + "," + to_string(isFinished) + "," + to_string(isReceived) + ")";
+				nCnt++;
+			}
+		}
+		szQuery += ";";
+	}
+
+	if (szQuery.size() > 10) {
+		rc = Sql::inst()->exec(szQuery);
+		if (rc != 0) {
+			CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, szQuery.c_str());
 		}
 	}
 	
+	szQuery = "";
+
+	
+	/*
 	d["achievement"]["accumulation"].RemoveAllMembers();
 	const rapidjson::Value& accumulation = d["achievement"]["accumulation"];
-
 	queue<string> gabages;
+	*/
 	achievement::intDoubleDepthMap * pAccumulation = mAchievement.getAccumulation();
-	for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
-		intMap * pIntMap = it->second;
-		//char category[10] = { 0 };
+	if (pAccumulation->size() > 0) {
+		int nCnt = 0;
+		szQuery += "\nDELETE FROM achievement_accumulation;\nINSERT INTO achievement_accumulation(category, id, cnt) VALUES";
+		for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
+			intMap * pIntMap = it->second;
+			/*
+			string category = to_string(it->first);
+			gabages.push(category);
 
-		string category = to_string(it->first);
-		gabages.push(category);
-		/*
-		string sz;
-		sz += to_string(it->first);
-		//itoa(it->first, category, 10);
-		category = sz.c_str();
-		*/
-		/*
-		switch (it->first) {
-		case 0:
-			category = "0";
-			break;
-		case 1:
-			category = "1";
-			break;
-		case 2:
-			category = "2";
-			break;
-		case 3:
-			category = "3";
-			break;
-		case 4:
-			category = "4";
-			break;
-		}*/
+			if (d["achievement"]["accumulation"].HasMember(rapidjson::StringRef(category.c_str())) == false) {
+				rapidjson::Value arr;
+				arr.SetArray();
+				d["achievement"]["accumulation"].AddMember(rapidjson::StringRef(category.c_str()), arr, d.GetAllocator());
+			}
+			*/
+			for (intMap::iterator it2 = pIntMap->begin(); it2 != pIntMap->end(); ++it2) {
+				/*
+				rapidjson::Value objValue;
+				objValue.SetObject();
+				objValue.AddMember("id", it2->first, d.GetAllocator());
+				objValue.AddMember("value", it2->second, d.GetAllocator());
 
-		if (d["achievement"]["accumulation"].HasMember(rapidjson::StringRef(category.c_str())) == false) {
-			rapidjson::Value arr;
-			arr.SetArray();
-			d["achievement"]["accumulation"].AddMember(rapidjson::StringRef(category.c_str()), arr, d.GetAllocator());
+				d["achievement"]["accumulation"].FindMember(rapidjson::StringRef(category.c_str()))->value.PushBack(objValue, d.GetAllocator());
+				*/
+				if (nCnt > 0) {
+					szQuery += ",";
+				}
+				szQuery += "(" + to_string(it->first) + "," + to_string(it2->first) + "," + to_string(it2->second) +")";
+				nCnt++;
+			}
 		}
-		for (intMap::iterator it2 = pIntMap->begin(); it2 != pIntMap->end(); ++it2) {
-			rapidjson::Value objValue;
-			objValue.SetObject();
-			objValue.AddMember("id", it2->first, d.GetAllocator());
-			objValue.AddMember("value", it2->second, d.GetAllocator());
-
-			d["achievement"]["accumulation"].FindMember(rapidjson::StringRef(category.c_str()))->value.PushBack(objValue, d.GetAllocator());
-			//d["achievement"]["accumulation"][category].PushBack(objValue, d.GetAllocator());
-			
-		}
+		szQuery += ";";
 	}
 
+	if (szQuery.size() > 10) {
+		rc = Sql::inst()->exec(szQuery);
+		if (rc != 0) {
+			CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, szQuery.c_str());
+		}
+	}
+	
+	/*
 	rapidjson::StringBuffer bufferJson;
 	bufferJson.Clear();
 	rapidjson::Writer<rapidjson::StringBuffer> writer(bufferJson);
@@ -1919,6 +1995,6 @@ void logics::saveActor() {
 		gabages.pop();
 		//delete p;
 	}
-
+	*/
 	hIsSync = false;
 }

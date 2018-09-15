@@ -40,7 +40,6 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
-	
 	mQuantityItemId = 0;
 	layerGray = NULL;
 	layer = NULL;

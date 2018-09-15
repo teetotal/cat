@@ -63,10 +63,13 @@ void farming::setStatus(int fieldIdx) {
 
 	seed * s = mSeed[seedId];
 
-	int nGrown = min((int)((getNow() - mFields[fieldIdx]->timePlant) / s->timeGrow), 1 << mFields[fieldIdx]->level - 1);
-	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (s->timeGrow * mFields[fieldIdx]->level);
+	int maxGrown = 1 << (mFields[fieldIdx]->level - 1);
+	int currentGrown = (now - mFields[fieldIdx]->timePlant) / s->timeGrow;
+
+	int nGrown = min(maxGrown, currentGrown);
+	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (s->timeGrow * maxGrown);
 	time_t finishedTime = mFields[fieldIdx]->finishTime;
-	mFields[fieldIdx]->percent = (float)(getNow() - mFields[fieldIdx]->timePlant) / (float)(s->timeGrow * mFields[fieldIdx]->level) * 100.0f;
+	mFields[fieldIdx]->percent = (float)currentGrown / (float)maxGrown * 100.0f;
 
 	if (finishedTime + s->maxOvertime < now) {
 		if(mFields[fieldIdx]->status != farming_status_decay)
@@ -78,7 +81,7 @@ void farming::setStatus(int fieldIdx) {
 			mNoticeFn(fieldIdx);
 		}
 	}
-	else if (mFields[fieldIdx]->accumulation < mFields[fieldIdx]->level && nGrown > mFields[fieldIdx]->accumulation) {
+	else if (nGrown > mFields[fieldIdx]->accumulation) {
 		if (mFields[fieldIdx]->status != farming_status_grown) {
 			mFields[fieldIdx]->status = farming_status_grown;			
 		}
@@ -105,7 +108,11 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 
 	field * f = mFields[fieldIdx];
 	seed * s = mSeed[f->seedId];
-	int nGrown = min((int)((getNow() - f->timePlant) / s->timeGrow), 1 << (f->level - 1));
+
+	int maxGrown = 1 << (f->level - 1);
+	int currentGrown = ((getNow() - f->timePlant) / s->timeGrow);
+	int nGrown = min(currentGrown, maxGrown);
+
 	output = 0;
 	farmProductId = 0;
 	
@@ -168,7 +175,7 @@ void farming::makeQuest(int cnt) {
 	int nMax = cnt - mQuestVector.size();
 	//level 
 	int level = min((int)(mSeedProducts.size() - 1), (int)(mCntHarvest / FARM_LEVEL_PER_HARVEST));
-	int exp = mCntHarvest % FARM_LEVEL_PER_HARVEST;
+	//int exp = mCntHarvest % FARM_LEVEL_PER_HARVEST;
 
 	for (int n = 0; n < nMax; n++) {
 
@@ -176,7 +183,7 @@ void farming::makeQuest(int cnt) {
 		q.timeStamp = getNow();
 		//현재 레벨은 무조건 할당
 		q.items[0].itemId = mSeedProducts[level];
-		q.items[0].quantity = getRandValue((exp + 1) * FARM_HARVEST_QUANTITY_PER_EXP);
+		q.items[0].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST);
 		int k = 1;
 		int i = FARM_QUEST_ITEM_MAX - 1;
 		while (i > 0) {
@@ -190,7 +197,7 @@ void farming::makeQuest(int cnt) {
 			}
 			if (isValid) {
 				q.items[k].itemId = itemId;				
-				q.items[k].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST * FARM_HARVEST_QUANTITY_PER_EXP);
+				q.items[k].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST);
 				k++;
 			}
 			i--;

@@ -73,7 +73,7 @@
 //farming 최대 밭개수
 #define farmMaxField 3
 //Actor save interval
-#define actorSaveInterval 10
+#define actorSaveInterval 5
 
 enum errorCode {
 	error_success = 0,
@@ -556,14 +556,14 @@ private:
 	//set jobTitle
 	void setJobTitle();
 		
-	bool initActor(rapidjson::Document &p, bool isFarmingDataLoad);
+	bool initActor(bool isFarmingDataLoad);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p);
 	bool initSeed(rapidjson::Value &farming, rapidjson::Value &seed);
 	bool initTraining(rapidjson::Value &p);
 	bool initJobTitle(rapidjson::Value &p);
 	bool initRace(rapidjson::Value &p);
-	bool initAchievement(rapidjson::Value &p, rapidjson::Value& pAchievement);
+	bool initAchievement(rapidjson::Value &p);
 
 	void printInven(inventoryType type, wstring &sz);    
 	static void achievementCallbackFn(int type, int idx);
@@ -583,7 +583,7 @@ private:
 	bool mIsFinalized;
 	int mRaceModeCnt[race_mode_max];
 	//actor.json 파일 내용
-	string mActorStringFromJSON;
+	//string mActorStringFromJSON;
 
 	Sql mSql;
 	static bool hIsSync;
