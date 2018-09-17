@@ -175,7 +175,7 @@ void farming::makeQuest(int cnt) {
 	int nMax = cnt - mQuestVector.size();
 	//level 
 	int level = min((int)(mSeedProducts.size() - 1), (int)(mCntHarvest / FARM_LEVEL_PER_HARVEST));
-	//int exp = mCntHarvest % FARM_LEVEL_PER_HARVEST;
+	float expRatio = (float)((mCntHarvest % FARM_LEVEL_PER_HARVEST) +1 ) / (float)FARM_LEVEL_PER_HARVEST;
 
 	for (int n = 0; n < nMax; n++) {
 
@@ -183,7 +183,7 @@ void farming::makeQuest(int cnt) {
 		q.timeStamp = getNow();
 		//현재 레벨은 무조건 할당
 		q.items[0].itemId = mSeedProducts[level];
-		q.items[0].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST);
+		q.items[0].quantity = getRandValueOverZero(FARM_LEVEL_PER_HARVEST * expRatio); // 점진적으로 많은 수확량 요구
 		int k = 1;
 		int i = FARM_QUEST_ITEM_MAX - 1;
 		while (i > 0) {

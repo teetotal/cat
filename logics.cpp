@@ -409,9 +409,13 @@ bool logics::initRace(rapidjson::Value & race)
 }
 
 bool logics::initAchievement(rapidjson::Value & v) {
-	//basic 
-	int goals[] = { 0, 2, 18, 50, 114, 242, 498, 1010, 2034, 4082, 8178, 16370, 32754 };
+	//basic 	
+	int goals[] =		{ 0, 2,		18,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
+	int raceItem[] =	{ 0, 210,	211,	212,	200,	200,	220,	221,	222,	230,	231,	232	}; //레벨별 지급 race 아이템 
+	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
+	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
 	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
+		//action
 		int totalProperty = goals[n];
 		mAchievement.addAchieve(
 			n
@@ -419,9 +423,35 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			, achievement_category_property
 			, achievement_property_id_total
 			, totalProperty
-			, 50 //제법 비싼 장난감
-			, n //레벨 만큼 준다
+			, raceItem[n]
+			, n * 2//레벨 만큼 준다
 		);
+		//race
+		if (farmItem[n] > 0) {
+			int nRaceTry = 1 << (n - 1);
+			mAchievement.addAchieve(
+				n
+				, L"아이템 경묘 " + to_wstring(nRaceTry) + L"번 참가 하기"
+				, achievement_category_race_item
+				, achievement_race_id_try
+				, nRaceTry
+				, farmItem[n]
+				, min(30, n * 10) //레벨 * 10 만큼 준다
+			);
+		}
+		//farm
+		if (actionItem[n] > 0) {
+			int nFarmTry = 1 << (n + 1);
+			mAchievement.addAchieve(
+				n
+				, L"농사 " + to_wstring(nFarmTry) + L"번 씨 뿌리기"
+				, achievement_category_farming
+				, achievement_farming_id_plant
+				, nFarmTry
+				, actionItem[n]
+				, n * 3 //레벨 * 3 만큼 준다
+			);
+		}
 	}
 
 	//specific
