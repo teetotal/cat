@@ -81,15 +81,21 @@ void Quest::setQuest(int uniqueId, int accumulation, bool isFinished, bool isRec
 	}
 }
 
+bool Quest::rewardReceive(_quest * p) {
+	if (p == NULL)
+		return false;
+
+	if (p->isFinished == false)
+		return false;
+
+	p->isReceived = true;
+	return true;
+}
+
 bool Quest::rewardReceive(int uniqueId) {
 	for (unsigned int n = 0; n < mQuests.size(); n++) {
 		if (mQuests[n]->uniqueId == uniqueId) {
-
-			if (mQuests[n]->isFinished == false)
-				return false;
-			
-			mQuests[n]->isReceived = true;
-			return true;
+			return rewardReceive(mQuests[n]);
 		}
 	}
 	

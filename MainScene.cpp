@@ -1185,6 +1185,13 @@ void MainScene::showBuy(inventoryType type) {
 	showBuyCategory(this, type);
 }
 
+void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
+	logics::hInst->addInventory(p->rewardId, p->rewardValue);
+	logics::hInst->getQuests()->rewardReceive(p);
+	updateState(true);
+	callback2(this, SCENECODE_CLOSEPOPUP);
+}
+
 void MainScene::showAchievementCategory(Ref* pSender) {
 	ACHIEVEMENT_SIZE;
 	//int nodeMargin = 2;
@@ -1213,9 +1220,10 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 			state = "V";
 		else
 			counting++;
-
-		gui::inst()->addLabelAutoDimension(0, 2
-			, state, l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+				
+		//gui::inst()->addLabelAutoDimension(0, 2, state, l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		if(p->isFinished)
+			gui::inst()->addTextButtonAutoDimension(0, 2, state, l, CC_CALLBACK_1(MainScene::achievementCallback, this, p), 24, ALIGNMENT_CENTER, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
 
 		int heightIdx = 1;
 

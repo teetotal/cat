@@ -94,6 +94,7 @@ public:
 	
 	//상품 수령
 	bool rewardReceive(int uniqueId);
+	bool rewardReceive(_quest * p);
 	
 	//여태까지 진행한 정보 조회
 	int getAccumulation(int category, int id) {

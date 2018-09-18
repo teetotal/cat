@@ -456,7 +456,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		);
 		//race
 		if (farmItem[n] > 0) {
-			int nRaceTry = 1 << (n - 1);
+			int nRaceTry = n * 2;
 			mQuest.addQuest(
 				uniqueId++
 				, L"아이템 경묘 " + to_wstring(nRaceTry) + L"번 참가 하기"
@@ -469,7 +469,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 		//farm
 		if (actionItem[n] > 0) {
-			int nFarmTry = 1 << (n + 1);
+			int nFarmTry = 1 << n;
 			mQuest.addQuest(
 				uniqueId++
 				, L"농사 " + to_wstring(nFarmTry) + L"번 씨 뿌리기"

@@ -198,6 +198,7 @@ private:
 	void updateQuests(); //퀘스트 표시하기
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender); //업적 카테고리
+	void achievementCallback(Ref* pSender, Quest::_quest * p);
 	//Collection
 	void showCollection(); //도감 보기
 	//Race
