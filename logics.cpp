@@ -77,7 +77,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		return false;
 	}
 
-	if (!mFarming.init(farmCB, mAchievement.getAccumulation(achievement_category_farming, achievement_farming_id_output))) {
+	if (!mFarming.init(farmCB, mQuest.getAccumulation(achievement_category_farming, achievement_farming_id_output))) {
 		log("init farm failure !!!!!!!!!!!!!!!!!!!!!!!");
 		return false;
 	}
@@ -92,6 +92,10 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		return false;
 	}
 	log("init logics Done!!!!!!!!!!!!!!!!!!!!!!!");
+
+	mIsRunThread = true;
+	mThread = new thread(threadRun);
+
 	return true;
 }
 /* private initialize */
@@ -243,10 +247,6 @@ bool logics::initActor(bool isFarmingDataLoad)
 				break;
 		}
 	}
-	
-	mIsRunThread = true;
-	mThread = new thread(threadRun);
-
 	return true;
 }
 bool logics::initErrorMessage(rapidjson::Value & p)
@@ -409,16 +409,44 @@ bool logics::initRace(rapidjson::Value & race)
 }
 
 bool logics::initAchievement(rapidjson::Value & v) {
+	//specific
+	map<int, queue<Quest::_quest*>> specificQuests;
+	for (rapidjson::SizeType i = 0; i < v.Size(); i++)
+	{
+		Quest::_quest* p = new Quest::_quest(
+			v[rapidjson::SizeType(i)]["uniqueId"].GetInt()
+			, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
+			, v[rapidjson::SizeType(i)]["category"].GetInt()
+			, v[rapidjson::SizeType(i)]["id"].GetInt()
+			, v[rapidjson::SizeType(i)]["value"].GetInt()
+			, v[rapidjson::SizeType(i)]["rewardId"].GetInt()
+			, v[rapidjson::SizeType(i)]["rewardValue"].GetInt()
+		);
+		specificQuests[v[rapidjson::SizeType(i)]["level"].GetInt()].push(p);
+	}
+
 	//basic 	
 	int goals[] =		{ 0, 2,		18,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
 	int raceItem[] =	{ 0, 210,	211,	212,	200,	200,	220,	221,	222,	230,	231,	232	}; //레벨별 지급 race 아이템 
 	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
 	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
+	int uniqueId = 0;
 	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
+
+		if (specificQuests.find(n) != specificQuests.end()) {
+			queue<Quest::_quest*> q = specificQuests[n];
+
+			while (q.size() > 0)
+			{
+				mQuest.addQuest(q.front());
+				q.pop();
+			}
+		}
+
 		//action
 		int totalProperty = goals[n];
-		mAchievement.addAchieve(
-			n
+		mQuest.addQuest(
+			uniqueId++
 			, L"능력치 " + to_wstring(totalProperty) + L" 만들기"
 			, achievement_category_property
 			, achievement_property_id_total
@@ -429,8 +457,8 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		//race
 		if (farmItem[n] > 0) {
 			int nRaceTry = 1 << (n - 1);
-			mAchievement.addAchieve(
-				n
+			mQuest.addQuest(
+				uniqueId++
 				, L"아이템 경묘 " + to_wstring(nRaceTry) + L"번 참가 하기"
 				, achievement_category_race_item
 				, achievement_race_id_try
@@ -442,8 +470,8 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		//farm
 		if (actionItem[n] > 0) {
 			int nFarmTry = 1 << (n + 1);
-			mAchievement.addAchieve(
-				n
+			mQuest.addQuest(
+				uniqueId++
 				, L"농사 " + to_wstring(nFarmTry) + L"번 씨 뿌리기"
 				, achievement_category_farming
 				, achievement_farming_id_plant
@@ -454,20 +482,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 	}
 
-	//specific
-	for (rapidjson::SizeType i = 0; i < v.Size(); i++)
-	{
-		mAchievement.addAchieve(
-			v[rapidjson::SizeType(i)]["level"].GetInt()
-			, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
-			, v[rapidjson::SizeType(i)]["category"].GetInt()
-			, v[rapidjson::SizeType(i)]["id"].GetInt()
-			, v[rapidjson::SizeType(i)]["value"].GetInt()
-			, v[rapidjson::SizeType(i)]["rewardId"].GetInt()
-			, v[rapidjson::SizeType(i)]["rewardValue"].GetInt()
-		);
-	}
-
+	
 	//achievement		
 	/*
 	rapidjson::Value & pQuests = pAchievement["quests"];
@@ -483,10 +498,10 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	}
 	*/
 	{
-		sqlite3_stmt * stmt = Sql::inst()->select("select level, category, id, accumulation, isFinished, isReceived from achievement_quest");
+		sqlite3_stmt * stmt = Sql::inst()->select("select uniqueId, accumulation, isFinished, isReceived from quest");
 		if (stmt == NULL)
 			return false;
-
+		
 		int result = 0;
 		while (true)
 		{
@@ -494,15 +509,13 @@ bool logics::initAchievement(rapidjson::Value & v) {
 
 			if (result == SQLITE_ROW)
 			{
-				int idx = 0;
-				int level = sqlite3_column_int(stmt, idx++);
-				int category = sqlite3_column_int(stmt, idx++);
+				int idx = 0;				
 				int id = sqlite3_column_int(stmt, idx++);
 				int accumulation = sqlite3_column_int(stmt, idx++);
 				bool isFinished = (sqlite3_column_int(stmt, idx++) == 0) ? false : true;
 				bool isReceived = (sqlite3_column_int(stmt, idx++) == 0) ? false : true;
 
-				mAchievement.setAchievementAccumulation(level, category, id, accumulation, isFinished, isReceived);
+				mQuest.setQuest(id, accumulation, isFinished, isReceived);
 			}
 			else
 				break;
@@ -547,17 +560,16 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				int id = sqlite3_column_int(stmt, idx++);
 				int cnt = sqlite3_column_int(stmt, idx++);
 
-				mAchievement.setAccumulation(category, id, cnt);
+				mQuest.setAccumulation(category, id, cnt);
 			}
 			else
 				break;
 		}
 	}	
 
-	if (!mAchievement.init(achievementCallbackFn, mActor->lastLoginLoginTime, true))
+	if (!mQuest.init(achievementCallbackFn, questCnt))
 		return false;
-	mAchievement.setLevel(mActor->level);
-
+	
 	return true;
 }
 /*
@@ -595,7 +607,7 @@ void logics::finalize() {
 	mThread->join();
 	mFarming.finalize();
 	mTrade.finalize();
-	mAchievement.finalize();	
+	mQuest.finalize();
 	Sql::inst()->finalize();
 }
 /* temporary print */
@@ -965,7 +977,7 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 	}
 	type = mTraining[id].type;
 	//업적
-	mAchievement.push(achievement_category_training, id, 1);
+	mQuest.push(achievement_category_training, id, 1);
 	if (increaseExp(mTraining[id].level))
 		return error_levelup;
 	return error_success;
@@ -999,12 +1011,12 @@ errorCode logics::runTrade(bool isBuy, int id, int quantity) {
 	mActor->point += amount;
 
 	if (amount < 0) {
-		mAchievement.push(achievement_category_trade_buy, 0, 1);
-		mAchievement.push(achievement_category_trade_buy, id, quantity);
+		mQuest.push(achievement_category_trade_buy, 0, 1);
+		mQuest.push(achievement_category_trade_buy, id, quantity);
 	}
 	else if (amount > 0){
-		mAchievement.push(achievement_category_trade_sell, 0, 1);
-		mAchievement.push(achievement_category_trade_sell, id, quantity * -1);
+		mQuest.push(achievement_category_trade_sell, 0, 1);
+		mQuest.push(achievement_category_trade_sell, id, quantity * -1);
 	}
 
 	return error_success;
@@ -1021,7 +1033,7 @@ errorCode logics::runRecharge(int id, int quantity) {
 	
 	int val = mItems[id].value * quantity;
 	increaseHP(val);
-	mAchievement.push(achievement_category_recharge, 0, quantity);
+	mQuest.push(achievement_category_recharge, 0, quantity);
 	return error_success;
 }
 
@@ -1047,10 +1059,10 @@ void logics::addProperty(int strength, int intelligence, int appeal) {
 	mActor->property.intelligence += intelligence;
 	mActor->property.appeal += appeal;
 
-	mAchievement.push(achievement_category_property, achievement_property_id_total, strength + intelligence + appeal);
-	mAchievement.push(achievement_category_property, achievement_property_id_S, strength);
-	mAchievement.push(achievement_category_property, achievement_property_id_I, intelligence);
-	mAchievement.push(achievement_category_property, achievement_property_id_A, appeal);
+	mQuest.push(achievement_category_property, achievement_property_id_total, strength + intelligence + appeal);
+	mQuest.push(achievement_category_property, achievement_property_id_S, strength);
+	mQuest.push(achievement_category_property, achievement_property_id_I, intelligence);
+	mQuest.push(achievement_category_property, achievement_property_id_A, appeal);
 }
 
 //경험치 증가
@@ -1060,7 +1072,7 @@ bool logics::increaseExp(int value) {
 	int maxExp = getMaxExp();
 	if (maxExp <= mActor->exp) {
 		mActor->level++;
-		mAchievement.setLevel(mActor->level);
+		
 		mActor->exp = 0;
 		setMaxHP();
 		//give $
@@ -1550,7 +1562,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 //보상 지급
 		 mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
 		 //업적
-		 mAchievement.push(achievement_category_race, achievement_race_id_try, 1);	//경묘 전체
+		 mQuest.push(achievement_category_race, achievement_race_id_try, 1);	//경묘 전체
 		 achievement_category ac;
 		 switch (mRace[mRaceCurrent.id].mode) {
 		 case race_mode_item:
@@ -1563,15 +1575,15 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 			 ac = achievement_category_race_friend_1;
 			 break;
 		 }
-		 mAchievement.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
+		 mQuest.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
 		 
 		 if (mRaceCurrent.rank == 1) {
-			 mAchievement.push(achievement_category_race, achievement_race_id_first, 1);
-			 mAchievement.push(ac, achievement_race_id_first, 1);
+			 mQuest.push(achievement_category_race, achievement_race_id_first, 1);
+			 mQuest.push(ac, achievement_race_id_first, 1);
 		 }			 
 		 else if (mRaceCurrent.rank == 2) {
-			 mAchievement.push(achievement_category_race, achievement_race_id_second, 1);
-			 mAchievement.push(ac, achievement_race_id_second, 1);
+			 mQuest.push(achievement_category_race, achievement_race_id_second, 1);
+			 mQuest.push(ac, achievement_race_id_second, 1);
 		 }			 
 			 
 		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
@@ -1615,8 +1627,8 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 	mActor->inven.pushItem(getInventoryType(productId), productId, earning);
 	//increaseExp();
 
-	mAchievement.push(achievement_category_farming, achievement_farming_id_harvest, 1);
-	mAchievement.push(achievement_category_farming, achievement_farming_id_output, earning);
+	mQuest.push(achievement_category_farming, achievement_farming_id_harvest, 1);
+	mQuest.push(achievement_category_farming, achievement_farming_id_output, earning);
 	return error_success;
 };
 
@@ -1627,7 +1639,7 @@ errorCode logics::farmingPlant(int idx, int seedId) {
 	if (!mFarming.plant(idx, seedId))
 		return error_farming_failure;
 	
-	mAchievement.push(achievement_category_farming, achievement_farming_id_plant, 1);
+	mQuest.push(achievement_category_farming, achievement_farming_id_plant, 1);
 	return error_success;
 };
 errorCode logics::farmingCare(int idx) {
@@ -1639,7 +1651,7 @@ errorCode logics::farmingCare(int idx) {
 	}
 	if (mFarming.care(idx, boost)) {
 
-		mAchievement.push(achievement_category_farming, achievement_farming_id_care, 1);
+		mQuest.push(achievement_category_farming, achievement_farming_id_care, 1);
 
 		if (boost == 0)
 			return error_success;
@@ -1704,15 +1716,16 @@ bool logics::farmingQuestDone(int idx) {
 };
 //farming end
 
-void logics::achievementCallbackFn(int type, int idx) {
+void logics::achievementCallbackFn(int uniqueId, int idx) {
 	printf("%d achievementCallback \n", idx);
+	/*
 	achievement::detail d;
 	hInst->mAchievement.getDetail(d, type, idx);
 
 	hInst->mAchievement.rewardReceive(type, idx);
 	hInst->addInventory(d.rewardId, d.rewardVal);
-
-	hInst->mAchieveCB(type, idx);
+	*/
+	hInst->mAchieveCB(uniqueId, idx);
 }
 
 void logics::threadRun()
@@ -1915,36 +1928,33 @@ void logics::saveActor() {
 	szQuery = "";
 
 	//d["achievement"]["quests"].Clear();	
-	if (mAchievement.getSize() > 0) {
+	if (mQuest.getQuests()->size() > 0) {
 		int nCnt = 0;
-		szQuery += "\nDELETE FROM achievement_quest;\nINSERT INTO achievement_quest(level, category, id, accumulation, isFinished, isReceived) VALUES";
+		szQuery += "\nDELETE FROM quest;\nINSERT INTO quest(uniqueid, accumulation, isFinished, isReceived) VALUES";
 
-		for (int n = 0; n < LEVEL_MAX; n++) {
-			int nSize = mAchievement.getSize(n);
-			for (int i = 0; i < nSize; i++) {
-				achievement::detail p;
-				mAchievement.getDetail(p, n, i);
-				/*
-				rapidjson::Value objValue;
-				objValue.SetObject();
-				objValue.AddMember("level", n, d.GetAllocator());
-				objValue.AddMember("category", p.category, d.GetAllocator());
-				objValue.AddMember("id", p.id, d.GetAllocator());
-				objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
-				objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
-				objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
+		for (int n = 0; n < mQuest.getQuests()->size(); n++) {
+			Quest::_quest * p = mQuest.getQuests()->at(n);
+			/*
+			rapidjson::Value objValue;
+			objValue.SetObject();
+			objValue.AddMember("level", n, d.GetAllocator());
+			objValue.AddMember("category", p.category, d.GetAllocator());
+			objValue.AddMember("id", p.id, d.GetAllocator());
+			objValue.AddMember("accumulation", p.accumulation, d.GetAllocator());
+			objValue.AddMember("isFinished", p.isFinished, d.GetAllocator());
+			objValue.AddMember("isReceived", p.isReceived, d.GetAllocator());
 
-				d["achievement"]["quests"].PushBack(objValue, d.GetAllocator());
-				*/
-				if (nCnt > 0) {
-					szQuery += ",";
-				}
-				int isFinished = p.isFinished ? 1 : 0;
-				int isReceived = p.isReceived ? 1 : 0;
-
-				szQuery += "(" + to_string(n) + "," + to_string(p.category) + "," + to_string(p.id) + "," + to_string(p.accumulation) + "," + to_string(isFinished) + "," + to_string(isReceived) + ")";
-				nCnt++;
+			d["achievement"]["quests"].PushBack(objValue, d.GetAllocator());
+			*/
+			if (nCnt > 0) {
+				szQuery += ",";
 			}
+			int isFinished = p->isFinished ? 1 : 0;
+			int isReceived = p->isReceived ? 1 : 0;
+
+			szQuery += "(" + to_string(p->uniqueId) + "," + to_string(p->accumulation) + "," + to_string(isFinished) + "," + to_string(isReceived) + ")";
+			nCnt++;
+
 		}
 		szQuery += ";";
 	}
@@ -1964,11 +1974,11 @@ void logics::saveActor() {
 	const rapidjson::Value& accumulation = d["achievement"]["accumulation"];
 	queue<string> gabages;
 	*/
-	achievement::intDoubleDepthMap * pAccumulation = mAchievement.getAccumulation();
+	Quest::intDoubleDepthMap * pAccumulation = mQuest.getAccumulation();
 	if (pAccumulation->size() > 0) {
 		int nCnt = 0;
 		szQuery += "\nDELETE FROM achievement_accumulation;\nINSERT INTO achievement_accumulation(category, id, cnt) VALUES";
-		for (achievement::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
+		for (Quest::intDoubleDepthMap::iterator it = pAccumulation->begin(); it != pAccumulation->end(); ++it) {
 			intMap * pIntMap = it->second;
 			/*
 			string category = to_string(it->first);

@@ -195,8 +195,7 @@ private:
 	void callbackActionAnimation(int id, int maxTimes);
 	//Achievement
 	vector<Label*> mQuestButtons; //퀘스트 표시용 vector
-	void updateQuests(bool isLevelup); //퀘스트 표시하기
-	string getQuestString(int n, Color3B &fontColor);
+	void updateQuests(); //퀘스트 표시하기
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender); //업적 카테고리
 	//Collection

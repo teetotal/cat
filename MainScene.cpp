@@ -194,7 +194,7 @@ bool MainScene::init()
 	//EaseBackOut::create
 
 	//quest 표시
-	updateQuests(true);
+	updateQuests();
     //gacha
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
             , this
@@ -208,7 +208,7 @@ bool MainScene::init()
 	this->schedule(schedule_selector(MainScene::scheduleRecharge), 1); //HP recharge schedule
 	//퀘스트 타이머. 퀘스트 정산이 1초마다 되기 때문에 싱크가 잘 안맞아서 어쩔 수 없다.
 	this->schedule([=](float delta) {		
-		this->updateQuests((mLevel != logics::hInst->getActor()->level));
+		this->updateQuests();
 		mLevel = logics::hInst->getActor()->level;
 	}, 0.5, "questTimer");
 
@@ -1190,24 +1190,29 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 	//int nodeMargin = 2;
 	int newLine = 2;
 
-	int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
+	//int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
+	int cnt = logics::hInst->getQuests()->getQuests()->size();
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;	
 	Size innerSize = Size(sizeOfScrollView.width, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
 	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
 	
-	for (int n = 0; n < cnt; n++) {
-		achievement::detail p;
-		logics::hInst->getAchievementDetail(logics::hInst->getActor()->level, n, p);
+	int counting = 0;
+	for (int n = 0; n < logics::hInst->getQuests()->getQuests()->size(); n++) {
+		Quest::_quest * p = logics::hInst->getQuests()->getQuests()->at(n);
+		if (p->isReceived)
+			continue;
+
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		
 		string state = "";
-		if (p.isFinished)
+		if (p->isFinished)
 			state = "O";
-
-		if (p.isReceived)
+		else if (p->isReceived)
 			state = "V";
+		else
+			counting++;
 
 		gui::inst()->addLabelAutoDimension(0, 2
 			, state, l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
@@ -1215,17 +1220,20 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 		int heightIdx = 1;
 
 		gui::inst()->addLabelAutoDimension(1, heightIdx++
-			, wstring_to_utf8(p.title), l, 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+			, wstring_to_utf8(p->title), l, 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
-		string score = to_string(p.accumulation) + "/" + to_string(p.goal);
+		string score = to_string(p->accumulation) + "/" + to_string(p->value);
 		gui::inst()->addLabelAutoDimension(1, heightIdx++
 			, score, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
-		string reward = wstring_to_utf8(logics::hInst->getItem(p.rewardId).name + L" x" + to_wstring(p.rewardVal));
+		string reward = wstring_to_utf8(logics::hInst->getItem(p->rewardId).name + L" x" + to_wstring(p->rewardValue));
 		gui::inst()->addLabelAutoDimension(1, heightIdx++
 			, reward, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
+
+		if (counting >= questCnt)
+			break;
 	}
 
 	layer->removeChildByTag(CHILD_ID_ACHIEVEMENT, true);
@@ -1611,43 +1619,47 @@ void MainScene::closePopup() {
 	mCurrentScene = SCENECODE_MAIN;
 }
 
-string MainScene::getQuestString(int n, Color3B &fontColor) {
-	fontColor = Color3B::BLACK;
-	achievement::detail detail;
-	logics::hInst->getAchievementDetail(logics::hInst->getActor()->level, n, detail);
-	wstring sz = detail.title + L" " + to_wstring(detail.accumulation) + L"/" + to_wstring(detail.goal);
-	if (detail.accumulation >= detail.goal) {
-		sz = L"COMPLETE";
-		//fontColor = Color3B::GRAY;
-	}
-	return wstring_to_utf8(sz);
-}
+void MainScene::updateQuests() {
 
-void MainScene::updateQuests(bool isLevelup) {
-    int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
+	int cnt = 0;
 	Color3B fontColor;
-	if (!isLevelup) {
-		for (int n = 0; n < cnt; n++) {			
-			if (mQuestButtons.size() > n) {
-				Label* pLabel = (Label*)mQuestButtons[n];
-				pLabel->setString(getQuestString(n, fontColor));
-				pLabel->setColor(fontColor);
-			}
-		}
-		return;
-	}
-
+	/*
 	for (int n = 0; n < mQuestButtons.size(); n++) {
 		mQuestButtons[n]->removeAllChildren();
 		this->removeChild(mQuestButtons[n]);
-	}		
-
+	}
 	mQuestButtons.clear();
-	for (int n = 0; n < cnt; n++) {
-		Label * p = gui::inst()->addLabel(0, 3, getQuestString(n, fontColor), this, 10, ALIGNMENT_NONE);
-		p->setColor(fontColor);
-		p->setPosition(p->getPosition().x, p->getPosition().y - (n * 15));
-		mQuestButtons.push_back(p);
+	*/
+	for (int n = 0; n < logics::hInst->getQuests()->getQuests()->size(); n++) {
+		Quest::_quest * p = logics::hInst->getQuests()->getQuests()->at(n);
+		if (p->isFinished || p->isReceived)
+			continue;
+			
+		wstring sz = p->title + L" " + to_wstring(p->accumulation) + L"/" + to_wstring(p->value);
+		if (p->accumulation >= p->value) {
+			sz = L"COMPLETE";
+		}
+
+		if (mQuestButtons.size() <= cnt) {
+			Label * pLabel = gui::inst()->addLabel(0, 3, wstring_to_utf8(sz), this, 10, ALIGNMENT_NONE);
+			pLabel->setPosition(pLabel->getPosition().x, pLabel->getPosition().y - (cnt * 15));
+			mQuestButtons.push_back(pLabel);
+		}
+		else {
+			mQuestButtons[cnt]->setString(wstring_to_utf8(sz));
+		}
+
+		cnt++;
+
+		if (cnt >= questCnt)
+			return;
+	}
+
+	if (cnt < questCnt) {
+		for (int n = questCnt - cnt; n > cnt - 1; n--) {
+			mQuestButtons[n]->removeAllChildren();
+			this->removeChild(mQuestButtons[n]);
+		}
 	}
 }
 

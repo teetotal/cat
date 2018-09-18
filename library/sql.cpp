@@ -18,20 +18,23 @@ void Sql::finalize() {
 }
 */
 int Sql::exec(string query) {
+	mLock.lock();
 	char *zErrMsg = 0;
 	int rc = sqlite3_exec(mDB, query.c_str(), NULL, NULL, &zErrMsg);
 	if (rc != SQLITE_OK) {
 		fprintf(stderr, "SQL error: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);		
 	}	
+	mLock.unlock();
 	return rc;
 }
 
 sqlite3_stmt * Sql::select(string query) {
 	sqlite3_stmt* statement;
-
+	mLock.lock();
 	if (sqlite3_prepare_v2(mDB, query.c_str(), -1, &statement, 0) == SQLITE_OK)
 	{
+		mLock.unlock();
 		return statement;
 		/*
 		int result = 0;
@@ -54,5 +57,6 @@ sqlite3_stmt * Sql::select(string query) {
 		return true;
 		*/
 	}
+	mLock.unlock();
 	return NULL;
 }

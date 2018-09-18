@@ -35,6 +35,7 @@ public:
 private:
 	static Sql * hInst;
 	sqlite3 *mDB;
+	mutex mLock;
 };
 
 #endif 

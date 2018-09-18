@@ -17,7 +17,7 @@
 #include "library/farming.h"
 #include "library/inventory.h"
 #include "library/trade.h"
-#include "library/achievement.h"
+#include "library/quest.h"
 #include "library/sql.h"
 
 #include <locale>
@@ -74,6 +74,8 @@
 #define farmMaxField 3
 //Actor save interval
 #define actorSaveInterval 5
+//Quest 노출 quest 수
+#define questCnt	3 
 
 enum errorCode {
 	error_success = 0,
@@ -415,12 +417,9 @@ public:
 	//경묘 메타 정보
 	void addRaceMeta(_race & race);
 
-	//achievement
-	int getAchievementSize(int type) {
-		return mAchievement.getSize(type);
-	};
-	bool getAchievementDetail(int type, int idx, achievement::detail &p) {
-		return mAchievement.getDetail(p, type, idx);
+	//quest
+	Quest * getQuests() {
+		return &mQuest;
 	};
     
 	//----------------------------------------------------------------------Farm
@@ -493,7 +492,9 @@ public:
 	inventoryType getInventoryType(int itemId);
 
 	//achievement
-	achievement mAchievement;
+	//achievement mAchievement;
+	//quest
+	Quest mQuest;
 	static logics * hInst;
 
 	bool mIsRunThread;
