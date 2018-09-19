@@ -76,6 +76,8 @@
 #define actorSaveInterval 5
 //Quest 노출 quest 수
 #define questCnt	3 
+#define COIN	"$"
+#define COIN_W	L"$"
 
 enum errorCode {
 	error_success = 0,
@@ -101,6 +103,7 @@ enum inventoryType {
 	inventoryType_adorn,
 	inventoryType_farming,
 	inventoryType_collection,
+	inventoryType_max
 };
 //아이템 종류
 enum itemType {

@@ -478,7 +478,7 @@ Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin) {
 }
 
 ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize, Node * parent){
-
+	
 	if (size.width <= 0)
 		size = Director::getInstance()->getVisibleSize();
 
@@ -489,8 +489,8 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
         sv->setBackGroundImage(bgImg);
 
     float svX1, svY1, svX2, svY2;
-    getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
-    getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+    getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), margin);
+    getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), margin);
 
     sv->setPosition(Vec2(std::min(svX1, svX2), std::min(svY1, svY2)));
 

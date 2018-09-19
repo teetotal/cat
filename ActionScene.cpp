@@ -475,11 +475,11 @@ void ActionScene::showItemSelect(errorCode err) {
 
 	int cnt = vec.size();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 5), Vec2(9, 0), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 6), Vec2(9, 1), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - POPUP_NODE_MARGIN;
 	//nodeSize.width = sizeOfScrollView.width - POPUP_NODE_MARGIN;
 	Size innerSize = Size(sizeOfScrollView.width , cnt * (sizeOfScrollView.height + POPUP_NODE_MARGIN));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 5), Vec2(9, 0), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 6), Vec2(9, 1), size, margin, "", innerSize);
 
 	for (int n = 0; n < (int)vec.size(); n++) {
 		int id = vec[n].key;

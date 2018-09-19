@@ -278,6 +278,35 @@ public:
 			, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
 			, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
     );
+
+	Sequence * createActionFocus() { 
+		float raiseDuration = 0.3;
+		float returnDuration = 0.1;
+		float scale = 1.5f;
+
+		return Sequence::create(
+			ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
+		);
+	};
+
+	void actionHarvest(Node * p, string img, int cnt, Vec2 from, Vec2 to, Size size) {		
+		for (int n = 0; n < cnt; n++) {
+
+			auto sprite = Sprite::create(img);
+			sprite->setPosition(from);
+			sprite->setContentSize(size);
+			p->addChild(sprite);
+
+			auto delay1 = DelayTime::create(n * 0.03);
+			auto delay2 = delay1->clone();
+			auto seq1 = Sequence::create(delay1, MoveTo::create(0.5, to), RemoveSelf::create(), NULL);
+			auto seq2 = Sequence::create(delay2, ScaleTo::create(0.2, 1.5), ScaleTo::create(0.3, 0.5), NULL);
+
+			sprite->runAction(Spawn::create(seq1, seq2, NULL));
+		}
+	}
+
+
 	//수량 UI Layer
 	void addQuantityLayer(Node * p, Size size, Size margin
 		, Sprite* &sprite, Label * &label, Label * &labelQuantity, Label* &labelPrice

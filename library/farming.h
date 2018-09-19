@@ -93,6 +93,7 @@ public:
 	};
 	
 	typedef vector<field*> fields;
+	typedef map<int, seed*> seeds;
 	//-----------------------------------------------------Quest
 	struct questItem {
 		int itemId;
@@ -204,7 +205,7 @@ public:
 	void addSeed(seed *s) {	//씨앗 등록
 		if (s) {
 			mSeed[s->id] = s;
-			mSeedProducts.push_back(s->farmProductId);
+			mSeedProducts.push_back(s->farmProductId);			
 		}
             
 	};
@@ -215,15 +216,20 @@ public:
 		return NULL;
 	};
 
+	seeds * getSeeds() {
+		return &mSeed;
+	};
+
 private:	
 	fields mFields;	
-	map<int, seed*> mSeed;
+	seeds mSeed;
 	thread * mThread;
 	mutex mLock;
 	farmingFinshedNotiCallback mNoticeFn;
 	questVector mQuestVector;
 	int mCntHarvest; //수확량 카운팅. 수확 횟수 아님
 	vector<int> mSeedProducts; // seed 수확물에 대한 
+	
 
 	bool mIsThreadRun;
 

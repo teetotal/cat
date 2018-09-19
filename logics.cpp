@@ -426,8 +426,13 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	}
 
 	//basic 	
-	int goals[] =		{ 0, 2,		18,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
-	int raceItem[] =	{ 0, 210,	211,	212,	200,	200,	220,	221,	222,	230,	231,	232	}; //레벨별 지급 race 아이템 
+	int goals[] =		{ 0, 10,	20,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
+	
+	int raceItem[] =	{ 0, 210,	210,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215	}; //레벨별 지급 race 아이템 
+	int raceItem_a[] =	{ 0, 0,		0,		220,	220,	221,	221,	221,	221,	222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템 
+	int raceItem_b[] =	{ 0, 0,		230,	230,	231,	231,	231,	232,	232,	233,	233,	234,	234 }; //레벨별 지급 race 1등 공격 아이템 
+
+
 	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
 	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
 	int uniqueId = 0;
@@ -452,23 +457,23 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			, achievement_property_id_total
 			, totalProperty
 			, raceItem[n]
-			, n * 2//레벨 만큼 준다
+			, n //레벨 만큼 준다
 		);
 		//race
-		if (farmItem[n] > 0) {
-			int nRaceTry = n * 2;
+		if (raceItem_a[n] > 0) {
+			int nRaceTry = n * 1.5;
 			mQuest.addQuest(
 				uniqueId++
 				, L"아이템 경묘 " + to_wstring(nRaceTry) + L"번 참가 하기"
 				, achievement_category_race_item
 				, achievement_race_id_try
 				, nRaceTry
-				, farmItem[n]
-				, min(30, n * 10) //레벨 * 10 만큼 준다
+				, raceItem_a[n]
+				, n
 			);
 		}
 		//farm
-		if (actionItem[n] > 0) {
+		if (raceItem_b[n] > 0) {
 			int nFarmTry = 1 << n;
 			mQuest.addQuest(
 				uniqueId++
@@ -476,8 +481,21 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				, achievement_category_farming
 				, achievement_farming_id_plant
 				, nFarmTry
-				, actionItem[n]
-				, n * 3 //레벨 * 3 만큼 준다
+				, raceItem_b[n]
+				, n  //레벨 만큼 준다
+			);
+		}
+
+		if (n > 5) { //팔면 돈되는 장난감 
+			int nRaceTry = n * 1.5;
+			mQuest.addQuest(
+				uniqueId++
+				, L"경묘 " + to_wstring(nRaceTry) + L"번 1등 하기"
+				, achievement_category_race
+				, achievement_race_id_first
+				, nRaceTry
+				, 51
+				, n
 			);
 		}
 	}
@@ -1040,6 +1058,8 @@ errorCode logics::runRecharge(int id, int quantity) {
 //add inventory
 bool logics::addInventory(int itemId, int quantity) {
 	inventoryType type = getInventoryType(itemId);
+	if (type == inventoryType_max)
+		return false;
 	if (type == inventoryType_collection)
 		mActor->collection[itemId] = true;
 	else {
@@ -1308,7 +1328,8 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 	for (int m = 0; m < (int)items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
 			p.items[idx] = items[m].itemId;
-			addInventory(items[m].itemId, -1);
+			if (!addInventory(items[m].itemId, -1))
+				return error_not_enough_item;
 			idx++;
 		}
 	}
@@ -1595,7 +1616,9 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 					 int idx = getRandValue((int)mRace[mRaceCurrent.id].rewards[n].items.size());
 					 int itemId = mRace[mRaceCurrent.id].rewards[n].items[idx].itemId;
 					 int val = mRace[mRaceCurrent.id].rewards[n].items[idx].val;
-					 addInventory(itemId, val);
+					 if (!addInventory(itemId, val)) {
+						 CCLOG("getNextRaceStatus addInventory failure itemId=%d, val= %d", itemId, val);
+					 }
 
 					 mRaceCurrent.rewardItemId = itemId;
 					 mRaceCurrent.rewardItemQuantity = val;
@@ -1633,11 +1656,17 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 };
 
 errorCode logics::farmingPlant(int idx, int seedId) {
-	if (!mActor->inven.popItem(inventoryType_farming, seedId, 1))
-		return error_not_enough_item;
+	int price = mTrade.getPriceBuy(seedId);
+	if (mActor->point < price)
+		return error_not_enough_point;
+
+	//if (!mActor->inven.popItem(inventoryType_farming, seedId, 1))
+	//	return error_not_enough_item;
 
 	if (!mFarming.plant(idx, seedId))
 		return error_farming_failure;
+
+	mActor->point -= price;
 	
 	mQuest.push(achievement_category_farming, achievement_farming_id_plant, 1);
 	return error_success;
@@ -1742,6 +1771,9 @@ void logics::threadRun()
 }
 
 inventoryType logics::getInventoryType(int itemId) {
+	if (mItems.find(itemId) == mItems.end())
+		return inventoryType_max;
+
 	_item item = mItems[itemId];
 	inventoryType t;
 	if (item.type >= itemType_training && item.type < itemType_hp) {

@@ -34,7 +34,7 @@ bool HelloWorld::init()
 	mGridSize.width = a2.x - a1.x;
 	mGridSize.height = a1.y - a2.y;
 
-	auto bg = Sprite::create(BG_FARM);
+	auto bg = Sprite::create(BG_HOME);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
 	bg->setOpacity(192);
@@ -42,6 +42,7 @@ bool HelloWorld::init()
 	this->addChild(bg);
 
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(HelloWorld::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
+	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
 		
 	int n = 0;
 	farming::field * f = NULL;
@@ -63,20 +64,24 @@ bool HelloWorld::init()
 			p->sprite = Sprite::create(MainScene::getItemImg(p->seedId));
 			Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
 			p->sprite->setPosition(position);
+			float ratio = mGridSize.height / p->sprite->getContentSize().height;
+			p->sprite->setScale(ratio);
 		}
 		else {
 			p->sprite = NULL;
 		}
 
-		this->addChild(p->l);
+		this->addChild(p->l, 0);
 		if (p->sprite)
-			this->addChild(p->sprite);
+			this->addChild(p->sprite, 1);
 	}
 	
 	//seed Menu
 	createSeedMenu();
 
+	//grid
 	//gui::inst()->drawGrid(this);
+	
 	gui::inst()->addSprite(2, 0, "owl.png", this);
 	//quest	
 	for (int n = 0; n < QUEST_CNT; n++) {
@@ -97,6 +102,15 @@ bool HelloWorld::init()
 	this->schedule(schedule_selector(HelloWorld::updateFarming), 1.f);
 
     return true;
+}
+
+void HelloWorld::updatePoint() {	
+	string sz = COIN + to_string(logics::hInst->getActor()->point);
+	if (sz.compare(mPoint->getString()) != 0) {
+		mPoint->setString(sz);
+		mPoint->runAction(gui::inst()->createActionFocus());
+	}
+	
 }
 
 void HelloWorld::setQuest() {
@@ -145,10 +159,23 @@ void HelloWorld::setQuest() {
 
 void HelloWorld::questCallback(cocos2d::Ref* pSender, int idx) {
 	//done
+	Vec2 from = mQuestLayer[idx]->getPosition();
+	from.x += mQuestLayer[idx]->getContentSize().width / 2;
+	from.y += mQuestLayer[idx]->getContentSize().height / 2;
+
+	gui::inst()->actionHarvest(this
+		, "coin.png"
+		, 8
+		, from
+		, mPoint->getPosition()
+		, Size(20, 20)
+	);
+
 	if (!logics::hInst->farmingQuestDone(idx)) {
 		CCLOG("Failure. questCallback");
 	}
 	setQuest();
+	updatePoint();
 }
 
 void HelloWorld::updateFarming(float fTimer) {
@@ -169,7 +196,8 @@ void HelloWorld::updateFarming(float fTimer) {
 			break;
 		case farming::farming_status_harvest:
 			if (p->isHarvestAction == false) {
-				p->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, 1.1), ScaleTo::create(0.4, 1.f), NULL)));
+				float ratio = mGridSize.height / p->sprite->getContentSize().height;
+				p->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, ratio * 1.1), ScaleTo::create(0.4, ratio), NULL)));
 				p->isHarvestAction = true;
 			}
 			break;
@@ -196,6 +224,7 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 		if (p->sprite != NULL && p->sprite->getBoundingBox().containsPoint(touch->getLocation())) {
 			mCurrentNodeId = p->id;
 			p->sprite->setAnchorPoint(Vec2(0.5, 0.5));
+			p->sprite->setZOrder(2);
 			setOpacity();
 			mMode = Mode_Seed;
 			return true;
@@ -226,6 +255,12 @@ void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
 
 	sz = b->level > 0 ? to_string(b->level) : "";
 	b->label->setString(sz);
+
+	//set Zorder
+	if(a->sprite)
+		a->sprite->setZOrder(1);
+	if(b->sprite)
+		b->sprite->setZOrder(1);
 }
 
 bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
@@ -308,9 +343,15 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 						CCLOG("farmingHarvest error errorCode = %d, seedId = %d,  %s", err, pField->seedId, wstring_to_utf8(logics::hInst->getErrorMessage(err)).c_str());
 						return;
 					}
-					if(earning > 0)
-						plantAnimation(pField, productId, earning);
-					
+					if (earning > 0) {
+						gui::inst()->actionHarvest(this
+							, MainScene::getItemImg(productId)
+							, earning
+							, gui::inst()->getPointVec2(pField->x, pField->y)
+							, Vec2::ZERO
+							, Size(50, 50)
+						);
+					}
 					break;
                 default:
 					break;
@@ -336,27 +377,15 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	}
 }
 
-void HelloWorld::plantAnimation(MainScene::field * node, int productId, int cnt) {
-	for (int n = 0; n < cnt; n++) {
-		auto sprite1 = Sprite::create(MainScene::getItemImg(productId));
-		sprite1->setPosition(gui::inst()->getPointVec2(node->x, node->y));
-		sprite1->setContentSize(Size(50, 50));
-
-		this->addChild(sprite1);
-		auto delay1 = DelayTime::create(n * 0.05);
-		auto delay2 = delay1->clone();
-		auto seq1 = Sequence::create(delay1, MoveTo::create(0.5, Vec2(0, 0)), RemoveSelf::create(), NULL);
-		auto seq2 = Sequence::create(delay2, ScaleTo::create(0.2, 1.5), ScaleTo::create(0.3, 0.5), NULL);
-		sprite1->runAction(Spawn::create(seq1, seq2, NULL));
-	}
-}
-
 void HelloWorld::levelUp(MainScene::field * p) {
 	logics::hInst->getFarm()->levelup(p->id);
 	p->label->setString(to_string(p->level));
 	p->isHarvestAction = false;
 	stopAction(p->sprite);
-	p->sprite->runAction(Sequence::create(ScaleTo::create(0.1, 1.5), ScaleTo::create(0.1, 1), NULL));
+	float ratio = mGridSize.height / p->sprite->getContentSize().height;
+	p->sprite->runAction(Sequence::create(ScaleTo::create(0.1, ratio * 1.5), ScaleTo::create(0.1, ratio), NULL));
+
+	p->sprite->setZOrder(1);
 }
 void HelloWorld::clear(MainScene::field * p) {
 	p->label->setString("");
@@ -402,27 +431,42 @@ void HelloWorld::clearOpacity() {
 void HelloWorld::createSeedMenu()
 {
 	Vec2 start, end;
-	start = Vec2(8, 6);
-	end = Vec2(start.x + 1, 0);
-
-	vector<intPair> v;
-	logics::hInst->getActor()->inven.getWarehouse(v, inventoryType_farming);
-	int cnt = v.size();
-
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size::ZERO, Size::ZERO);
-	mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
+	start = Vec2(2, 7);
+	end = Vec2(start.x + 5, start.y -1);
 	
+	int margin = 1;
+	int layerSize = 30;
+
+	int cnt = logics::hInst->getFarm()->getSeeds()->size();
+
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size(-1, -1), Size(-1, -1));
+	//mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
+	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * cnt + margin, sizeOfScrollView.height), this);
+	mScrollView->setBackGroundColor(Color3B::WHITE);
+	mScrollView->setBackGroundColorOpacity(128);
+	mScrollView->setBackGroundColorType(Layout::BackGroundColorType::GRADIENT);
 	
-	for (int n = 0; n < cnt; n++) {
-		seed* s = new seed;
-		s->itemId = v[n].key;
-		s->itemQuantity = v[n].val;
-		mSeedVector.push_back(s);
+	for (farming::seeds::iterator it = logics::hInst->getFarm()->getSeeds()->begin(); it != logics::hInst->getFarm()->getSeeds()->end(); ++it) {
+
+		auto layout = gui::inst()->createLayout(Size(layerSize, layerSize));
+		auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
+		sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
+		sprite->setOpacity(128);
+
+		auto label = gui::inst()->addTextButtonAutoDimension(0, 0
+			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
+			, layout
+			, CC_CALLBACK_1(HelloWorld::seedCallback, this, it->second->id)
+			, 0, ALIGNMENT_CENTER
+			, Color3B::BLUE
+			, Size(1, 1)
+			, Size::ZERO, Size::ZERO);
+
+		gui::inst()->addLayoutToScrollView(mScrollView, layout, margin, 0);
 	}
-
-	addSeedMenu();
+	
 }
-
+/*
 void HelloWorld::addSeedMenu() {
 	mScrollView->removeAllChildren();
 	mScrollView->setInnerContainerSize(Size(mScrollView->getContentSize().width, 30 * mSeedVector.size()));
@@ -438,18 +482,20 @@ void HelloWorld::addSeedMenu() {
 		gui::inst()->addLayoutToScrollView(mScrollView, s->layout, 1, 1);
 	}	
 }
-
+*/
 void HelloWorld::addSprite(MainScene::field * p, int seedId) {
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
 	p->sprite->setPosition(position);
+	float ratio = mGridSize.height / p->sprite->getContentSize().height;
+	//p->sprite->setContentSize(mGridSize);
+	p->sprite->setScale(ratio);
 	this->addChild(p->sprite, 1);
 }
 
-void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
+void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 {
-	seed * s = mSeedVector[seedIdx];
-		
+	//seed * s = mSeedVector[seedIdx];		
 	int n = 0;
 	farming::field *f;
 	while (logics::hInst->getFarm()->getField(n++, f)) {
@@ -457,15 +503,20 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 	
 		if (p->seedId != 0)
 			continue;
-		logics::hInst->farmingPlant(p->id, s->itemId);
 		
-		addSprite(p, s->itemId);
+		errorCode err = logics::hInst->farmingPlant(p->id, seedId);
+		if (err != error_success) {
+			//에러 팝업
+			return;
+		}
+		
+		addSprite(p, seedId);
 		p->label->setString(to_string(p->level));
-		s->itemQuantity--;
-
+		//s->itemQuantity--;
+		updatePoint();
 		break;
 	}
-
+	/*
 	if (s->itemQuantity <= 0) {
 		//seed menu 갱신
 		mScrollView->removeChild(s->layout);
@@ -476,6 +527,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedIdx)
 	else {
 		s->label->setString("x" + to_string(s->itemQuantity));
 	}
+	*/
 }
 
 RepeatForever * HelloWorld::getFarmingAnimation() {

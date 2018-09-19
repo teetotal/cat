@@ -177,9 +177,10 @@ bool MainScene::init()
 	//gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
 
 
-    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	
-    mPoint = gui::inst()->addTextButton(7, 0, "$", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 12, ALIGNMENT_CENTER, Color3B::GREEN);
-    mHP = gui::inst()->addTextButton(8, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 12, ALIGNMENT_CENTER, Color3B::ORANGE);
+    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	    
+    mHP = gui::inst()->addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
+	mPoint = gui::inst()->addTextButton(8, 0, COIN, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 0, ALIGNMENT_CENTER, Color3B::GREEN);
+
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
 	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
@@ -395,18 +396,12 @@ void MainScene::alert(const string msg){
 
 void MainScene::updateState(bool isInventoryUpdated) {
 
-    float raiseDuration = 0.3;
-    float returnDuration = 0.1;
-    float scale = 1.5f;
-
     //string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
 	string name = logics::hInst->getActor()->name;
     name += " lv.";
     name += to_string(logics::hInst->getActor()->level);
     if(name.compare(mName->getString()) != 0 ){
-        mName->runAction(Sequence::create(
-                ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-        ));
+        mName->runAction(gui::inst()->createActionFocus());
 	}
 
     mName->setString(name);
@@ -419,9 +414,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
     szExp += " / ";
     szExp += to_string(logics::hInst->getMaxExp());
     if(szExp.compare(mExp->getString()) != 0 ){
-        mExp->runAction(Sequence::create(
-                ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-        ));
+        mExp->runAction(gui::inst()->createActionFocus());
     }
     mExp->setString(szExp);
     loadingBar->setPercent(logics::hInst->getExpRatio());
@@ -434,9 +427,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
     properties += "\nA: ";
     properties += to_string(logics::hInst->getActor()->property.appeal);
     if(properties.compare(mProperties->getString()) != 0 ){
-        mProperties->runAction(Sequence::create(
-                ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-        ));
+        mProperties->runAction(gui::inst()->createActionFocus());
     }
     mProperties->setString(properties);
 
@@ -450,29 +441,23 @@ void MainScene::updateState(bool isInventoryUpdated) {
 
     if(szHP.compare(mHP->getString()) != 0 ){
 		
-        mHP->runAction(
-			Sequence::create(ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL)
-		);
+        mHP->runAction(gui::inst()->createActionFocus());
 		
 		//mHP->runAction(RepeatForever::create(Sequence::create(Blink::create(1, 1), NULL)));
 
     }
     mHP->setString(szHP);
 
-    string szPoint = "$ ";
+    string szPoint = COIN;
     szPoint += to_string(logics::hInst->getActor()->point);
     szPoint += " +";
     if(szPoint.compare(mPoint->getString()) != 0 ){
-        mPoint->runAction(Sequence::create(
-                ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-        ));
+        mPoint->runAction(gui::inst()->createActionFocus());
     }
     mPoint->setString(szPoint);
 
 	if(isInventoryUpdated)
-		mInventory->runAction(Sequence::create(
-			ScaleTo::create(raiseDuration, scale), ScaleTo::create(returnDuration, 1), NULL
-		));
+		mInventory->runAction(gui::inst()->createActionFocus());
 }
 void MainScene::callbackActionAnimation(int id, int maxTimes) {
 	closePopup();
@@ -499,7 +484,7 @@ void MainScene::callbackActionAnimation(int id, int maxTimes) {
 	bool isInventory = false;
 
 	string szResult = "Bonus: " + to_string((int)(ratioTouch * 100.f)) + "% \n";
-	if (point > 0)	szResult = "$ " + to_string(point);
+	if (point > 0)	szResult = COIN + to_string(point);
 	if (property.strength > 0) szResult += " S:" + to_string(property.strength);
 	if (property.intelligence > 0) szResult += " I:" + to_string(property.intelligence);
 	if (property.appeal > 0) szResult += " A:" + to_string(property.appeal);
@@ -545,13 +530,13 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	_training t = logics::hInst->getActionList()->at(id);	
 	
 	string pay = " ";
-	if (t.cost.point > 0) pay += "$ " + to_string(t.cost.point) + " ";
+	if (t.cost.point > 0) pay += COIN + to_string(t.cost.point) + " ";
 	if (t.cost.strength > 0) pay += "S: " + to_string(t.cost.strength) + " ";
 	if (t.cost.intelligence > 0) pay += "I: " + to_string(t.cost.intelligence) + " ";
 	if (t.cost.appeal > 0) pay += "A: " + to_string(t.cost.appeal) + " ";
 
 	string reward;
-	if (t.reward.point > 0)         reward += "$ " + to_string(t.reward.point) + " ";
+	if (t.reward.point > 0)         reward += COIN + to_string(t.reward.point) + " ";
 	if (t.reward.strength > 0)      reward += "S: " + to_string(t.reward.strength) + " ";
 	if (t.reward.intelligence > 0)  reward += "I: " + to_string(t.reward.intelligence) + " ";
 	if (t.reward.appeal > 0)        reward += "A: " + to_string(t.reward.appeal) + " ";
@@ -602,12 +587,9 @@ void MainScene::callbackAction(Ref* pSender, int id){
 			callbackActionAnimation(id, cntAnimationMotion * loopAnimation);
 		}
 	}, animationDelay, "updateLoadingBar");
-
-
-	if (pay.size() > 1)
-		gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)
-		gui::inst()->addLabelAutoDimension(2, idx++, "+ " + reward, l, 12, ALIGNMENT_NONE);
+	
+	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
+	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "+ " + reward, l, 12, ALIGNMENT_NONE);
 	
 	layerGray->addChild(l);
 
@@ -886,13 +868,13 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 		gridSize.height++;
 
 	Vec2 rect1, rect2;
-	rect1 = Vec2(0, 7);
+	rect1 = Vec2(0, 8);
 
 	if (isSell) {
-		rect2 = Vec2(7, 1);
+		rect2 = Vec2(7, 2);
 	}
 	else {
-		rect2 = Vec2(9, 1);
+		rect2 = Vec2(9, 2);
 	}
 
 	vector<intPair> vec;
@@ -929,7 +911,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			//item quantity
 			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "x " + to_string(vec[n].val), l
 				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "$" + to_string(price), l
+			gui::inst()->addTextButtonAutoDimension(1, heightIdx++, COIN + to_string(price), l
 				, CC_CALLBACK_1(MainScene::selectCallback, this, item.id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		}
 		else {
@@ -1022,7 +1004,7 @@ void MainScene::quantityCallback(Ref* pSender, int value) {
 		return;
 	}
 
-	mQuantityPrice->setString("$ " + to_string(price));
+	mQuantityPrice->setString(COIN + to_string(price));
 	mQuantityPrice->setScale(1);
 	
 }
@@ -1079,13 +1061,13 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(7, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(7, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	//inventype 별 갯수 
 	int nCnt = (type == inventoryType_all) ? m->size() - logics::hInst->getTradeInvenTypeCnt(inventoryType_collection): logics::hInst->getTradeInvenTypeCnt(type);
 	Size innerSize = Size(sizeOfScrollView.width, ((nCnt / newLine) + 1) * (nodeSize.height + nodeMargin));
 
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(7, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 8), Vec2(7, 2), size, margin, "", innerSize);
 	
 	for (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it) {
 		int id = it->first;
@@ -1114,7 +1096,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
 			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "$ " + to_string(logics::hInst->getTrade()->getPriceBuy(id)), l
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(id)), l
 			, CC_CALLBACK_1(MainScene::selectCallback, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
@@ -1200,10 +1182,10 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 	//int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
 	int cnt = logics::hInst->getQuests()->getQuests()->size();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(9, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;	
 	Size innerSize = Size(sizeOfScrollView.width, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 8), Vec2(9, 2), size, margin, "", innerSize);
 	
 	int counting = 0;
 	for (int n = 0; n < logics::hInst->getQuests()->getQuests()->size(); n++) {
@@ -1222,8 +1204,14 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 			counting++;
 				
 		//gui::inst()->addLabelAutoDimension(0, 2, state, l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		if(p->isFinished)
-			gui::inst()->addTextButtonAutoDimension(0, 2, state, l, CC_CALLBACK_1(MainScene::achievementCallback, this, p), 24, ALIGNMENT_CENTER, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO);
+		if (p->isFinished) {
+			noticeEffect(
+				gui::inst()->addTextButtonAutoDimension(0, 2, state, l
+					, CC_CALLBACK_1(MainScene::achievementCallback, this, p), 24, ALIGNMENT_CENTER
+					, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO)
+			);
+		}
+			
 
 		int heightIdx = 1;
 
@@ -1285,10 +1273,10 @@ void MainScene::showCollection() {
 		}
 	}
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(9, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 8), Vec2(9, 2), size, margin, "", innerSize);
 
 	for (__items::iterator it = logics::hInst->getItems()->find(collectionStartId); it != logics::hInst->getItems()->end(); ++it) {
 		if (it->second.type == itemType_collection) {
@@ -1331,10 +1319,10 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 
 	__training * pTraining = logics::hInst->getActionList();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(9, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((pTraining->size() / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 8), Vec2(9, 2), size, margin, "", innerSize);
 
 	for (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it) {
 		int id = it->first;
@@ -1362,7 +1350,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 			break;
 		}
 	
-		wstring costItems;
+		wstring costItems = COIN_W + to_wstring(it->second.cost.point);
 		int rewardItemCnt = 0;
 
 		for (int n = 0; n < maxTrainingItems; n++) {
@@ -1484,10 +1472,10 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 
 	int cnt = logics::hInst->getRaceModeCnt(mode);
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), size, margin);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(9, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((cnt / newLine) + 1) * (nodeSize.height + nodeMargin));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 7), Vec2(9, 1), size, margin, "", innerSize);
+	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 8), Vec2(9, 2), size, margin, "", innerSize);
 
 	for (raceMeta::iterator it = logics::hInst->getRace()->begin(); it != logics::hInst->getRace()->end(); ++it) {
 		int id = it->first;
@@ -1538,7 +1526,7 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 			btn3->setEnabled(false);
 
 		auto btn4 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++
-			, "$" + to_string(race.fee), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
+			, COIN + to_string(race.fee), l, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
 		if (!isEnable)
 			btn4->setEnabled(false);
 
@@ -1554,13 +1542,16 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 			string rewardPrefix;
 			switch (m) {
 			case 0:
-				rewardPrefix = "1st: $";
+				rewardPrefix = "1st: ";
+				rewardPrefix += COIN;
 				break;
 			case 1:
-				rewardPrefix = "2nd: $";
+				rewardPrefix = "2nd: ";
+				rewardPrefix += COIN;
 				break;
 			default:
-				rewardPrefix = to_string(m + 1) + "th: $";
+				rewardPrefix = to_string(m + 1) + "th: ";
+				rewardPrefix += COIN;
 				break;
 			}
 			auto btn = gui::inst()->addTextButtonAutoDimension(1, heightIdx++

@@ -29,6 +29,7 @@ private:
 #define PARTICLE_CLINK "particles/particle_clink.plist"
 
 	gui mGui;
+	Label * mPoint;
 
 	enum Mode {
 		Mode_Seed,
@@ -73,7 +74,6 @@ private:
 	void createSeedMenu();
 	void addSeedMenu();
 	void addSprite(MainScene::field * p, int seedId);
-	void plantAnimation(MainScene::field * node, int productId, int cnt);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
 	void questCallback(cocos2d::Ref* pSender, int idx);
@@ -96,6 +96,8 @@ private:
 
 		return particle;
 	};
+	//update point 
+	void updatePoint();
 };
 
 #endif // __HELLOWORLD_SCENE_H__
