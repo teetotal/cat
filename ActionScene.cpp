@@ -85,6 +85,10 @@ bool ActionScene::init() {
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(mFullLayer);	
 
+	//title
+	_race race = logics::hInst->getRace()->at(mRaceId);
+	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
+
 	//Race 초기 상태	
 	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
 	switch (logics::hInst->getRace()->at(mRaceId).mode) {
@@ -117,10 +121,7 @@ void ActionScene::initRace() {
 		return;
 	}
 
-	//title
-	_race race = logics::hInst->getRace()->at(mRaceCurrent->id);
-	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
-
+	
 	//rank
 	/*
 	for (int n = 0; n <= raceParticipantNum; n++) {
@@ -129,6 +130,7 @@ void ActionScene::initRace() {
 		mRankLabel[n]->setPosition(Vec2(mRankLabel[n]->getPosition().x, mRankLabel[n]->getPosition().y - n * 10));
 	}
 	*/
+	
 		
 	//아이템 설정
 	for (int i = 0; i < mSelectItems.size(); i++) {
@@ -136,7 +138,6 @@ void ActionScene::initRace() {
 		//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
 		wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
 		string sz = wstring_to_utf8(szW);
-
 		mSkillItem[i] = gui::inst()->addTextButton(0, 3 + i, sz, this,
 			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
 	}
@@ -182,7 +183,7 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
-
+	errorCode err;
 	switch (type)
 	{
 	case SCENECODE_RACE_RUN:
@@ -191,6 +192,22 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 		break;
 	case SCENECODE_CLOSEPOPUP:
 		Director::getInstance()->popScene();
+		break;
+	case SCENECODE_RACE_FINISH:
+		err = logics::hInst->runRaceSetRunners(mRaceId);
+		switch (logics::hInst->getRace()->at(mRaceId).mode) 
+		{
+		case race_mode_item:
+		case race_mode_friend_1:
+			//경묘 선수 초기 셋팅 및 아이템 선택
+			showItemSelect(err);
+			break;
+		case race_mode_speed:
+		default:
+			Director::getInstance()->popScene();
+			break;
+		}
+		break;
 	default:		
 		break;
 	}   
@@ -265,9 +282,11 @@ void ActionScene::timer(float f) {
 	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx, boost);
 	if(!ret){
 		unschedule(schedule_selector(ActionScene::timer));		
-		mRunner[raceParticipantNum]->stopAllActions();
-		mRunner[raceParticipantNum]->runAction(getRunningAnimation());
-		mRunner[raceParticipantNum]->setPosition(Vec2(100, mRunner[raceParticipantNum]->getPosition().y));
+		for (int n = 0; n <= raceParticipantNum; n++) {
+			mRunner[n]->stopAllActions();
+			mRunner[n]->runAction(getRunningAnimation());
+			mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
+		}
 		/*
 		for (int n = 0; n < mRaceParticipants->size(); n++) {
 			_raceParticipant p = mRaceParticipants->at(n);
@@ -358,17 +377,16 @@ void ActionScene::result() {
 		sz += L"x";
 		sz += to_wstring(mRaceCurrent->rewardItemQuantity);
 	}
-	
-	auto l = gui::inst()->createLayout(Size(250, 150), "", true);
+	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, Size(250, 150), BG_RACE, Color4B::WHITE);
 	Vec2 point;
 	gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
-	l->setPosition(point);
-	l->setAnchorPoint(Vec2(0.5, 0.5));
+	//l->setPosition(point);
+	//l->setAnchorPoint(Vec2(0.5, 0.5));
 
-	gui::inst()->addLabelAutoDimension(0, 1, wstring_to_utf8(sz), l, 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
-	this->addChild(l);
-	gui::inst()->addTextButtonAutoDimension(0, 3, "OK", l
-		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_CLOSEPOPUP), 24, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 5), Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(0, 1, wstring_to_utf8(sz), mPopupLayer, 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
+	//this->addChild(l);
+	gui::inst()->addTextButtonAutoDimension(0, 3, "OK", mPopupLayer
+		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_FINISH), 24, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 5), Size::ZERO, Size::ZERO);
 }
 
 void ActionScene::updateSelectItem() {
@@ -419,7 +437,14 @@ void ActionScene::selectItem(Ref* pSender, int id) {
 
 void ActionScene::showItemSelect(errorCode err) {
 	RACE_SIZE;
-
+	mSelectedItemQuantity.clear();
+	mSelectItems.clear();
+	for (int n = 0; n < raceItemSlot; n++) {
+		if (mSkillItem[n] != NULL) {
+			this->removeChild(mSkillItem[n]->getParent());
+			mSkillItem[n] = NULL;
+		}		
+	}
 	this->removeChild(mPopupLayerBackground);
 	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, size, BG_RACE, Color4B::WHITE);
 
@@ -446,26 +471,6 @@ void ActionScene::showItemSelect(errorCode err) {
 		gui::inst()->addLabel(4, 3, wstring_to_utf8(logics::hInst->getErrorMessage(err)), this);
 		return;
 	}
-
-	//선수 정보
-	/*
-	raceParticipants* p = logics::hInst->getRaceRunners();
-	for (int n = 0; n < p->size(); n++) {
-		gui::inst()->addLabelAutoDimension(0, n +1, wstring_to_utf8(names[n]), mPopupLayer, 10, ALIGNMENT_NONE, txtColors[n]);
-		string pro = "S: " + to_string(p->at(n).strength) + " ";
-		pro += "I: " + to_string(p->at(n).intelligence) + " ";
-		pro += "A: " + to_string(p->at(n).appeal);
-
-		gui::inst()->addLabelAutoDimension(1, n + 1, pro, mPopupLayer, 10, ALIGNMENT_NONE, txtColors[n]);
-	}
-
-	gui::inst()->addLabelAutoDimension(0, p->size() + 1, wstring_to_utf8(logics::hInst->getActor()->name), mPopupLayer, 10, ALIGNMENT_NONE, txtColors[p->size()]);
-	string pro = "S: " + to_string(logics::hInst->getActor()->property.strength) + " ";
-	pro += "I: " + to_string(logics::hInst->getActor()->property.intelligence) + " ";
-	pro += "A: " + to_string(logics::hInst->getActor()->property.appeal);
-
-	gui::inst()->addLabelAutoDimension(1, p->size() + 1, pro, mPopupLayer, 10, ALIGNMENT_NONE, txtColors[p->size()]);
-	*/
 
 	int nMenuIdx = 0;
 	int newLine = 2;

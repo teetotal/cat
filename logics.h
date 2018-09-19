@@ -391,7 +391,7 @@ public:
 
 	//get max exp
 	int getMaxExp();
-
+	
     float getExpRatio(){
         return (float)mActor->exp / (float)getMaxExp() * 100.0f;
     };
@@ -496,6 +496,12 @@ public:
 
 	//achievement
 	//achievement mAchievement;
+	void achieveReward(Quest::_quest * p) {
+		addInventory(p->rewardId, p->rewardValue);		
+		getQuests()->rewardReceive(p);
+		//level만큼 exp 추가
+		increaseExp(mActor->level);
+	};
 	//quest
 	Quest mQuest;
 	static logics * hInst;

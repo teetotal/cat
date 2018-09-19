@@ -370,28 +370,69 @@ void MainScene::showResult(const string msg, bool enableParticle) {
 	);	
 }
 
-void MainScene::alert(const string msg){
-
+void MainScene::alert(errorCode err, const string msg){
+	/*
 	if(mAlertLayer != NULL)
 		this->removeChild(mAlertLayer);
 
     int fontSize = 12;
-    mAlertLayer = gui::inst()->createLayout(Size(480, 100), "", true, Color3B::GRAY);
+	mAlertLayer = gui::inst()->createLayout(Size(480, 100), "", true, Color3B::GRAY);
     Vec2 point;
     gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
     mAlertLayer->setPosition(point);
     mAlertLayer->setAnchorPoint(Vec2(0.5, 0.5));
-    gui::inst()->addLabelAutoDimension(0,1, msg, mAlertLayer, fontSize, ALIGNMENT_CENTER, Color3B::RED, Size(1,4), Size::ZERO, Size::ZERO);
-    gui::inst()->addTextButtonAutoDimension(0, 2, "CLOSE", mAlertLayer
-            , CC_CALLBACK_1(MainScene::alertCloseCallback, this)
-            , fontSize
+	*/
+	closePopup();
+	layer = gui::inst()->addPopup(layerGray, this, Size(300, 200));
+	int idx = 0;
+	const Size grid = Size(5, 3);
+    gui::inst()->addLabelAutoDimension(2, idx++, msg, layer, 0, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+
+	SCENECODE sceneCode1 = SCENECODE_NONE;
+	SCENECODE sceneCode2 = SCENECODE_NONE;
+
+	if (err == error_not_enough_hp) {
+		sceneCode1 = SCENECODE_HP_ADVERTISEMENT;
+		sceneCode2 = SCENECODE_HP_SHOP;
+	}
+	else if (err == error_not_enough_point) {
+		sceneCode1 = SCENECODE_POINT_ADVERTISEMENT;
+		sceneCode2 = SCENECODE_POINT_SHOP;
+	}
+
+	if (sceneCode1 != SCENECODE_NONE) {
+		gui::inst()->addTextButtonAutoDimension(1, idx, wstring_to_utf8(L"광고 보기\n$500"), layer
+			, CC_CALLBACK_1(MainScene::callback2, this, sceneCode1)
+			, 0
+			, ALIGNMENT_CENTER
+			, Color3B::ORANGE
+			, grid
+			, Size::ZERO
+			, Size::ZERO
+		);
+
+		gui::inst()->addTextButtonAutoDimension(3, idx++, wstring_to_utf8(L"충전 하기"), layer
+			, CC_CALLBACK_1(MainScene::callback2, this, sceneCode2)
+			, 0
+			, ALIGNMENT_CENTER
+			, Color3B::ORANGE
+			, grid
+			, Size::ZERO
+			, Size::ZERO
+		);
+	}
+		
+	
+    gui::inst()->addTextButtonAutoDimension(2, 2, "CLOSE", layer
+            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
+            , 0
             , ALIGNMENT_CENTER
-            , Color3B::BLACK
-            , Size(1,4)
+            , Color3B::BLUE
+            , grid
             , Size::ZERO
             , Size::ZERO
     );
-    this->addChild(mAlertLayer);
+    //this->addChild(mAlertLayer);
 }
 
 void MainScene::updateState(bool isInventoryUpdated) {
@@ -435,7 +476,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
     int hpMax = logics::hInst->getMaxHP();
 
     wstring szwHP = L"♥ ";
-    szwHP += to_wstring(hp) + L"/" + to_wstring(hpMax) + L" +";
+    szwHP += to_wstring(hp) + L"/" + to_wstring(hpMax);
 	
 	string szHP = wstring_to_utf8(szwHP);
 
@@ -450,7 +491,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
 
     string szPoint = COIN;
     szPoint += to_string(logics::hInst->getActor()->point);
-    szPoint += " +";
+    //szPoint += " +";
     if(szPoint.compare(mPoint->getString()) != 0 ){
         mPoint->runAction(gui::inst()->createActionFocus());
     }
@@ -503,7 +544,7 @@ void MainScene::callbackActionAnimation(int id, int maxTimes) {
 		updateState(isInventory);
 		break;
 	default:
-		alert(wstring_to_utf8(sz, true));
+		alert(err);
 		break;
 	}
 		
@@ -516,7 +557,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	closePopup();
 	errorCode err = logics::hInst->isValidTraining(id);
 	if (err != error_success) {
-		alert(wstring_to_utf8(logics::hInst->getErrorMessage(err), true));
+		alert(err);
 		return;
 	}
 
@@ -589,7 +630,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	}, animationDelay, "updateLoadingBar");
 	
 	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "+ " + reward, l, 12, ALIGNMENT_NONE);
+	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "Max " + reward, l, 12, ALIGNMENT_NONE);
 	
 	layerGray->addChild(l);
 
@@ -603,7 +644,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 void MainScene::runRace(Ref* pSender, int raceId) {
 	errorCode err = logics::hInst->runRaceValidate(raceId);
 	if (err != error_success) {
-		alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
+		alert(err);
 		return;
 	}
 
@@ -666,6 +707,18 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	case SCENECODE_COLLECTION:
 		//dailyReward();
 		showCollection();
+		break;
+	case SCENECODE_POINT_ADVERTISEMENT://포인트 광고 
+	case SCENECODE_POINT_SHOP://포인트 충전
+		//임시
+		logics::hInst->getActor()->point += 500;
+		closePopup();
+		updateState(false);
+		break;
+	case SCENECODE_HP_ADVERTISEMENT://HP 광고
+	case SCENECODE_HP_SHOP://HP 충전
+		//임시
+		showInventory(inventoryType_HP);
 		break;
 	default:
 		break;
@@ -839,8 +892,7 @@ void MainScene::dailyReward() {
 void MainScene::invokeItem(Ref* pSender, int id) {
 	errorCode err = logics::hInst->runRecharge(id, 1);
 	if (err != error_success && err != error_levelup) {
-		wstring sz = logics::hInst->getErrorMessage(err);
-		alert(wstring_to_utf8(sz, true));
+		alert(err);
 	}
 	else {
 		closePopup();
@@ -851,8 +903,7 @@ void MainScene::invokeItem(Ref* pSender, int id) {
 void MainScene::sellItem(Ref* pSender) {
 	errorCode err = logics::hInst->runTrade(false, mQuantityItemId, mQuantity);
 	if (err != error_success && err != error_levelup) {
-		wstring sz = logics::hInst->getErrorMessage(err);
-		alert(wstring_to_utf8(sz, true));
+		alert(err);
 	}
 	else {
 		updateState(false);
@@ -1168,8 +1219,11 @@ void MainScene::showBuy(inventoryType type) {
 }
 
 void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
+	/*
 	logics::hInst->addInventory(p->rewardId, p->rewardValue);
 	logics::hInst->getQuests()->rewardReceive(p);
+	*/
+	logics::hInst->achieveReward(p);
 	updateState(true);
 	callback2(this, SCENECODE_CLOSEPOPUP);
 }
@@ -1374,7 +1428,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		//Error처리
 		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
-		
+		/*
 		if (err != error_success) {
 			id = -1;
 			gui::inst()->addLabelAutoDimension(1, 4
@@ -1390,7 +1444,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 			fontColor = Color3B::GRAY;
 			isEnable = false;
 		}
-
+		*/
 		gui::inst()->addLabelAutoDimension(0, 2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLabelAutoDimension(1, 1, "Lv." + to_string(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
@@ -1400,9 +1454,8 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
 
-		if (!isEnable) {
-			l->setEnabled(false);
-		}
+		//if (!isEnable) 	l->setEnabled(false);
+		
 	}
 
 	layer->removeChildByTag(CHILD_ID_ACTION, true);

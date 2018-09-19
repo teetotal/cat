@@ -126,11 +126,11 @@ void HelloWorld::setQuest() {
 		string sz = "";
 		bool isComplete = true;
 
-		int money = 0;
+		int money = logics::hInst->farmingQuestReward(n);
+
 		for (int i = 0; i < sizeof(vec->at(n).items) / sizeof(vec->at(n).items[0]); i++) {
 			if (vec->at(n).items[i].itemId != -1) {
 
-				money += logics::hInst->farmingQuestReward(n);
 
 				gui::inst()->addSpriteAutoDimension(0, i, MainScene::getItemImg(vec->at(n).items[i].itemId), mQuestLayer[n], ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO)->setContentSize(imgSize);
 
@@ -147,12 +147,14 @@ void HelloWorld::setQuest() {
 		}
 
 		if (isComplete && money > 0) {
+			
 			mQuestLayer[n]->removeAllChildren();
 			gui::inst()->addTextButtonAutoDimension(0, 0, "Done", mQuestLayer[n]
 				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
 
 			gui::inst()->addTextButtonAutoDimension(0, 1, "$" + to_string(money), mQuestLayer[n]
-				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO)
+				->runAction(gui::inst()->createActionBlink());
 		}
 	}
 }
@@ -431,10 +433,10 @@ void HelloWorld::clearOpacity() {
 void HelloWorld::createSeedMenu()
 {
 	Vec2 start, end;
-	start = Vec2(2, 7);
-	end = Vec2(start.x + 5, start.y -1);
+	start = Vec2(1, 7);
+	end = Vec2(start.x + 7, start.y -1);
 	
-	int margin = 1;
+	int margin = 10;
 	int layerSize = 30;
 
 	int cnt = logics::hInst->getFarm()->getSeeds()->size();
@@ -443,7 +445,7 @@ void HelloWorld::createSeedMenu()
 	//mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
 	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * cnt + margin, sizeOfScrollView.height), this);
 	mScrollView->setBackGroundColor(Color3B::WHITE);
-	mScrollView->setBackGroundColorOpacity(128);
+	mScrollView->setBackGroundColorOpacity(64);
 	mScrollView->setBackGroundColorType(Layout::BackGroundColorType::GRADIENT);
 	
 	for (farming::seeds::iterator it = logics::hInst->getFarm()->getSeeds()->begin(); it != logics::hInst->getFarm()->getSeeds()->end(); ++it) {
@@ -451,13 +453,14 @@ void HelloWorld::createSeedMenu()
 		auto layout = gui::inst()->createLayout(Size(layerSize, layerSize));
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
-		sprite->setOpacity(128);
+		sprite->setOpacity(192);
 
 		auto label = gui::inst()->addTextButtonAutoDimension(0, 0
 			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
 			, layout
 			, CC_CALLBACK_1(HelloWorld::seedCallback, this, it->second->id)
-			, 0, ALIGNMENT_CENTER
+			, 0
+			, ALIGNMENT_CENTER
 			, Color3B::BLUE
 			, Size(1, 1)
 			, Size::ZERO, Size::ZERO);
@@ -466,23 +469,7 @@ void HelloWorld::createSeedMenu()
 	}
 	
 }
-/*
-void HelloWorld::addSeedMenu() {
-	mScrollView->removeAllChildren();
-	mScrollView->setInnerContainerSize(Size(mScrollView->getContentSize().width, 30 * mSeedVector.size()));
 
-	for (int n = 0; n < mSeedVector.size(); n++) {
-		seed * s = mSeedVector[n];
-		s->layout = gui::inst()->createLayout(Size(30, 30));
-		gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(s->itemId), s->layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
-		s->label = gui::inst()->addTextButtonAutoDimension(0, 0, "x" + to_string(s->itemQuantity), s->layout
-			, CC_CALLBACK_1(HelloWorld::seedCallback, this, n)
-			, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 1), Size::ZERO, Size::ZERO);
-
-		gui::inst()->addLayoutToScrollView(mScrollView, s->layout, 1, 1);
-	}	
-}
-*/
 void HelloWorld::addSprite(MainScene::field * p, int seedId) {
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	Vec2 position = gui::inst()->getPointVec2(p->x, p->y);

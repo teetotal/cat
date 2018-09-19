@@ -47,7 +47,12 @@ enum SCENECODE{
 	SCENECODE_CLOSEPOPUP,
 	SCENECODE_CLOSESCENE,
 	SCENECODE_RACE_RUN, //Action 에서 사용됨
+	SCENECODE_RACE_FINISH,
 	SCENECODE_FARMING_SEED, //Farm 에서 사용됨
+	SCENECODE_POINT_ADVERTISEMENT,//포인트 광고 
+	SCENECODE_POINT_SHOP,//포인트 충전 
+	SCENECODE_HP_ADVERTISEMENT,//HP 광고 
+	SCENECODE_HP_SHOP,//HP 충전 
     SCENECODE_NONE,
     SCENECODE_POPUP_1,
     SCENECODE_POPUP_2,
@@ -135,7 +140,7 @@ private:
 	static void noticeEffect(MenuItemFont * p) {
 		if (p) {
 			p->stopAllActions();
-			p->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.3, 1.2), ScaleTo::create(0.3, 1), NULL)));
+			p->runAction(gui::inst()->createActionBlink());
 		}
 	};
 
@@ -168,9 +173,10 @@ private:
     void actionList(); //액션 목록
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
 	void alert(errorCode err) {
-		return alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
+		return alert(err, wstring_to_utf8(logics::hInst->getErrorMessage(err)));
 	}; //alert
-    void alert(const string msg); //alert
+	void alert(errorCode err, const string msg); //alert
+
 	void showResult(const string msg, bool enableParticle); //결과 보기
     void alertCloseCallback(Ref* pSender);	
 	void scheduleRecharge(float f); // HP 충전 쓰레드

@@ -10,7 +10,7 @@
 #define OPACITY_MAX 255
 #define OPACITY_DIABLE 64
 #define PLANT_COMPLETE_SEC 10
-#define QUEST_CNT 3
+#define QUEST_CNT 4
 
 class HelloWorld : public cocos2d::Scene
 {

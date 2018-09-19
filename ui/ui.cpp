@@ -456,7 +456,7 @@ void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int ne
 
     if(newlineInterval == 0) {
         x = nCount * (e->getContentSize().width + margin)  + (margin / 2);
-        y = (p->getInnerContainerSize().height) - (e->getContentSize().height + margin);
+		y = p->getInnerContainerSize().height - e->getContentSize().height; // +margin;
     } else {
         x = (nCount % newlineInterval) * (e->getContentSize().width + margin) + (margin / 2);
         y = (p->getInnerContainerSize().height) - ((nCount / newlineInterval) + 1) * (e->getContentSize().height + margin);

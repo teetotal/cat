@@ -289,6 +289,10 @@ public:
 		);
 	};
 
+	RepeatForever * createActionBlink() {
+		return RepeatForever::create(Sequence::create(ScaleTo::create(0.3, 1.2), ScaleTo::create(0.3, 1), NULL));
+	}
+
 	void actionHarvest(Node * p, string img, int cnt, Vec2 from, Vec2 to, Size size) {		
 		for (int n = 0; n < cnt; n++) {
 
