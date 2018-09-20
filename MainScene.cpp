@@ -508,7 +508,8 @@ void MainScene::callbackActionAnimation(int id, int maxTimes) {
 	int point;
 	trainingType type;
 		
-	float ratioTouch = min(1.f, 1.f - ((float)mActionCnt / (float)maxTimes));
+	//float ratioTouch = min(1.f, 1.f - ((float)mActionCnt / (float)maxTimes));
+	float ratioTouch = min(1.f, ((float)mActionTouchCnt / (float)maxTimes));
 	//말도 안되게 빠른 경우 음수가 발생할 수도 있다.
 	if (ratioTouch < 0.f)
 		ratioTouch = 1.f;
@@ -587,7 +588,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	int idx = 2;
 	float animationDelay = 0.15f;
 	int cntAnimationMotion = 6;
-	int loopAnimation = 4 * t.level; //레벨이 높을 수록 오래 
+	int loopAnimation = 4 * 3;// * t.level; //레벨이 높을 수록 오래 
 	float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 
     string path = "action/" + to_string(t.type) + "/0.png";
@@ -608,10 +609,46 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	*/
 	auto animate = RepeatForever::create(Animate::create(animation));
 	pMan->runAction(animate);
+
+	
 	
 	//loading bar 연출
 	auto loadingbar = gui::inst()->addProgressBar(3, idx++, LOADINGBAR_IMG_SMALL, l, 10, size);
-	this->schedule([=](float delta) {
+	
+	
+	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
+	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "Max " + reward, l, 12, ALIGNMENT_NONE);
+	
+	layerGray->addChild(l);
+	//touch
+	Menu * pTouchButton = NULL;
+	gui::inst()->addTextButtonRaw(pTouchButton, 0, idx, "Touch", l, CC_CALLBACK_1(MainScene::callback1, this), 0, ALIGNMENT_NONE, Color3B::RED);	
+
+	//start touch count
+	mActionCnt = 0;
+	mActionTouchCnt = 0;
+
+	gui::inst()->mModalTouchCnt = 0;	
+	const int waitTimes = (int)(0.75 / animationDelay);
+	
+
+	this->schedule([=](float delta) {		
+		//touch 이동
+		if (mActionCnt % waitTimes == 0) {
+			Vec2 position = Vec2(getRandValue(l->getContentSize().width), getRandValue(l->getContentSize().height));
+			float marginX = pTouchButton->getChildren().at(0)->getContentSize().width;
+			float marginY = pTouchButton->getChildren().at(0)->getContentSize().height;
+
+			if (position.x > l->getContentSize().width - marginX)
+				position.x = l->getContentSize().width - marginX;
+
+			if (position.y > l->getContentSize().height - marginY)
+				position.y = l->getContentSize().height - marginY;
+
+			pTouchButton->setPosition(position);
+		}
+		
+		
 		float percent = loadingbar->getPercent();
 		percent += step;
 		mActionCnt++;
@@ -619,24 +656,15 @@ void MainScene::callbackAction(Ref* pSender, int id){
 		gui::inst()->mModalTouchCnt = 0;
 		//CCLOG("%f", ratio * step);
 		percent += ratio * step;
-		
+
 		loadingbar->setPercent(percent);
 
 		if (percent >= 100.0f) {
 			this->unschedule("updateLoadingBar");
 			pMan->stopAllActions();
-			callbackActionAnimation(id, cntAnimationMotion * loopAnimation);
+			callbackActionAnimation(id, mActionCnt / waitTimes);
 		}
 	}, animationDelay, "updateLoadingBar");
-	
-	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "Max " + reward, l, 12, ALIGNMENT_NONE);
-	
-	layerGray->addChild(l);
-
-	//start touch count
-	mActionCnt = 0;
-	gui::inst()->mModalTouchCnt = 0;
 
 	return;	
 }
@@ -730,8 +758,9 @@ void MainScene::callback0(){
     CCLOG("callback0");
 
 }
-
+//action touch 클릭 횟수
 void MainScene::callback1(Ref* pSender){
+	mActionTouchCnt++;
     CCLOG("callback1");
 }
 

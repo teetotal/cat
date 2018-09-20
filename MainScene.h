@@ -124,6 +124,7 @@ private:
 	SCENECODE mCurrentScene; //현재 Scene 정보
 	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
 	int mActionCnt; //action 진행 시간 카운트
+	int mActionTouchCnt;  //action touch 클릭 카운트
 
     static void paricleCB(){
         //this->removeChild(mParitclePopupLayer);

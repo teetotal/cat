@@ -11,7 +11,7 @@ public:
 	};
 
 #define FARM_QUEST_ITEM_MAX 3 //quest당 최대 생산물
-#define FARM_LEVEL_PER_HARVEST 50 //FARM_LEVEL_PER_HARVEST 마다 level up
+#define FARM_LEVEL_PER_HARVEST 32 //FARM_LEVEL_PER_HARVEST 마다 level up
 //#define FARM_HARVEST_QUANTITY_PER_EXP 8
 	//----------------------------------------------------Field
 	enum farming_status {

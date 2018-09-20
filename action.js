@@ -73,12 +73,14 @@ function createAction(level, type){
           "strength": 0,
           "intelligence": 0,
           "appeal": 0,
-          "point": 0,
+          "point": level * 15 * level,
           "items": [
+              /*
             {
               "id": type + 1,
               "quantity": level
             }
+            */
           ]
         }
     };
