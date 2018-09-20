@@ -391,7 +391,13 @@ public:
 
 	//get max exp
 	int getMaxExp();
-	
+	//increment HP
+	bool increaseHP(int);
+	//increment Point
+	void increasePoint(int amount) {
+		getActor()->point += amount;
+	};
+
     float getExpRatio(){
         return (float)mActor->exp / (float)getMaxExp() * 100.0f;
     };
@@ -558,8 +564,7 @@ private:
 	//increment exp
 	bool increaseExp(int value = 1);
 
-	//increment HP
-	bool increaseHP(int);
+	
 	//set Max HP
 	void setMaxHP();
 	

@@ -91,10 +91,11 @@ bool ActionScene::init() {
 	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
 
 	//Race 초기 상태	
-	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
+	errorCode err = logics::hInst->runRaceValidate(mRaceId);
 	if (err != error_success)
 		Director::getInstance()->popScene();
-
+	
+	err = logics::hInst->runRaceSetRunners(mRaceId);
 	switch (logics::hInst->getRace()->at(mRaceId).mode) {
 	case race_mode_item:
 	case race_mode_friend_1:
@@ -187,18 +188,36 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
+	errorCode err;
 	switch (type)
 	{
 	case SCENECODE_RACE_RUN:
 		this->removeChild(mPopupLayerBackground);				
 		initRace();
 		break;
-	case SCENECODE_CLOSEPOPUP:
+	case SCENECODE_CLOSEPOPUP: //cancel hp와 참가비 재입금
+		logics::hInst->increaseHP(1);
+		logics::hInst->increasePoint(logics::hInst->getRace()->at(mRaceId).fee);
+
 		Director::getInstance()->popScene();
 		break;
 	case SCENECODE_RACE_FINISH:
-		if(logics::hInst->runRaceSetRunners(mRaceId) != error_success)
-			Director::getInstance()->popScene();
+		if(logics::hInst->getRace()->at(mRaceId).mode == race_mode_speed)
+			return Director::getInstance()->popScene();
+
+		if(logics::hInst->runRaceValidate(mRaceId) != error_success)
+			return Director::getInstance()->popScene();
+
+		err = logics::hInst->runRaceSetRunners(mRaceId);
+		switch (logics::hInst->getRace()->at(mRaceId).mode) {
+		case race_mode_item:
+		case race_mode_friend_1:
+			//경묘 선수 초기 셋팅 및 아이템 선택
+			showItemSelect(err);
+			break;
+		default:
+			break;
+		}
 		break;
 	default:		
 		break;

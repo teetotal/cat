@@ -1118,9 +1118,11 @@ bool logics::increaseHP(int val) {
 	int maxHP = getMaxHP();	
 	bool ret = true;
 	lockHP.lock();
-	if (val < 0 && mActor->hp + val < 0)
+	if (val < 0 && mActor->hp + val < 0) {
+		lockHP.unlock();
 		return false;
-
+	}
+		
 	if (val > 0 && maxHP == mActor->hp)
 		ret = false;	
 	else if (mActor->hp + val >= maxHP)
