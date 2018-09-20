@@ -98,6 +98,11 @@ private:
 	};
 	//update point 
 	void updatePoint();
+
+	virtual void onEnter();
+	virtual void onEnterTransitionDidFinish();
+	virtual void onExitTransitionDidStart();
+	virtual void onExit();
 };
 
 #endif // __HELLOWORLD_SCENE_H__

@@ -1,4 +1,5 @@
 ﻿#include "HelloWorldScene.h"
+#include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
 
@@ -494,6 +495,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 		errorCode err = logics::hInst->farmingPlant(p->id, seedId);
 		if (err != error_success) {
 			//에러 팝업
+			Director::getInstance()->pushScene(AlertScene::createScene(err));
 			return;
 		}
 		
@@ -529,4 +531,19 @@ RepeatForever * HelloWorld::getFarmingAnimation() {
 	}
 
 	return RepeatForever::create(Animate::create(animation));
+}
+
+
+void HelloWorld::onEnter() {
+	Scene::onEnter();
+	updatePoint();
+}
+void HelloWorld::onEnterTransitionDidFinish() {
+	Scene::onEnterTransitionDidFinish();
+}
+void HelloWorld::onExitTransitionDidStart() {
+	Scene::onExitTransitionDidStart();
+}
+void HelloWorld::onExit() {
+	Scene::onExit();
 }

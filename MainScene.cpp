@@ -6,7 +6,7 @@
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
 #include "ActionScene.h"
-#include "FarmingScene.h"
+#include "AlertScene.h"
 #include "HelloWorldScene.h"
 
 using namespace cocos2d::ui;
@@ -84,6 +84,7 @@ bool MainScene::init()
     //    you may modify it.
 
     // add a "close" icon to exit the progress. it's an autorelease object
+	/*
     auto closeItem = MenuItemImage::create(
             "CloseNormal.png",
             "CloseSelected.png",
@@ -107,7 +108,7 @@ bool MainScene::init()
     auto menu = Menu::create(closeItem, NULL);
     menu->setPosition(Vec2::ZERO);
     this->addChild(menu, 1);
-
+	*/
     /*
 
     /////////////////////////////
@@ -369,70 +370,8 @@ void MainScene::showResult(const string msg, bool enableParticle) {
 		, Size::ZERO
 	);	
 }
-
-void MainScene::alert(errorCode err, const string msg){
-	/*
-	if(mAlertLayer != NULL)
-		this->removeChild(mAlertLayer);
-
-    int fontSize = 12;
-	mAlertLayer = gui::inst()->createLayout(Size(480, 100), "", true, Color3B::GRAY);
-    Vec2 point;
-    gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
-    mAlertLayer->setPosition(point);
-    mAlertLayer->setAnchorPoint(Vec2(0.5, 0.5));
-	*/
-	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, Size(300, 200));
-	int idx = 0;
-	const Size grid = Size(5, 3);
-    gui::inst()->addLabelAutoDimension(2, idx++, msg, layer, 0, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
-
-	SCENECODE sceneCode1 = SCENECODE_NONE;
-	SCENECODE sceneCode2 = SCENECODE_NONE;
-
-	if (err == error_not_enough_hp) {
-		sceneCode1 = SCENECODE_HP_ADVERTISEMENT;
-		sceneCode2 = SCENECODE_HP_SHOP;
-	}
-	else if (err == error_not_enough_point) {
-		sceneCode1 = SCENECODE_POINT_ADVERTISEMENT;
-		sceneCode2 = SCENECODE_POINT_SHOP;
-	}
-
-	if (sceneCode1 != SCENECODE_NONE) {
-		gui::inst()->addTextButtonAutoDimension(1, idx, wstring_to_utf8(L"광고 보기\n$500"), layer
-			, CC_CALLBACK_1(MainScene::callback2, this, sceneCode1)
-			, 0
-			, ALIGNMENT_CENTER
-			, Color3B::ORANGE
-			, grid
-			, Size::ZERO
-			, Size::ZERO
-		);
-
-		gui::inst()->addTextButtonAutoDimension(3, idx++, wstring_to_utf8(L"충전 하기"), layer
-			, CC_CALLBACK_1(MainScene::callback2, this, sceneCode2)
-			, 0
-			, ALIGNMENT_CENTER
-			, Color3B::ORANGE
-			, grid
-			, Size::ZERO
-			, Size::ZERO
-		);
-	}
-		
-	
-    gui::inst()->addTextButtonAutoDimension(2, 2, "CLOSE", layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-            , 0
-            , ALIGNMENT_CENTER
-            , Color3B::BLUE
-            , grid
-            , Size::ZERO
-            , Size::ZERO
-    );
-    //this->addChild(mAlertLayer);
+void MainScene::alert(errorCode err) {
+	Director::getInstance()->pushScene(AlertScene::createScene(err));
 }
 
 void MainScene::updateState(bool isInventoryUpdated) {
@@ -555,13 +494,14 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	if (id == -1)
 		return;    
 	//this->removeChild(layerGray);
-	closePopup();
+	
 	errorCode err = logics::hInst->isValidTraining(id);
 	if (err != error_success) {
 		alert(err);
 		return;
 	}
 
+	closePopup();
 	auto size = Size(300, 200);
 	layer = gui::inst()->addPopup(layerGray, this, size);
 	int fontSize = 12;
@@ -736,18 +676,6 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		//dailyReward();
 		showCollection();
 		break;
-	case SCENECODE_POINT_ADVERTISEMENT://포인트 광고 
-	case SCENECODE_POINT_SHOP://포인트 충전
-		//임시
-		logics::hInst->getActor()->point += 500;
-		closePopup();
-		updateState(false);
-		break;
-	case SCENECODE_HP_ADVERTISEMENT://HP 광고
-	case SCENECODE_HP_SHOP://HP 충전
-		//임시
-		showInventory(inventoryType_HP);
-		break;
 	default:
 		break;
 	}
@@ -767,12 +695,13 @@ void MainScene::callback1(Ref* pSender){
 void MainScene::onEnter(){
     Scene::onEnter();
     CCLOG("onEnter!!!!!!!!!!!!!!!!!!!!!!!");
-	updateState(false);
-	mCurrentScene = SCENECODE_MAIN;
+	
 }
 void MainScene::onEnterTransitionDidFinish(){
     Scene::onEnterTransitionDidFinish();
     CCLOG("onEnterTransitionDidFinish!!!!!!!!!!!!!!!!!!!!!!!");
+	updateState(false);
+	mCurrentScene = SCENECODE_MAIN;
 }
 void MainScene::onExitTransitionDidStart(){
     Scene::onExitTransitionDidStart();

@@ -173,10 +173,7 @@ private:
     //
     void actionList(); //액션 목록
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
-	void alert(errorCode err) {
-		return alert(err, wstring_to_utf8(logics::hInst->getErrorMessage(err)));
-	}; //alert
-	void alert(errorCode err, const string msg); //alert
+	void alert(errorCode err);
 
 	void showResult(const string msg, bool enableParticle); //결과 보기
     void alertCloseCallback(Ref* pSender);	

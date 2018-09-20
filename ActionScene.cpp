@@ -3,6 +3,7 @@
 //
 
 #include "ActionScene.h"
+#include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 
 #define RACE_UPDATE_INTERVAL 0.3
@@ -91,6 +92,9 @@ bool ActionScene::init() {
 
 	//Race 초기 상태	
 	errorCode err = logics::hInst->runRaceSetRunners(mRaceId);
+	if (err != error_success)
+		Director::getInstance()->popScene();
+
 	switch (logics::hInst->getRace()->at(mRaceId).mode) {
 	case race_mode_item:
 	case race_mode_friend_1:
@@ -183,7 +187,6 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
-	errorCode err;
 	switch (type)
 	{
 	case SCENECODE_RACE_RUN:
@@ -194,19 +197,8 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 		Director::getInstance()->popScene();
 		break;
 	case SCENECODE_RACE_FINISH:
-		err = logics::hInst->runRaceSetRunners(mRaceId);
-		switch (logics::hInst->getRace()->at(mRaceId).mode) 
-		{
-		case race_mode_item:
-		case race_mode_friend_1:
-			//경묘 선수 초기 셋팅 및 아이템 선택
-			showItemSelect(err);
-			break;
-		case race_mode_speed:
-		default:
+		if(logics::hInst->runRaceSetRunners(mRaceId) != error_success)
 			Director::getInstance()->popScene();
-			break;
-		}
 		break;
 	default:		
 		break;
