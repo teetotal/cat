@@ -462,7 +462,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	int goals[] =		{ 0, 10,	20,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
 	
 	int raceItem[] =	{ 0, 211,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215,	215	}; //레벨별 지급 race 아이템 
-	int raceItem_a[] =	{ 0, 0,		0,		220,	220,	221,	221,	221,	221,	222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템 
+	int raceItem_a[] =	{ 0, 0,		0,		0,		0,		0,		0,		0,		0,		222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템
 	int raceItem_b[] =	{ 0, 0,		230,	230,	231,	231,	231,	232,	232,	233,	233,	234,	234 }; //레벨별 지급 race 1등 공격 아이템 
 
 
@@ -485,7 +485,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		int totalProperty = goals[n];
 		mQuest.addQuest(
 			uniqueId++
-			, L"능력치 " + to_wstring(totalProperty) + L" 만들기"
+			, L"능력치 " + to_wstring(totalProperty) + L" 올리기"
 			, achievement_category_property
 			, achievement_property_id_total
 			, totalProperty
@@ -494,7 +494,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		);
 		//race
 		if (raceItem_a[n] > 0) {
-			int nRaceTry = n;
+			int nRaceTry = n / 2;
 			mQuest.addQuest(
 				uniqueId++
 				, L"경묘 1등 " + to_wstring(nRaceTry) + L"번 하기"
@@ -521,15 +521,17 @@ bool logics::initAchievement(rapidjson::Value & v) {
 
 		for (__training::iterator it = mTraining.find(n); it != mTraining.end(); ++it) {			
 			//int nRaceTry = n * 1.5;
-			mQuest.addQuest(
-				uniqueId++
-				, it->second.name + L" 하기"
-				, achievement_category_training
-				, it->first
-				, 1
-				, 51
-				, n
-			);
+			if(it->second.level == n){
+                mQuest.addQuest(
+                        uniqueId++
+                        , it->second.name + L" 하기"
+                        , achievement_category_training
+                        , it->first
+                        , 1
+                        , 51
+                        , n
+                );
+			}
 		}		
 	}
 
