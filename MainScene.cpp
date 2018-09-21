@@ -1446,9 +1446,9 @@ void MainScene::actionList() {
 	int nMenuIdx = 0;
 
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("ALL", 0));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("S", 1));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("I", 2));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION("A", 3));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION(wstring_to_utf8(L"체력"), 1));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION(wstring_to_utf8(L"지력"), 2));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_ACTION(wstring_to_utf8(L"매력"), 3));
 	
 	showActionCategory(this, 0);
 }
@@ -1503,6 +1503,9 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 		case race_mode_speed:
 			szIcon = wstring_to_utf8(L"┲");
 			break;
+		case race_mode_1vs1:
+			szIcon = wstring_to_utf8(L"┚");
+			break;
 		case race_mode_friend_1:
 			szIcon = wstring_to_utf8(L"┽");
 			break;
@@ -1513,10 +1516,14 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
 		//속성 부족 체크
-		if (race.min > logics::hInst->getActor()->property.total()) {
+		if (race.min * 0.8 > logics::hInst->getActor()->property.total()) {
 			isEnable = false;
 			fontColor = Color3B::GRAY;
 		}
+
+		//속성이 과한지 체크
+		if (race.max < logics::hInst->getActor()->property.total())
+			continue;
 
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		int heightIdx = 1;
@@ -1565,8 +1572,10 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 				rewardPrefix += COIN;
 				break;
 			}
-			auto btn = gui::inst()->addTextButtonAutoDimension(1, heightIdx++
-				, rewardPrefix + to_string(logics::hInst->getRaceReward(id, m)), l
+			auto btn = gui::inst()->addTextButtonAutoDimension(1
+				, heightIdx++
+				, rewardPrefix + to_string(logics::hInst->getRaceReward(id, m))
+				, l
 				, CC_CALLBACK_1(MainScene::runRace, this, id), 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 			if (!isEnable)
 				btn->setEnabled(false);
@@ -1601,7 +1610,12 @@ void MainScene::showRace() {
 		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
 
-	gui::inst()->addTextButtonAutoDimension(2, 0, "FRIEND", layer
+	gui::inst()->addTextButtonAutoDimension(2, 0, "1 vs 1", layer
+		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_1vs1)
+		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
+	gui::inst()->addTextButtonAutoDimension(3, 0, "FRIEND", layer
 		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_friend_1)
 		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);

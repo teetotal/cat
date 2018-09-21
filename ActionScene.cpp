@@ -20,7 +20,7 @@ Scene* ActionScene::createScene(int id)
 }
 
 bool ActionScene::init() {		
-
+	mPlayCnt = 0;
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
@@ -75,9 +75,16 @@ bool ActionScene::init() {
 	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
 
-	for (int n = 0; n <= raceParticipantNum; n++) {
+
+	_race race = logics::hInst->getRace()->at(mRaceId);
+
+	for (int n = 0; n < raceParticipantNum; n++) {
+		if (race.mode == race_mode_1vs1 && n != 0)
+			continue;
 		mRunner[n] = createRunner(n);
 	}
+	//나는 무조건 있어야 하니까.
+	mRunner[raceParticipantNum] = createRunner(raceParticipantNum);
 
 	mFullLayer->runAction(Follow::create(mRunner[raceParticipantNum]
 		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height * 2)
@@ -86,8 +93,17 @@ bool ActionScene::init() {
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(mFullLayer);	
 
-	//title
-	_race race = logics::hInst->getRace()->at(mRaceId);
+	//layer
+	Vec2 start = Director::getInstance()->getVisibleOrigin();
+	Vec2 end = gui::inst()->getPointVec2(1, 0, ALIGNMENT_NONE);
+	end.y = start.y + Director::getInstance()->getVisibleSize().height;
+
+	auto layerItem = gui::inst()->createLayout(Size(end.x - start.x, end.y - start.y), "", true); 
+	layerItem->setOpacity(128);
+	layerItem->setPosition(start);
+	this->addChild(layerItem);
+
+	//title	
 	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
 
 	//Race 초기 상태	
@@ -98,6 +114,7 @@ bool ActionScene::init() {
 	err = logics::hInst->runRaceSetRunners(mRaceId);
 	switch (logics::hInst->getRace()->at(mRaceId).mode) {
 	case race_mode_item:
+	case race_mode_1vs1:
 	case race_mode_friend_1:
 		//경묘 선수 초기 셋팅 및 아이템 선택
 		showItemSelect(err);
@@ -202,6 +219,8 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 		Director::getInstance()->popScene();
 		break;
 	case SCENECODE_RACE_FINISH:
+		mPlayCnt++;
+
 		if(logics::hInst->getRace()->at(mRaceId).mode == race_mode_speed)
 			return Director::getInstance()->popScene();
 
@@ -211,6 +230,7 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 		err = logics::hInst->runRaceSetRunners(mRaceId);
 		switch (logics::hInst->getRace()->at(mRaceId).mode) {
 		case race_mode_item:
+		case race_mode_1vs1:
 		case race_mode_friend_1:
 			//경묘 선수 초기 셋팅 및 아이템 선택
 			showItemSelect(err);
@@ -267,6 +287,7 @@ Sprite* ActionScene::createRunner(int idx) {
 void ActionScene::timer(float f) {	
 	bool ret;
 	int itemIdx = -1;
+	_race race = logics::hInst->getRace()->at(mRaceId);
 
 	if (mInvokeItemQueue.size() > 0) {
 		itemIdx = mInvokeItemQueue.front();
@@ -294,9 +315,11 @@ void ActionScene::timer(float f) {
 	if(!ret){
 		unschedule(schedule_selector(ActionScene::timer));		
 		for (int n = 0; n <= raceParticipantNum; n++) {
-			mRunner[n]->stopAllActions();
-			mRunner[n]->runAction(getRunningAnimation());
-			mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
+			if (mRunner[n]) {
+				mRunner[n]->stopAllActions();
+				mRunner[n]->runAction(getRunningAnimation());
+				mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
+			}
 		}
 		/*
 		for (int n = 0; n < mRaceParticipants->size(); n++) {
@@ -310,6 +333,9 @@ void ActionScene::timer(float f) {
 	
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		_raceParticipant p = mRaceParticipants->at(n);
+
+		if (race.mode == race_mode_1vs1 && n > 0 && n < raceParticipantNum)
+			continue;
 		//rank
 		
 		if (p.ratioLength >= 100.f) {			

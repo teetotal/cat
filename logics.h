@@ -145,6 +145,7 @@ enum achievement_category {
 	achievement_category_property,	//능력치
 	achievement_category_race_item, // 경묘 아이템 모드
 	achievement_category_race_speed, // 경묘 스피드 모드
+	achievement_category_race_1vs1, //경묘 1:1
 	achievement_category_race_friend_1, // 경묘 friend 모드
 };
 enum achievement_farming_id {
@@ -169,6 +170,7 @@ enum achievement_property_id {
 enum race_mode {
 	race_mode_item = 0,		//vs cpu
 	race_mode_speed,
+	race_mode_1vs1,
 	race_mode_friend_1,	//user vs user
 	race_mode_max
 };
@@ -233,6 +235,12 @@ struct _property {
 
 	int total() {
 		return strength + intelligence + appeal;
+	};
+
+	_property() {
+		this->appeal = 0;
+		this->intelligence = 0;
+		this->strength = 0;
 	};
 };
 typedef map<int, bool> keyBoolMap;

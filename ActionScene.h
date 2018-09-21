@@ -125,6 +125,9 @@ private:
 	wstring names[raceParticipantNum + 1];
 	Color3B txtColors[raceParticipantNum + 1];
 
+	//play횟수
+	int mPlayCnt;
+
 };
 
 

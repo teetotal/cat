@@ -377,28 +377,61 @@ bool logics::initJobTitle(rapidjson::Value & job)
 }
 bool logics::initRace(rapidjson::Value & race)
 {
+	const int baseMin = 10;
+	int id = 0;
+	int minItem = baseMin;
+	int levelItem = 1;
+	int minSpeed = baseMin;
+	int levelSpeed = 1;
+	const int gap = 100;
+	const int baseFee = 200;
+
 	for (rapidjson::SizeType i = 0; i < race.Size(); i++) {
 		_race r;
-		r.id = race[rapidjson::SizeType(i)]["id"].GetInt();
+		r.id = id++;
 		r.mode = (race_mode)race[rapidjson::SizeType(i)]["mode"].GetInt();
 		r.title = utf8_to_utf16(race[rapidjson::SizeType(i)]["title"].GetString());
-		r.min = race[rapidjson::SizeType(i)]["min"].GetInt();
-		r.max = race[rapidjson::SizeType(i)]["max"].GetInt();
-		r.fee = race[rapidjson::SizeType(i)]["fee"].GetInt();		
-		r.level = race[rapidjson::SizeType(i)]["level"].GetInt();
+		switch (r.mode) {
+		case race_mode_item:
+			r.level = levelItem++;
+			r.min = minItem;
+			r.max = minItem * 2 + gap; //10-120, 120-340, 340-780, 780-1660
+			minItem = r.max;
+			break;
+		case race_mode_speed:
+			r.level = levelSpeed++;
+			r.min = minSpeed;
+			r.max = minSpeed * 2 + gap;
+			minSpeed = r.max;
+			break;
+			/*
+			case race_mode_1vs1:
+			break;
+			case race_mode_friend_1:
+			break;
+			*/
+		default:
+			r.level = 1;
+			r.min = baseMin;
+			r.max = 0xFFFF; //충분히 큰 값
+			break;
+		}
 
-		const rapidjson::Value& rewards = race[rapidjson::SizeType(i)]["rewards"];
-		for (rapidjson::SizeType j = 0; j < rewards.Size(); j++) {
+		r.fee = baseFee * r.level;
+		const int maxRank = (r.mode == race_mode_1vs1) ? 1: 2;
+		for (int n = 0; n < maxRank; n++) {
 			_raceReward rr;
-			rr.prize = rewards[rapidjson::SizeType(j)]["prize"].GetInt();
-
-			const rapidjson::Value& items = rewards[rapidjson::SizeType(j)]["items"];
-			for (rapidjson::SizeType k = 0; k < items.Size(); k++) {
-				_itemPair ip;
-				ip.itemId = items[rapidjson::SizeType(k)]["id"].GetInt();
-				ip.val = items[rapidjson::SizeType(k)]["quantity"].GetInt();
-
-				rr.items.push_back(ip);
+			rr.prize = r.fee * (3 - n);
+			//레벨에 맞는 도감 제공
+			for (__items::iterator it = mItems.find(collectionStartId); it != mItems.end(); ++it) {
+				if (it->second.type == itemType_collection) {
+					if (it->second.grade == r.level) {
+						_itemPair ip;
+						ip.itemId = it->first;
+						ip.val = 1;
+						rr.items.push_back(ip);
+					}
+				}
 			}
 			r.rewards.push_back(rr);
 		}
@@ -461,12 +494,12 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		);
 		//race
 		if (raceItem_a[n] > 0) {
-			int nRaceTry = n * 1.5;
+			int nRaceTry = n;
 			mQuest.addQuest(
 				uniqueId++
-				, L"아이템 경묘 " + to_wstring(nRaceTry) + L"번 참가 하기"
-				, achievement_category_race_item
-				, achievement_race_id_try
+				, L"경묘 1등 " + to_wstring(nRaceTry) + L"번 하기"
+				, achievement_category_race
+				, achievement_race_id_first
 				, nRaceTry
 				, raceItem_a[n]
 				, n
@@ -486,18 +519,18 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			);
 		}
 
-		if (n > 5) { //팔면 돈되는 장난감 
-			int nRaceTry = n * 1.5;
+		for (__training::iterator it = mTraining.find(n); it != mTraining.end(); ++it) {			
+			//int nRaceTry = n * 1.5;
 			mQuest.addQuest(
 				uniqueId++
-				, L"경묘 " + to_wstring(nRaceTry) + L"번 1등 하기"
-				, achievement_category_race
-				, achievement_race_id_first
-				, nRaceTry
+				, it->second.name + L" 하기"
+				, achievement_category_training
+				, it->first
+				, 1
 				, 51
 				, n
 			);
-		}
+		}		
 	}
 
 	
@@ -1300,10 +1333,12 @@ errorCode logics::runRaceSetRunners(int id) {
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
-		p.strength = getRandValue(sum);
-		p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
-		p.intelligence = getRandValue(sum - p.strength);
-		p.appeal = sum - p.strength - p.intelligence;
+		if ((race.mode == race_mode_1vs1 && n == 0) || race.mode != race_mode_1vs1) {
+			p.strength = getRandValue(sum);
+			p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
+			p.intelligence = getRandValue(sum - p.strength);
+			p.appeal = sum - p.strength - p.intelligence;
+		}
 
 		//AI advantage
 		//p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);
@@ -1416,8 +1451,13 @@ void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
 }
 
 void logics::invokeRaceItemAI() {
-	int level = mRace[mRaceCurrent.id].level;
+	_race race = mRace[mRaceCurrent.id];
+	int level = race.level;
 	for (int i = 0; i < raceParticipantNum; i++) {
+
+		if (race.mode == race_mode_1vs1 && i > 0) //1:1모드에선 0번만 사용
+			return;
+
 		//1등이 raceInvokeThreshold 이상 달리고 나서 부터 아이템 사용
 		if (mRaceOrderedVector.size() > 0 && mRaceParticipants->at(mRaceOrderedVector[0].idx).ratioLength < raceInvokeThreshold)
 			return;
@@ -1519,7 +1559,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 invokeRaceItemByIdx(raceParticipantNum, itemIdx);
 	 }
 	 //AI 아이템 발동
-	 if(mRace[mRaceCurrent.id].mode == race_mode_item || mRace[mRaceCurrent.id].mode == race_mode_friend_1)
+	 if(mRace[mRaceCurrent.id].mode != race_mode_speed)
 		invokeRaceItemAI();
 
 	 //진행 값 설정
@@ -1575,7 +1615,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 	 }
 	 
 	 // 순위 결정
-	 if (lastRank >= raceParticipantNum) {
+	 if ((mRace[mRaceCurrent.id].mode == race_mode_1vs1 && lastRank == 2) || lastRank >= raceParticipantNum) {
 		 //if (mRaceParticipants->at(raceParticipantNum).rank != 0 ) { 
 		 ret = false;
 		 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
@@ -1593,6 +1633,9 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 			 break;
 		 case race_mode_speed:
 			 ac = achievement_category_race_speed;
+			 break;
+		 case race_mode_1vs1:
+			 ac = achievement_category_race_1vs1;
 			 break;
 		 case race_mode_friend_1:
 			 ac = achievement_category_race_friend_1;
