@@ -103,6 +103,13 @@ bool ActionScene::init() {
 	layerItem->setPosition(start);
 	this->addChild(layerItem);
 
+	//boost label
+	if (mRaceMode == race_mode_speed) {
+		mBoostPercent = gui::inst()->addLabel(0, 0, " ", this);
+		mBoostPercent->setColor(Color3B::GRAY);
+	}
+
+
 	//title	
 	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
 
@@ -299,14 +306,15 @@ void ActionScene::timer(float f) {
 	RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL = x
 	*/
 	
-	int boost = 0;
+	float boost = 0.f;
 	if (mRaceMode == race_mode_speed) {
 		//boost = (float)mTouchCnt / (RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL) * 100.f;
 		float ratio = getTouchRatio(RACE_UPDATE_INTERVAL, mTouchCnt);
-		boost = (int)min(ratio * 100.f, 100.f);
-		CCLOG("boost %d", boost);
+		boost = min(ratio * 100.f, 100.f);
+		//CCLOG("boost %d", boost);
 		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "%");
 		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "," + to_string(mTouchCnt));
+		mBoostPercent->setString(to_string(boost).substr(0, 4));
 		mTouchCnt = 0;
 	}
 	

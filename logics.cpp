@@ -383,6 +383,8 @@ bool logics::initRace(rapidjson::Value & race)
 	int levelItem = 1;
 	int minSpeed = baseMin;
 	int levelSpeed = 1;
+	int min1vs1 = baseMin;
+	int level1vs1 = 1;
 	const int gap = 100;
 	const int baseFee = 200;
 
@@ -411,9 +413,10 @@ bool logics::initRace(rapidjson::Value & race)
 			break;
 			*/
 		default:
-			r.level = 1;
-			r.min = baseMin;
-			r.max = 0xFFFF; //충분히 큰 값
+			r.level = level1vs1++;
+			r.min = min1vs1;
+			r.max = min1vs1 *2 + gap;
+			min1vs1 = r.max;
 			break;
 		}
 
@@ -519,7 +522,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			);
 		}
 
-		for (__training::iterator it = mTraining.find(n); it != mTraining.end(); ++it) {			
+		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {			
 			//int nRaceTry = n * 1.5;
 			if(it->second.level == n){
                 mQuest.addQuest(

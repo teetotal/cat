@@ -2,6 +2,7 @@
 
 bool Quest::init(achievementCallback fn, int cnt)
 {	
+	mLastUpdated = 1;
 	mCnt = cnt;
 	mCallback = fn;
 	mIsRunThread = true;
@@ -57,6 +58,8 @@ void Quest::calculate(done * pDone) {
 
 		if (p->category == pDone->category && p->id == pDone->id) {
 			p->accumulation += pDone->value;
+			mLastUpdated = getNow();
+
 			if (p->accumulation >= p->value) {
 				p->isFinished = true;
 				mCallback(p->uniqueId, n);

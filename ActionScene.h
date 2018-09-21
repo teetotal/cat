@@ -98,6 +98,7 @@ private:
 	Label * mRunnerLabel[raceParticipantNum + 1];
 	//Start Count
 	Label * mCounting;
+	Label * mBoostPercent;
 	//LoadingBar * mSpeedBoostBar; //speed전에서 얼마나 터치했는지 표시 
 	int mCount;
 	//Label * mRankLabel[raceParticipantNum + 1];

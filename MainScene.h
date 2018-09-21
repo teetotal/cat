@@ -123,6 +123,7 @@ private:
 
 	SCENECODE mCurrentScene; //현재 Scene 정보
 	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
+	time_t mLastUpdateQuest;
 	int mActionCnt; //action 진행 시간 카운트
 	int mActionTouchCnt;  //action touch 클릭 카운트
 
@@ -198,7 +199,7 @@ private:
 	void callbackAction(Ref* pSender, int id);
 	void callbackActionAnimation(int id, int maxTimes);
 	//Achievement
-	vector<Label*> mQuestButtons; //퀘스트 표시용 vector
+	vector<Menu*> mQuestButtons; //퀘스트 표시용 vector
 	void updateQuests(); //퀘스트 표시하기
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender); //업적 카테고리
@@ -218,6 +219,8 @@ private:
 		string sz = "Update after " + to_string((int)(remain / 60)) + ":" + to_string((int)(remain % 60));
 		return sz;
 	};
+
+	SCENECODE getSceneCodeFromQuestCategory(int category);
 };
 
 

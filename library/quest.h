@@ -49,6 +49,7 @@ public:
 	typedef vector<_quest*> QuestVector;
 
 	bool mIsRunThread;
+	time_t mLastUpdated;
 
 	bool init(achievementCallback fn, int cnt /* 한번에 표시되는 quest 수 */);
 	void finalize() {

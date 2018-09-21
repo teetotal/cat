@@ -40,6 +40,7 @@ static void problemLoading(const char* filename)
 // on "init" you need to initialize your instance
 bool MainScene::init()
 {
+	mLastUpdateQuest = 0;
 	mQuantityItemId = 0;
 	layerGray = NULL;
 	layer = NULL;
@@ -1644,47 +1645,46 @@ void MainScene::closePopup() {
 }
 
 void MainScene::updateQuests() {
+	if (mLastUpdateQuest == logics::hInst->getQuests()->mLastUpdated)
+		return;
+
+	mLastUpdateQuest = logics::hInst->getQuests()->mLastUpdated;
 
 	int cnt = 0;
 	Color3B fontColor;
-	/*
+	
 	for (int n = 0; n < mQuestButtons.size(); n++) {
-		mQuestButtons[n]->removeAllChildren();
+//		mQuestButtons[n]->removeAllChildren();
 		this->removeChild(mQuestButtons[n]);
 	}
 	mQuestButtons.clear();
-	*/
+	
 	for (int n = 0; n < logics::hInst->getQuests()->getQuests()->size(); n++) {
 		Quest::_quest * p = logics::hInst->getQuests()->getQuests()->at(n);
 		if (p->isFinished || p->isReceived)
 			continue;
 			
 		wstring sz = p->title + L" " + to_wstring(p->accumulation) + L"/" + to_wstring(p->value);
-		if (p->accumulation >= p->value) {
-			sz = L"COMPLETE";
-		}
-
-		if (mQuestButtons.size() <= cnt) {
-			Label * pLabel = gui::inst()->addLabel(0, 3, wstring_to_utf8(sz), this, 10, ALIGNMENT_NONE);
-			pLabel->setPosition(pLabel->getPosition().x, pLabel->getPosition().y - (cnt * 15));
-			mQuestButtons.push_back(pLabel);
-		}
-		else {
-			mQuestButtons[cnt]->setString(wstring_to_utf8(sz));
-		}
+		//if (p->accumulation >= p->value) sz = L"COMPLETE";
+		Menu * pMenu = NULL;
+		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, wstring_to_utf8(sz), this
+			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 10, ALIGNMENT_NONE);
+		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
+		mQuestButtons.push_back(pMenu);
 
 		cnt++;
 
 		if (cnt >= questCnt)
 			return;
 	}
-
+	/*
 	if (cnt < questCnt) {
 		for (int n = questCnt - cnt; n > cnt - 1; n--) {
 			mQuestButtons[n]->removeAllChildren();
 			this->removeChild(mQuestButtons[n]);
 		}
 	}
+	*/
 }
 
 string MainScene::getItemImg(int id) {
@@ -1697,4 +1697,36 @@ string MainScene::getItemImg(int id) {
 	}
 
 	return "items/" + to_string(id % 20) + ".png";
+}
+
+SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
+	SCENECODE code = SCENECODE_NONE;
+	switch ((achievement_category)category) {
+	case achievement_category_training:
+	case achievement_category_property:	//능력치
+		code = SCENECODE_ACTION;
+		break;
+	case achievement_category_trade_buy:
+		code = SCENECODE_BUY;
+		break;
+	case achievement_category_trade_sell:
+		code = SCENECODE_SELL;
+		break;
+	case achievement_category_recharge: //체력 충전
+		code = SCENECODE_RECHARGE;
+		break;
+	case achievement_category_farming:   // 농사 전체
+		code = SCENECODE_FARMING;
+		break;
+	case achievement_category_race: //경묘 전체
+	case achievement_category_race_item: // 경묘 아이템 모드
+	case achievement_category_race_speed: // 경묘 스피드 모드
+	case achievement_category_race_1vs1: //경묘 1:1
+	case achievement_category_race_friend_1: // 경묘 friend 모드
+		code = SCENECODE_RACE;
+		break;
+	default:
+		break;
+	}
+	return code;
 }

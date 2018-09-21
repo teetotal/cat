@@ -277,6 +277,7 @@ public:
 			, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
 			, Size origin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
 			, Size margin = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+			, LoadingBar::Direction direction = LoadingBar::Direction::LEFT
     );
 
 	Sequence * createActionFocus() { 
