@@ -5,13 +5,13 @@
 
 USING_NS_CC;
 
-Scene* HelloWorld::createScene()
+Scene* FarmingScene::createScene()
 {
-    return HelloWorld::create();
+    return FarmingScene::create();
 }
 
 // on "init" you need to initialize your instance
-bool HelloWorld::init()
+bool FarmingScene::init()
 {	
 	//init variable
 	mPopupBackground = NULL;
@@ -30,9 +30,9 @@ bool HelloWorld::init()
 	
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
-	listener->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan, this);
-	listener->onTouchEnded = CC_CALLBACK_2(HelloWorld::onTouchEnded, this);	
-	listener->onTouchMoved = CC_CALLBACK_2(HelloWorld::onTouchMoved, this);
+	listener->onTouchBegan = CC_CALLBACK_2(FarmingScene::onTouchBegan, this);
+	listener->onTouchEnded = CC_CALLBACK_2(FarmingScene::onTouchEnded, this);	
+	listener->onTouchMoved = CC_CALLBACK_2(FarmingScene::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
 	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
@@ -47,7 +47,7 @@ bool HelloWorld::init()
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
 
-	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(HelloWorld::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
+	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
 	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
 		
 	int n = 0;
@@ -106,12 +106,12 @@ bool HelloWorld::init()
 	this->addChild(mCharacter, 99);
 
 	updateFarming(0);
-	this->schedule(schedule_selector(HelloWorld::updateFarming), 1.f);
+	this->schedule(schedule_selector(FarmingScene::updateFarming), 1.f);
 
     return true;
 }
 
-void HelloWorld::updatePoint() {	
+void FarmingScene::updatePoint() {	
 	string sz = COIN + to_string(logics::hInst->getActor()->point);
 	if (sz.compare(mPoint->getString()) != 0) {
 		mPoint->setString(sz);
@@ -120,7 +120,7 @@ void HelloWorld::updatePoint() {
 	
 }
 
-void HelloWorld::setQuest() {
+void FarmingScene::setQuest() {
 	//init
 	for (int n = 0; n < QUEST_CNT; n++) 
 		mQuestLayer[n]->removeAllChildren();
@@ -157,16 +157,16 @@ void HelloWorld::setQuest() {
 			
 			mQuestLayer[n]->removeAllChildren();
 			gui::inst()->addTextButtonAutoDimension(0, 0, "Done", mQuestLayer[n]
-				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
+				, CC_CALLBACK_1(FarmingScene::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO);
 
 			gui::inst()->addTextButtonAutoDimension(0, 1, "$" + to_string(money), mQuestLayer[n]
-				, CC_CALLBACK_1(HelloWorld::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO)
+				, CC_CALLBACK_1(FarmingScene::questCallback, this, n), 0, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 2), Size::ZERO, Size::ZERO)
 				->runAction(gui::inst()->createActionBlink());
 		}
 	}
 }
 
-void HelloWorld::questCallback(cocos2d::Ref* pSender, int idx) {
+void FarmingScene::questCallback(cocos2d::Ref* pSender, int idx) {
 	//done
 	Vec2 from = mQuestLayer[idx]->getPosition();
 	from.x += mQuestLayer[idx]->getContentSize().width / 2;
@@ -187,7 +187,7 @@ void HelloWorld::questCallback(cocos2d::Ref* pSender, int idx) {
 	updatePoint();
 }
 
-void HelloWorld::updateFarming(float fTimer) {
+void FarmingScene::updateFarming(float fTimer) {
 	int n = 0;
 	farming::field * f;
 	MainScene::field * pThiefField = NULL;
@@ -238,7 +238,7 @@ void HelloWorld::updateFarming(float fTimer) {
 	}
 }
 
-bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
+bool FarmingScene::onTouchBegan(Touch* touch, Event* event) {
 	mTouchDownPosition = touch->getLocation();
 	//찾기
 	if (mCharacter->getBoundingBox().containsPoint(touch->getLocation())) {
@@ -267,7 +267,7 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	return true;
 }
 
-bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
+bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
 	//수확
 	if (mMode == Mode_Farming) {
 		/*
@@ -327,7 +327,7 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 	return true;
 }
 
-void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
+void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 	//int cnt = 0;
 	bool isRemove = false;
 	int nFileds = 0;
@@ -391,7 +391,7 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	}
 }
 
-void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
+void FarmingScene::swap(MainScene::field* a, MainScene::field * b) {
 	MainScene::field temp;
 	::memcpy(&temp, a, sizeof(temp));
 
@@ -418,7 +418,7 @@ void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
 		b->sprite->setZOrder(1);
 }
 
-void HelloWorld::levelUp(MainScene::field * p) {
+void FarmingScene::levelUp(MainScene::field * p) {
 	logics::hInst->getFarm()->levelup(p->id);
 	p->label->setString(to_string(p->level));
 	p->isHarvestAction = false;
@@ -428,7 +428,7 @@ void HelloWorld::levelUp(MainScene::field * p) {
 
 	p->sprite->setZOrder(1);
 }
-void HelloWorld::clear(MainScene::field * p) {
+void FarmingScene::clear(MainScene::field * p) {
 	p->label->setString("");
 	p->isHarvestAction = false;
 	this->removeChild(p->sprite);
@@ -436,7 +436,7 @@ void HelloWorld::clear(MainScene::field * p) {
 	logics::hInst->getFarm()->clear(p->id);
 }
 
-void HelloWorld::setOpacity() {
+void FarmingScene::setOpacity() {
 	if (mCurrentNodeId == EMPTY_PLANT_TAG)
 		return;
 
@@ -458,7 +458,7 @@ void HelloWorld::setOpacity() {
 		}
 	}
 }
-void HelloWorld::clearOpacity() {
+void FarmingScene::clearOpacity() {
 	int n = 0;
 	farming::field *f;
 	while (logics::hInst->getFarm()->getField(n++, f)) {
@@ -469,7 +469,7 @@ void HelloWorld::clearOpacity() {
 	}
 }
 
-void HelloWorld::createSeedMenu()
+void FarmingScene::createSeedMenu()
 {
 	Vec2 start, end;
 	start = Vec2(1, 7);
@@ -497,7 +497,7 @@ void HelloWorld::createSeedMenu()
 		auto label = gui::inst()->addTextButtonAutoDimension(0, 0
 			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
 			, layout
-			, CC_CALLBACK_1(HelloWorld::seedCallback, this, it->second->id)
+			, CC_CALLBACK_1(FarmingScene::seedCallback, this, it->second->id)
 			, 0
 			, ALIGNMENT_CENTER
 			, Color3B::BLUE
@@ -509,7 +509,7 @@ void HelloWorld::createSeedMenu()
 	
 }
 
-void HelloWorld::addSprite(MainScene::field * p, int seedId) {
+void FarmingScene::addSprite(MainScene::field * p, int seedId) {
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
 	p->sprite->setPosition(position);
@@ -519,7 +519,7 @@ void HelloWorld::addSprite(MainScene::field * p, int seedId) {
 	this->addChild(p->sprite, 1);
 }
 
-void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
+void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 {
 	//seed * s = mSeedVector[seedIdx];		
 	int n = 0;
@@ -557,7 +557,7 @@ void HelloWorld::seedCallback(cocos2d::Ref * pSender, int seedId)
 	*/
 }
 
-RepeatForever * HelloWorld::getFarmingAnimation() {
+RepeatForever * FarmingScene::getFarmingAnimation() {
 
 	auto animation = Animation::create();
 	animation->setDelayPerUnit(0.1);
@@ -572,7 +572,7 @@ RepeatForever * HelloWorld::getFarmingAnimation() {
 }
 
 
-void HelloWorld::showInfo(MainScene::field * p) {
+void FarmingScene::showInfo(MainScene::field * p) {
 	if (mPopupBackground == NULL) {
 		Size size = Size(150, 150);
 		mPopupLayer = gui::inst()->createModalLayer(mPopupBackground, size);
@@ -610,12 +610,12 @@ void HelloWorld::showInfo(MainScene::field * p) {
 	gui::inst()->addLabelAutoDimension(1, 3, szHarvest, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 
 	//close
-	gui::inst()->addTextButtonAutoDimension(2, 0, "CLOSE", mPopupLayer, CC_CALLBACK_1(HelloWorld::closePopup, this)
+	gui::inst()->addTextButtonAutoDimension(2, 0, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
 	
 }
 
-void HelloWorld::closePopup(Ref * pSender) {
+void FarmingScene::closePopup(Ref * pSender) {
 	if (mPopupBackground != NULL) {
 		mPopupBackground->removeAllChildren();
 		this->removeChild(mPopupBackground);
@@ -628,7 +628,7 @@ void HelloWorld::closePopup(Ref * pSender) {
 	mPopupBackground = NULL;
 }
 
-Sequence * HelloWorld::getThiefAnimate() {
+Sequence * FarmingScene::getThiefAnimate() {
 	auto animation = Animation::create();
 	animation->setDelayPerUnit(0.1f);
 	string path;
@@ -637,7 +637,7 @@ Sequence * HelloWorld::getThiefAnimate() {
 		animation->addSpriteFrameWithFile(path);
 	}
 
-	auto callback = CallFunc::create(this, callfunc_selector(HelloWorld::onActionFinished));
+	auto callback = CallFunc::create(this, callfunc_selector(FarmingScene::onActionFinished));
 
 	auto animate = Sequence::create(
 		Repeat::create(Animate::create(animation), 1)
@@ -647,22 +647,22 @@ Sequence * HelloWorld::getThiefAnimate() {
 	return animate;
 }
 
-void HelloWorld::onActionFinished() {
+void FarmingScene::onActionFinished() {
 	stopAction(mCharacter);
 	mCharacter->runAction(MainScene::getIdleAnimation());
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
 }
 
-void HelloWorld::onEnter() {
+void FarmingScene::onEnter() {
 	Scene::onEnter();
 	updatePoint();
 }
-void HelloWorld::onEnterTransitionDidFinish() {
+void FarmingScene::onEnterTransitionDidFinish() {
 	Scene::onEnterTransitionDidFinish();
 }
-void HelloWorld::onExitTransitionDidStart() {
+void FarmingScene::onExitTransitionDidStart() {
 	Scene::onExitTransitionDidStart();
 }
-void HelloWorld::onExit() {
+void FarmingScene::onExit() {
 	Scene::onExit();
 }

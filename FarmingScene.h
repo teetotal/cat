@@ -1,5 +1,5 @@
-#ifndef __HELLOWORLD_SCENE_H__
-#define __HELLOWORLD_SCENE_H__
+#ifndef __FARMING_SCENE_H__
+#define __FARMING_SCENE_H__
 
 #include "cocos2d.h"
 #include "ui/ui.h"
@@ -12,7 +12,7 @@
 #define PLANT_COMPLETE_SEC 10
 #define QUEST_CNT 4
 
-class HelloWorld : public cocos2d::Scene
+class FarmingScene : public cocos2d::Scene
 {
 public:
     static cocos2d::Scene* createScene();
@@ -24,7 +24,7 @@ public:
     
        
     // implement the "static create()" method manually
-    CREATE_FUNC(HelloWorld);
+    CREATE_FUNC(FarmingScene);
 private:
 #define PARTICLE_CLINK "particles/particle_clink.plist"
 
@@ -116,4 +116,4 @@ private:
 	virtual void onExit();
 };
 
-#endif // __HELLOWORLD_SCENE_H__
+#endif // __FARMING_SCENE_H__

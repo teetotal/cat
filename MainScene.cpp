@@ -657,7 +657,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	case SCENECODE_FARMING: //farming		
 		mFarming->stopAllActions();
 		mFarming->setScale(1);
-		Director::getInstance()->pushScene(HelloWorld::createScene());
+		Director::getInstance()->pushScene(FarmingScene::createScene());
 		break;
 	case SCENECODE_RACE://RACE
 		showRace();
