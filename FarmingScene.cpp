@@ -1,4 +1,4 @@
-﻿#include "HelloWorldScene.h"
+﻿#include "FarmingScene.h"
 #include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
@@ -13,6 +13,11 @@ Scene* HelloWorld::createScene()
 // on "init" you need to initialize your instance
 bool HelloWorld::init()
 {	
+	//init variable
+	mPopupBackground = NULL;
+	mPopupLayer = NULL;
+	mThiefCnt = 0;
+	mMode = Mode_Max;
     //////////////////////////////
     // 1. super init first
     if ( !Scene::init() )
@@ -100,6 +105,7 @@ bool HelloWorld::init()
 	//mCharacter->setAnchorPoint(Vec2(0.5, 0));
 	this->addChild(mCharacter, 99);
 
+	updateFarming(0);
 	this->schedule(schedule_selector(HelloWorld::updateFarming), 1.f);
 
     return true;
@@ -184,6 +190,7 @@ void HelloWorld::questCallback(cocos2d::Ref* pSender, int idx) {
 void HelloWorld::updateFarming(float fTimer) {
 	int n = 0;
 	farming::field * f;
+	MainScene::field * pThiefField = NULL;
 	while (logics::hInst->getFarm()->getField(n++, f)) {
 		MainScene::field * p = (MainScene::field*)f;
 
@@ -202,11 +209,32 @@ void HelloWorld::updateFarming(float fTimer) {
 				float ratio = mGridSize.height / p->sprite->getContentSize().height;
 				p->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, ratio * 1.1), ScaleTo::create(0.4, ratio), NULL)));
 				p->isHarvestAction = true;
+
+				//수확 상태에 수확할게 2개 이상이고 체력만 높으면 훔쳐 먹는다.
+				if (mMode == Mode_Max
+					&& mThiefCnt < 1
+					&& p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow) > 1
+					&& getRandValue(5) == 0
+					&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.appeal
+					&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.intelligence
+					) {					
+					mThiefCnt++;
+					pThiefField = p;
+					p->accumulation++;
+				}
 			}
 			break;
 		default:
 			break;
 		}
+	}	
+
+	//도둑질
+	if (pThiefField) {
+		stopAction(mCharacter);
+		mCharacter->runAction(getThiefAnimate());
+		mCharacter->setPosition(gui::inst()->getPointVec2(pThiefField->x, pThiefField->y, ALIGNMENT_CENTER));
+		
 	}
 }
 
@@ -239,53 +267,35 @@ bool HelloWorld::onTouchBegan(Touch* touch, Event* event) {
 	return true;
 }
 
-void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
-	MainScene::field temp;
-	::memcpy(&temp, a, sizeof(temp));
-
-	a->sprite = b->sprite;
-	b->sprite = temp.sprite;
-
-	logics::hInst->getFarm()->swap(a, b);
-	
-	if(a->sprite)
-		a->sprite->setPosition(gui::inst()->getPointVec2(a->x, a->y, ALIGNMENT_CENTER));
-	if(b->sprite)
-		b->sprite->setPosition(gui::inst()->getPointVec2(b->x, b->y, ALIGNMENT_CENTER));
-
-	string sz = a->level > 0 ? to_string(a->level) : "";
-	a->label->setString(sz);
-
-	sz = b->level > 0 ? to_string(b->level) : "";
-	b->label->setString(sz);
-
-	//set Zorder
-	if(a->sprite)
-		a->sprite->setZOrder(1);
-	if(b->sprite)
-		b->sprite->setZOrder(1);
-}
-
 bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
-
+	//수확
 	if (mMode == Mode_Farming) {
+		/*
 		stopAction(mCharacter);
 		mCharacter->runAction(MainScene::getIdleAnimation());
 		mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+		*/
+		onActionFinished();
 		setQuest();
+		mMode = Mode_Max;
 		return true;
 	}
 
-	if (mCurrentNodeId == -1)
+	if (mCurrentNodeId == -1) {
+		mMode = Mode_Max;
 		return true;
+	}
 
 	clearOpacity();
-
+	//클릭
 	farming::field * f;
 	logics::hInst->getFarm()->getField(mCurrentNodeId, f);
 	MainScene::field * p = (MainScene::field*)f;
 	if (abs(mTouchDownPosition.x - touch->getLocation().x) < (mGridSize.width / 2) && abs(mTouchDownPosition.y - touch->getLocation().y) < (mGridSize.height / 2)) {
 		p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
+		showInfo(p);
+
+		mMode = Mode_Max;
 		return true;
 	}
 		
@@ -302,17 +312,18 @@ bool HelloWorld::onTouchEnded(Touch* touch, Event* event) {
 				levelUp(pField);				
 				//current clear				
 				clear(p);
+				mMode = Mode_Max;
 				return true;
 			} 			
 			//swap
 			swap(p, pField);
-
+			mMode = Mode_Max;
 			return true;
 		}
 	}
 
 	p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
-	
+	mMode = Mode_Max;
 	return true;
 }
 
@@ -378,6 +389,33 @@ void HelloWorld::onTouchMoved(Touch *touch, Event *event) {
 	default:
 		break;
 	}
+}
+
+void HelloWorld::swap(MainScene::field* a, MainScene::field * b) {
+	MainScene::field temp;
+	::memcpy(&temp, a, sizeof(temp));
+
+	a->sprite = b->sprite;
+	b->sprite = temp.sprite;
+
+	logics::hInst->getFarm()->swap(a, b);
+
+	if (a->sprite)
+		a->sprite->setPosition(gui::inst()->getPointVec2(a->x, a->y, ALIGNMENT_CENTER));
+	if (b->sprite)
+		b->sprite->setPosition(gui::inst()->getPointVec2(b->x, b->y, ALIGNMENT_CENTER));
+
+	string sz = a->level > 0 ? to_string(a->level) : "";
+	a->label->setString(sz);
+
+	sz = b->level > 0 ? to_string(b->level) : "";
+	b->label->setString(sz);
+
+	//set Zorder
+	if (a->sprite)
+		a->sprite->setZOrder(1);
+	if (b->sprite)
+		b->sprite->setZOrder(1);
 }
 
 void HelloWorld::levelUp(MainScene::field * p) {
@@ -533,6 +571,87 @@ RepeatForever * HelloWorld::getFarmingAnimation() {
 	return RepeatForever::create(Animate::create(animation));
 }
 
+
+void HelloWorld::showInfo(MainScene::field * p) {
+	if (mPopupBackground == NULL) {
+		Size size = Size(150, 150);
+		mPopupLayer = gui::inst()->createModalLayer(mPopupBackground, size);
+		mPopupLayer->setOpacity(128);
+		this->addChild(mPopupBackground, 99);
+	}
+
+	string szName = wstring_to_utf8(
+		logics::hInst->getItem(
+			logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId
+		).name
+	);
+
+	string szHarvest;
+	switch (p->status) {
+	case farming::farming_status_decay:
+		szHarvest = "Decay T.T";
+		break;
+	case farming::farming_status_grown:
+		szHarvest = "Grown: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
+		szHarvest += "\nRemain: " + to_string(p->finishTime - getNow()) + " sec";
+		break;
+	case farming::farming_status_harvest:
+		szHarvest = "Harvest: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
+		break;
+	default:
+		szHarvest += "Remain: " + to_string(p->finishTime - getNow()) + " sec";
+		break;
+	} 
+
+	Size grid = Size(3, 6);
+
+	gui::inst()->addSpriteAutoDimension(1, 1, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(1, 2, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(1, 3, szHarvest, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+
+	//close
+	gui::inst()->addTextButtonAutoDimension(2, 0, "CLOSE", mPopupLayer, CC_CALLBACK_1(HelloWorld::closePopup, this)
+		, 12, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
+	
+}
+
+void HelloWorld::closePopup(Ref * pSender) {
+	if (mPopupBackground != NULL) {
+		mPopupBackground->removeAllChildren();
+		this->removeChild(mPopupBackground);
+
+		delete mPopupLayer;
+		delete mPopupBackground;
+	}
+
+	mPopupLayer = NULL;
+	mPopupBackground = NULL;
+}
+
+Sequence * HelloWorld::getThiefAnimate() {
+	auto animation = Animation::create();
+	animation->setDelayPerUnit(0.1f);
+	string path;
+	for (int n = 0; n < 18; n++) {
+		path = "action/200/" + to_string(n) + ".png";
+		animation->addSpriteFrameWithFile(path);
+	}
+
+	auto callback = CallFunc::create(this, callfunc_selector(HelloWorld::onActionFinished));
+
+	auto animate = Sequence::create(
+		Repeat::create(Animate::create(animation), 1)
+		, callback
+		, NULL
+	);
+	return animate;
+}
+
+void HelloWorld::onActionFinished() {
+	stopAction(mCharacter);
+	mCharacter->runAction(MainScene::getIdleAnimation());
+	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+}
 
 void HelloWorld::onEnter() {
 	Scene::onEnter();

@@ -59,6 +59,9 @@ private:
 	Sprite * mCharacter;
 	ScrollView * mScrollView;
 	Layout * mQuestLayer[QUEST_CNT];
+	LayerColor * mPopupBackground, * mPopupLayer;
+
+	int mThiefCnt;
 	
 	typedef std::vector<seed*> seedVector;	
 	seedVector mSeedVector;
@@ -72,7 +75,7 @@ private:
 	void setOpacity();
 	void clearOpacity();
 	void createSeedMenu();
-	void addSeedMenu();
+	//void addSeedMenu();
 	void addSprite(MainScene::field * p, int seedId);
 
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
@@ -98,6 +101,14 @@ private:
 	};
 	//update point 
 	void updatePoint();
+
+	//show info
+	void showInfo(MainScene::field * p);
+	void closePopup(Ref * pSender);
+
+	//thief
+	void onActionFinished();
+	Sequence * getThiefAnimate();
 
 	virtual void onEnter();
 	virtual void onEnterTransitionDidFinish();

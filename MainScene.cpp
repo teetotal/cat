@@ -7,7 +7,7 @@
 #include "ui/CocosGUI.h"
 #include "ActionScene.h"
 #include "AlertScene.h"
-#include "HelloWorldScene.h"
+#include "FarmingScene.h"
 
 using namespace cocos2d::ui;
 
