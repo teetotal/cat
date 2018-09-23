@@ -94,13 +94,13 @@ void AlertScene::callback(Ref* pSender, SCENECODE type) {
 	case SCENECODE_POINT_ADVERTISEMENT://포인트 광고 
 	case SCENECODE_POINT_SHOP://포인트 충전
 							  //임시
-		logics::hInst->getActor()->point += 500;
+		logics::hInst->increasePoint(500);
 		Director::getInstance()->popScene();
 		break;
 	case SCENECODE_HP_ADVERTISEMENT://HP 광고
 	case SCENECODE_HP_SHOP://HP 충전
 						   //임시
-		//showInventory(inventoryType_HP);
+		logics::hInst->increaseHP(10);
 		Director::getInstance()->popScene();
 		break;	
 	default:

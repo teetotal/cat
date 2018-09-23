@@ -76,8 +76,8 @@
 #define actorSaveInterval 5
 //Quest 노출 quest 수
 #define questCnt	3 
-#define COIN	"$"
-#define COIN_W	L"$"
+#define COIN	"c"
+#define COIN_W	L"c"
 
 enum errorCode {
 	error_success = 0,
@@ -141,12 +141,18 @@ enum achievement_category {
 	achievement_category_trade_sell,
 	achievement_category_recharge, //체력 충전
 	achievement_category_farming,   // 농사 전체
-	achievement_category_race, //경묘 전체
 	achievement_category_property,	//능력치
+
+	achievement_category_race, //경묘 전체
+
+	achievement_category_race_use_item, // 경묘 아이템 사용
+	achievement_category_race_use_item_type, // 경묘 아이템 사용 타입
+
 	achievement_category_race_item, // 경묘 아이템 모드
 	achievement_category_race_speed, // 경묘 스피드 모드
 	achievement_category_race_1vs1, //경묘 1:1
 	achievement_category_race_friend_1, // 경묘 friend 모드
+	
 };
 enum achievement_farming_id {
 	achievement_farming_id_plant = 0, //심기 횟수
@@ -498,7 +504,19 @@ public:
 	};
 	//능력치에 따라 상금을 달리 지급
 	int getRaceReward(int id, int rankIdx /*1등 = 0*/);
-
+	struct RaceWin {
+		int winCnt;
+		int raceId;
+		RaceWin() {
+			winCnt = 0;
+			raceId = 0;
+		};
+		void init(int id) {
+			raceId = id;
+			winCnt = 0;
+		};
+	};
+	RaceWin mRaceWin;
 	//-----------------------------------------------------------------------charge
 	errorCode runRecharge(int id, int quantity);	
 	//auto recharge HP 충전이 되면 true, 이미 만땅이거나 시간이 아니면 false

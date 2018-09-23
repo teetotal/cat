@@ -181,7 +181,7 @@ bool MainScene::init()
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	    
     mHP = gui::inst()->addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
-	mPoint = gui::inst()->addTextButton(8, 0, COIN, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 0, ALIGNMENT_CENTER, Color3B::GREEN);
+	mPoint = gui::inst()->addTextButton(8, 0, COIN, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE));
 
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   

@@ -94,6 +94,10 @@ private:
 		return wstring_to_utf8(getSkillIconW(type));
 	};
 
+	void updatePoint();
+
+	Label * mPoint;
+
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
 	//Start Count
@@ -101,7 +105,6 @@ private:
 	Label * mBoostPercent;
 	//LoadingBar * mSpeedBoostBar; //speed전에서 얼마나 터치했는지 표시 
 	int mCount;
-	int mWinCnt;
 	//Label * mRankLabel[raceParticipantNum + 1];
 
 	MenuItemFont * mSelectedItem[raceItemSlot];

@@ -21,7 +21,6 @@ Scene* ActionScene::createScene(int id)
 
 bool ActionScene::init() {		
 	mPlayCnt = 0;
-	mWinCnt = 0;
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
@@ -110,6 +109,8 @@ bool ActionScene::init() {
 		mBoostPercent->setColor(Color3B::GRAY);
 	}
 
+	//point
+	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
 
 	//title	
 	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
@@ -415,9 +416,6 @@ void ActionScene::result() {
 	sz += L"순위: ";
 	sz += to_wstring(mRaceCurrent->rank);
 	
-	if (mRaceCurrent->rank == 1)
-		mWinCnt++;
-
 	int idx = 1;
 	gui::inst()->addLabelAutoDimension(2, idx++, wstring_to_utf8(sz), mPopupLayer, 14, ALIGNMENT_CENTER, Color3B::BLACK
 		, grid, Size::ZERO, Size::ZERO);
@@ -444,11 +442,11 @@ void ActionScene::result() {
 		
 		for (int n = 0; n < 5; n++) {
 			auto star = gui::inst()->addSpriteAutoDimension(n, idx, "star.png", mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
-			if (mWinCnt == n + 1) {
+			if (logics::hInst->mRaceWin.winCnt == n + 1) {
 				star->runAction(Sequence::create(ScaleTo::create(0.5, 1.5), ScaleTo::create(0, 1), NULL));
 			}
 
-			if(mWinCnt < n+1)
+			if(logics::hInst->mRaceWin.winCnt < n+1)
 				star->setOpacity(128);
 		}
 		idx++;
@@ -462,23 +460,22 @@ void ActionScene::result() {
 			auto bonus = gui::inst()->addLabelAutoDimension(n, idx, szBonus, mPopupLayer, 0
 				, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 
-			if (mWinCnt == n + 1)
+			if (logics::hInst->mRaceWin.winCnt == n + 1)
 				nBonus = n * prize;
 
-			if (mWinCnt < n + 1)
+			if (logics::hInst->mRaceWin.winCnt < n + 1)
 				bonus->setOpacity(128);
 		}
 		if(nBonus > 0)
 			logics::hInst->increasePoint(nBonus);
 		idx++;
 	}
-	else {
-		mWinCnt = 0;
-	}
 
 	gui::inst()->addTextButtonAutoDimension(2, idx, "OK", mPopupLayer
 		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_FINISH), 24, ALIGNMENT_CENTER, Color3B::BLUE
 		, grid, Size::ZERO, Size::ZERO);
+
+	updatePoint();
 }
 
 void ActionScene::updateSelectItem() {
@@ -611,6 +608,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	}
 
 	mPopupLayer->addChild(sv, 1, CHILD_ID_RACE);
+	updatePoint();
 }
 
 bool ActionScene::onTouchEnded(Touch* touch, Event* event)
@@ -630,5 +628,13 @@ bool ActionScene::onTouchEnded(Touch* touch, Event* event)
 	return true;
 }
 
+
+void ActionScene::updatePoint() {
+	string sz = COIN + to_string(logics::hInst->getActor()->point);
+	if (sz.compare(mPoint->getString()) != 0) {
+		mPoint->setString(sz);
+		mPoint->runAction(gui::inst()->createActionFocus());
+	}
+}
 
 

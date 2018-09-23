@@ -467,6 +467,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	int raceItem[] =	{ 0, 211,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215,	215	}; //레벨별 지급 race 아이템 
 	int raceItem_a[] =	{ 0, 0,		0,		0,		0,		0,		0,		0,		0,		222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템
 	int raceItem_b[] =	{ 0, 0,		230,	230,	231,	231,	231,	232,	232,	233,	233,	234,	234 }; //레벨별 지급 race 1등 공격 아이템 
+	int raceItem_c[] =	{ 0, 0,		0,		220,	220,	220,	221,	221,	221,	0,		0,		0,		0}; //레벨별 지급 race 전방 공격 아이템
 
 
 	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
@@ -522,6 +523,19 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			);
 		}
 
+		//race item
+		if (raceItem_c[n] > 0) {
+			int use = n;
+			mQuest.addQuest(
+				uniqueId++
+				, L"경묘 1등 공격 아이템 " + to_wstring(use) + L"번 사용하기"
+				, achievement_category_race_use_item_type
+				, 204
+				, use
+				, raceItem_c[n]
+				, n  //레벨 만큼 준다
+			);
+		}
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {			
 			//int nRaceTry = n * 1.5;
 			if(it->second.level == n){
@@ -1351,6 +1365,9 @@ errorCode logics::runRaceSetRunners(int id) {
 		mRaceParticipants->push_back(p);
 	}	
 
+	if (mRaceWin.raceId != id) {
+		mRaceWin.init(id);
+	}
 	return error_success;
 }
 errorCode logics::runRaceSetItems(itemsVector &items) {
@@ -1373,6 +1390,8 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 			if (!addInventory(items[m].itemId, -1))
 				return error_not_enough_item;
 			idx++;
+			mQuest.push(achievement_category_race_use_item, items[m].itemId, 1);
+			mQuest.push(achievement_category_race_use_item_type, mItems[items[m].itemId].type, 1);
 		}
 	}
 	mRaceParticipants->push_back(p);
@@ -1654,6 +1673,9 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 if (mRaceCurrent.rank == 1) {
 			 mQuest.push(achievement_category_race, achievement_race_id_first, 1);
 			 mQuest.push(ac, achievement_race_id_first, 1);
+			 
+			 mRaceWin.winCnt++;
+
 		 }			 
 		 else if (mRaceCurrent.rank == 2) {
 			 mQuest.push(achievement_category_race, achievement_race_id_second, 1);
