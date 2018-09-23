@@ -1395,6 +1395,9 @@ int logics::getRaceReward(int id, int rankIdx) {
 	if (race.max < mActor->property.total()) {
 		return race.fee - (int)(race.fee * (rankIdx + 1) * 0.1);
 	}	
+	if (race.rewards.size() <= rankIdx)
+		return 0;
+
 	return race.rewards.at(rankIdx).prize;
 }
 

@@ -21,6 +21,7 @@ Scene* ActionScene::createScene(int id)
 
 bool ActionScene::init() {		
 	mPlayCnt = 0;
+	mWinCnt = 0;
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
@@ -406,14 +407,26 @@ void ActionScene::timer(float f) {
 }
 
 void ActionScene::result() {
-	
+	Size grid = Size(5, 8);
+	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, Size(300, 200), BG_RACE, Color4B::WHITE);
+
 	//결과처리
 	wstring sz;
 	sz += L"순위: ";
 	sz += to_wstring(mRaceCurrent->rank);
+	
+	if (mRaceCurrent->rank == 1)
+		mWinCnt++;
+
+	int idx = 1;
+	gui::inst()->addLabelAutoDimension(2, idx++, wstring_to_utf8(sz), mPopupLayer, 14, ALIGNMENT_CENTER, Color3B::BLACK
+		, grid, Size::ZERO, Size::ZERO);
+
+	sz = L"";
+	int prize = logics::hInst->getRaceReward(mRaceCurrent->id, mRaceCurrent->rank - 1);
 	if (mRaceCurrent->prize > 0) {
-		sz += L"\n상금: $";		
-		sz += to_wstring(logics::hInst->getRaceReward(mRaceCurrent->id, mRaceCurrent->rank - 1));
+		sz += L"상금: $";		
+		sz += to_wstring(prize);
 	}
 
 	if (mRaceCurrent->rewardItemQuantity > 0) {
@@ -422,16 +435,50 @@ void ActionScene::result() {
 		sz += L"x";
 		sz += to_wstring(mRaceCurrent->rewardItemQuantity);
 	}
-	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, Size(250, 150), BG_RACE, Color4B::WHITE);
-	Vec2 point;
-	gui::inst()->getPoint(4, 3, point, ALIGNMENT_CENTER);
-	//l->setPosition(point);
-	//l->setAnchorPoint(Vec2(0.5, 0.5));
-
-	gui::inst()->addLabelAutoDimension(0, 1, wstring_to_utf8(sz), mPopupLayer, 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 5), Size::ZERO, Size::ZERO);
+	
+	gui::inst()->addLabelAutoDimension(2, idx++, wstring_to_utf8(sz), mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK
+		, grid, Size::ZERO, Size::ZERO);
 	//this->addChild(l);
-	gui::inst()->addTextButtonAutoDimension(0, 3, "OK", mPopupLayer
-		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_FINISH), 24, ALIGNMENT_CENTER, Color3B::BLUE, Size(1, 5), Size::ZERO, Size::ZERO);
+	idx++;
+	if (mRaceCurrent->rank == 1) {
+		
+		for (int n = 0; n < 5; n++) {
+			auto star = gui::inst()->addSpriteAutoDimension(n, idx, "star.png", mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
+			if (mWinCnt == n + 1) {
+				star->runAction(Sequence::create(ScaleTo::create(0.5, 1.5), ScaleTo::create(0, 1), NULL));
+			}
+
+			if(mWinCnt < n+1)
+				star->setOpacity(128);
+		}
+		idx++;
+
+		string szBonus;
+		int nBonus = 0;
+		for (int n = 1; n < 5; n++) {			
+			szBonus = "+";
+			szBonus += COIN + to_string(n * prize);
+
+			auto bonus = gui::inst()->addLabelAutoDimension(n, idx, szBonus, mPopupLayer, 0
+				, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+
+			if (mWinCnt == n + 1)
+				nBonus = n * prize;
+
+			if (mWinCnt < n + 1)
+				bonus->setOpacity(128);
+		}
+		if(nBonus > 0)
+			logics::hInst->increasePoint(nBonus);
+		idx++;
+	}
+	else {
+		mWinCnt = 0;
+	}
+
+	gui::inst()->addTextButtonAutoDimension(2, idx, "OK", mPopupLayer
+		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_FINISH), 24, ALIGNMENT_CENTER, Color3B::BLUE
+		, grid, Size::ZERO, Size::ZERO);
 }
 
 void ActionScene::updateSelectItem() {

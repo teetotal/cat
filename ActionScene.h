@@ -101,6 +101,7 @@ private:
 	Label * mBoostPercent;
 	//LoadingBar * mSpeedBoostBar; //speed전에서 얼마나 터치했는지 표시 
 	int mCount;
+	int mWinCnt;
 	//Label * mRankLabel[raceParticipantNum + 1];
 
 	MenuItemFont * mSelectedItem[raceItemSlot];
