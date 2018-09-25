@@ -13,8 +13,8 @@ using namespace cocos2d::ui;
 
 #define PARTICLE_FINAL "particles/particle_finally.plist"
 
-#define INVENTORY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 5);
-#define BUY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 5);
+#define INVENTORY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 4);
+#define BUY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 4);
 #define ACHIEVEMENT_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 90); auto gridSize = Size(3, 6);
 #define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
@@ -872,7 +872,10 @@ void MainScene::sellItem(Ref* pSender) {
 
 void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isSell) {
 	INVENTORY_SIZE;
-	//int nodeMargin = 2;
+	
+	vector<intPair> vec;
+	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
+
 	int newLine = 2;
 	if (isSell)
 		gridSize.height++;
@@ -882,13 +885,53 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 
 	if (isSell) {
 		rect2 = Vec2(7, 2);
+		POPUP_LIST(
+			gridSize
+			, newLine
+			, rect1
+			, rect2
+			, size
+			, margin
+			, nodeMargin
+			, nodeSize
+			, vec.size()
+			, (int n = 0; n < (int)vec.size(); n++)
+			,
+			, getItemImg(vec[n].key)
+			, CC_CALLBACK_1(MainScene::selectCallback, this, logics::hInst->getItem(vec[n].key).id)
+			, "Lv." + to_string(logics::hInst->getItem(vec[n].key).grade)
+			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)
+			, "x " + to_string(vec[n].val)
+			, COIN + to_string(logics::hInst->getTrade()->getPriceSell(vec[n].key))
+			, " "
+		)
 	}
 	else {
 		rect2 = Vec2(9, 2);
+		POPUP_LIST(
+			gridSize
+			, newLine
+			, rect1
+			, rect2
+			, size
+			, margin
+			, nodeMargin
+			, nodeSize
+			, vec.size()
+			, (int n = 0; n < (int)vec.size(); n++)
+			, 
+			, getItemImg(vec[n].key)
+			, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+			, "Lv." + to_string(logics::hInst->getItem(vec[n].key).grade)
+			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)
+			, "x " + to_string(vec[n].val)
+			, " "
+			, " "
+		)
 	}
 
-	vector<intPair> vec;
-	logics::hInst->getActor()->inven.getWarehouse(vec, (int)code);
+	return;
+	/*
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(rect1, rect2, size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	Size innerSize = Size(sizeOfScrollView.width, ((vec.size() / newLine) + 1) * (nodeSize.height + nodeMargin));
@@ -944,6 +987,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 	}
 	layer->removeChildByTag(CHILD_ID_INVENTORY, true);
 	layer->addChild(sv, 1, CHILD_ID_INVENTORY);
+	*/
 }
 
 void MainScene::showInventory(inventoryType type, bool isSell) {
@@ -1068,9 +1112,32 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 	BUY_SIZE;
 	//int nodeMargin = 2;
 	int newLine = 2;
-
+	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 
+	POPUP_LIST(
+		gridSize
+		, newLine
+		, Vec2(0, 8)
+		, Vec2(7, 2)
+		, size
+		, margin
+		, nodeMargin
+		, nodeSize
+		, (type == inventoryType_all) ? m->size() - logics::hInst->getTradeInvenTypeCnt(inventoryType_collection) : logics::hInst->getTradeInvenTypeCnt(type)
+		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
+		,
+		, getItemImg(it->first)
+		, CC_CALLBACK_1(MainScene::selectCallback, this, logics::hInst->getItem(it->first).id)
+		, "Lv." + to_string(logics::hInst->getItem(it->first).grade)
+		, wstring_to_utf8(logics::hInst->getItem(it->first).name)
+		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
+		, " "
+		, " "
+	)
+
+	return;
+	/*
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(7, 2), size, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;
 	//inventype 별 갯수 
@@ -1087,10 +1154,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 		if (item.type > itemType_max)
 			continue;		
 		
-		string img = getItemImg(id); /* "items/";
-		img += to_string(id % 20);
-		img += ".png";
-		*/
+		string img = getItemImg(id);
 		Layout* l = gui::inst()->createLayout(nodeSize, "", true, Color3B::WHITE);
 		l->setOpacity(192);
 		
@@ -1114,6 +1178,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 	
 	layer->removeChildByTag(CHILD_ID_BUY, true);
 	layer->addChild(sv, 1, CHILD_ID_BUY);	
+	*/
 }
 
 void MainScene::showBuy(inventoryType type) {

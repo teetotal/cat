@@ -32,18 +32,18 @@ enum CHILD_ID {
 	CHILD_ID_RACE
 };
 
-enum SCENECODE{
-    SCENECODE_MAIN = 0,
-    SCENECODE_ACTION,
-    SCENECODE_RACE,
-    SCENECODE_FARMING,
-    SCENECODE_BUY,
-    SCENECODE_SELL,
-    SCENECODE_INVENTORY,
-    SCENECODE_RECHARGE,
-    SCENECODE_PURCHASE,
-    SCENECODE_COLLECTION,
-    SCENECODE_ACHIEVEMENT,
+enum SCENECODE {
+	SCENECODE_MAIN = 0,
+	SCENECODE_ACTION,
+	SCENECODE_RACE,
+	SCENECODE_FARMING,
+	SCENECODE_BUY,
+	SCENECODE_SELL,
+	SCENECODE_INVENTORY,
+	SCENECODE_RECHARGE,
+	SCENECODE_PURCHASE,
+	SCENECODE_COLLECTION,
+	SCENECODE_ACHIEVEMENT,
 	SCENECODE_CLOSEPOPUP,
 	SCENECODE_CLOSESCENE,
 	SCENECODE_RACE_RUN, //Action 에서 사용됨
@@ -53,15 +53,36 @@ enum SCENECODE{
 	SCENECODE_POINT_SHOP,//포인트 충전 
 	SCENECODE_HP_ADVERTISEMENT,//HP 광고 
 	SCENECODE_HP_SHOP,//HP 충전 
-    SCENECODE_NONE,
-    SCENECODE_POPUP_1,
-    SCENECODE_POPUP_2,
-    SCENECODE_POPUP_3,
-    SCENECODE_POPUP_4,
-    SCENECODE_TEMP,
+	SCENECODE_NONE,
+	SCENECODE_POPUP_1,
+	SCENECODE_POPUP_2,
+	SCENECODE_POPUP_3,
+	SCENECODE_POPUP_4,
+	SCENECODE_TEMP,
 
 };
 
+#define POPUP_LIST(_GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _SIZE, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _CNT, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4) \
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(_START_VEC2, _END_VEC2, _SIZE, _MARGIN); \
+	_NODE_SIZE.width = (sizeOfScrollView.width / (float)_NEWLINE) - _NODE_MARGIN;\
+	Size innerSize = Size(sizeOfScrollView.width, ((_CNT / _NEWLINE) + 1) * (_NODE_SIZE.height + _NODE_MARGIN));\
+	ScrollView * sv = gui::inst()->addScrollView(_START_VEC2, _END_VEC2, _SIZE, _MARGIN, "", innerSize); \
+	for _FOR { \
+		_CONTINUE \
+		Layout* l = gui::inst()->createLayout(_NODE_SIZE, "", true, Color3B::WHITE); \
+		l->setOpacity(192); \
+		int heightIdx = 1; \
+		gui::inst()->addTextButtonAutoDimension(0, heightIdx++, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addSpriteAutoDimension(0, heightIdx++, _IMG, l, ALIGNMENT_CENTER, _GRID_SIZE, Size::ZERO, Size::ZERO)->setContentSize(Size(20, 20)); \
+		heightIdx = 1;\
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ3, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addLayoutToScrollView(sv, l, _NODE_MARGIN, _NEWLINE); \
+	} \
+	layer->removeChildByTag(99, true); \
+	layer->addChild(sv, 1, 99); 
 
 class MainScene : public Scene{
 public:
@@ -225,3 +246,4 @@ private:
 
 
 #endif //PROJ_ANDROID_MAINSCENE_H
+
