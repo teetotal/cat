@@ -17,7 +17,7 @@ using namespace cocos2d::ui;
 #define BUY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 4);
 #define ACHIEVEMENT_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 90); auto gridSize = Size(3, 6);
-#define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
+#define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 4);
 
 #define LOADINGBAR_IMG "loadingbar_big.png"
 #define LOADINGBAR_IMG_SMALL "loadingbar_small.png"
@@ -65,13 +65,14 @@ bool MainScene::init()
 
 	Color3B fontColor = Color3B::BLACK;
 	//BG
+	/*
 	auto bg = Sprite::create(BG_HOME);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
 	//bg->setOpacity(50);
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
-
+	*/
     mGrid.init("fonts/Goyang.ttf", 14);
 
 	//farming init
@@ -885,16 +886,14 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 
 	if (isSell) {
 		rect2 = Vec2(7, 2);
-		POPUP_LIST(
-			gridSize
+		POPUP_LIST(layer
+			, gridSize
 			, newLine
 			, rect1
 			, rect2
-			, size
 			, margin
 			, nodeMargin
 			, nodeSize
-			, vec.size()
 			, (int n = 0; n < (int)vec.size(); n++)
 			,
 			, getItemImg(vec[n].key)
@@ -903,21 +902,19 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)
 			, "x " + to_string(vec[n].val)
 			, COIN + to_string(logics::hInst->getTrade()->getPriceSell(vec[n].key))
-			, " "
+			, gui::inst()->EmptyString
 		)
 	}
 	else {
 		rect2 = Vec2(9, 2);
-		POPUP_LIST(
-			gridSize
+		POPUP_LIST(layer
+			, gridSize
 			, newLine
 			, rect1
 			, rect2
-			, size
 			, margin
 			, nodeMargin
 			, nodeSize
-			, vec.size()
 			, (int n = 0; n < (int)vec.size(); n++)
 			, 
 			, getItemImg(vec[n].key)
@@ -925,8 +922,8 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, "Lv." + to_string(logics::hInst->getItem(vec[n].key).grade)
 			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)
 			, "x " + to_string(vec[n].val)
-			, " "
-			, " "
+			, gui::inst()->EmptyString
+			, gui::inst()->EmptyString
 		)
 	}
 
@@ -1114,26 +1111,24 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 	int newLine = 2;
 	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
-
-	POPUP_LIST(
-		gridSize
+	
+	POPUP_LIST(layer
+		, gridSize
 		, newLine
 		, Vec2(0, 8)
-		, Vec2(7, 2)
-		, size
+		, Vec2(7, 2)		
 		, margin
 		, nodeMargin
 		, nodeSize
-		, (type == inventoryType_all) ? m->size() - logics::hInst->getTradeInvenTypeCnt(inventoryType_collection) : logics::hInst->getTradeInvenTypeCnt(type)
 		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
-		,
+		, if ((type != inventoryType_all && logics::hInst->getInventoryType(it->first) != type) || logics::hInst->getItem(it->first).type > itemType_max) continue;
 		, getItemImg(it->first)
 		, CC_CALLBACK_1(MainScene::selectCallback, this, logics::hInst->getItem(it->first).id)
 		, "Lv." + to_string(logics::hInst->getItem(it->first).grade)
 		, wstring_to_utf8(logics::hInst->getItem(it->first).name)
 		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
-		, " "
-		, " "
+		, gui::inst()->EmptyString
+		, gui::inst()->EmptyString
 	)
 
 	return;
@@ -1254,10 +1249,8 @@ void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
 
 void MainScene::showAchievementCategory(Ref* pSender) {
 	ACHIEVEMENT_SIZE;
-	//int nodeMargin = 2;
 	int newLine = 2;
 
-	//int cnt = logics::hInst->getAchievementSize(logics::hInst->getActor()->level);
 	int cnt = logics::hInst->getQuests()->getQuests()->size();
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 8), Vec2(9, 2), size, margin);
@@ -1281,33 +1274,27 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 		else
 			counting++;
 				
-		//gui::inst()->addLabelAutoDimension(0, 2, state, l, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 		if (p->isFinished) {
 			noticeEffect(
 				gui::inst()->addTextButtonAutoDimension(0, 2, state, l
 					, CC_CALLBACK_1(MainScene::achievementCallback, this, p), 24, ALIGNMENT_CENTER
 					, Color3B::BLUE, gridSize, Size::ZERO, Size::ZERO)
 			);
-		}
-			
+		}			
 
 		int heightIdx = 1;
 
-		gui::inst()->addLabelAutoDimension(1, heightIdx++
-			, wstring_to_utf8(p->title), l, 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(1, heightIdx++, wstring_to_utf8(p->title), l, 12, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		string score = to_string(p->accumulation) + "/" + to_string(p->value);
-		gui::inst()->addLabelAutoDimension(1, heightIdx++
-			, score, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(1, heightIdx++, score, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		string reward = wstring_to_utf8(logics::hInst->getItem(p->rewardId).name + L" x" + to_wstring(p->rewardValue));
-		gui::inst()->addLabelAutoDimension(1, heightIdx++
-			, reward, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(1, heightIdx++, reward, l, 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(sv, l, nodeMargin, newLine);
 
-		if (counting >= questCnt)
-			break;
+		if (counting >= questCnt) break;
 	}
 
 	layer->removeChildByTag(CHILD_ID_ACHIEVEMENT, true);
@@ -1394,6 +1381,28 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 	ACTION_SIZE;
 	//int nodeMargin = 2;
 	int newLine = 2;
+	__training * pTraining = logics::hInst->getActionList();
+
+	POPUP_LIST(layer
+		, gridSize
+		, newLine
+		, Vec2(0, 8)
+		, Vec2(9, 2)
+		, margin
+		, nodeMargin
+		, nodeSize
+		, (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it)
+		, if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue;
+		, getItemImg(it->first)
+		, CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
+		, "Lv." + to_string(it->second.level)
+		, wstring_to_utf8(it->second.name)
+		, COIN + to_string(it->second.cost.point)
+		, gui::inst()->EmptyString
+		, gui::inst()->EmptyString
+		)
+
+	/*
 
 	__training * pTraining = logics::hInst->getActionList();
 
@@ -1452,23 +1461,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		//Error처리
 		bool isEnable = true;
 		Color3B fontColor = Color3B::BLACK;
-		/*
-		if (err != error_success) {
-			id = -1;
-			gui::inst()->addLabelAutoDimension(1, 4
-				, wstring_to_utf8(logics::hInst->getErrorMessage(err), true)
-				, l
-				, 8
-				, ALIGNMENT_NONE
-				, Color3B::RED
-				, gridSize
-				, Size::ZERO
-				, Size::ZERO
-			);
-			fontColor = Color3B::GRAY;
-			isEnable = false;
-		}
-		*/
+		
 		gui::inst()->addLabelAutoDimension(0, 2, wstring_to_utf8(szC), l, 24, ALIGNMENT_CENTER, fontColor, gridSize, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLabelAutoDimension(1, 1, "Lv." + to_string(level), l, 8, ALIGNMENT_NONE, fontColor, gridSize, Size::ZERO, Size::ZERO);
@@ -1484,12 +1477,13 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 
 	layer->removeChildByTag(CHILD_ID_ACTION, true);
 	layer->addChild(sv, 1, CHILD_ID_ACTION);
+	*/
 }
 
 
 void MainScene::actionList() {
 #define __PARAMS_ACTION(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showActionCategory, this, ID), 18, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
-
+	
 	ACTION_SIZE;	
 	int newLine = 2;   
 
@@ -1735,6 +1729,7 @@ void MainScene::updateQuests() {
 		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, wstring_to_utf8(sz), this
 			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 10, ALIGNMENT_NONE);
 		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
+		q->setZOrder(1);
 		mQuestButtons.push_back(pMenu);
 
 		cnt++;

@@ -10,7 +10,7 @@
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 2.5
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 5);
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  4
 
 //#define RUNNER_WIDTH 80
@@ -137,19 +137,20 @@ bool ActionScene::init() {
     return true;
 }
 
-void ActionScene::initRace() {
+bool ActionScene::initRace() {
 	bool ret;
 	//Race 초기 상태	
 	errorCode err = logics::hInst->runRaceSetItems(mSelectItems);
 	if (err != error_success && err != error_levelup) {
 		//alert(wstring_to_utf8(logics::hInst->getErrorMessage(err)));
-		return;
+		Director::getInstance()->pushScene(AlertScene::createScene(err));
+		return false;
 	}
 	mRaceCurrent = logics::hInst->getRaceResult();
 	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, -1);
 	if (!ret) {
 		Director::getInstance()->popScene();
-		return;
+		return false;
 	}
 
 	
@@ -174,6 +175,7 @@ void ActionScene::initRace() {
 	}
 
 	counting();
+	return true;
 }
 
 void ActionScene::counting() {
@@ -217,9 +219,10 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 	errorCode err;
 	switch (type)
 	{
-	case SCENECODE_RACE_RUN:
-		this->removeChild(mPopupLayerBackground);				
-		initRace();
+	case SCENECODE_RACE_RUN:		
+		if(initRace())
+			this->removeChild(mPopupLayerBackground);
+		updatePoint();
 		break;
 	case SCENECODE_CLOSEPOPUP: //cancel hp와 참가비 재입금
 		logics::hInst->increaseHP(1);
@@ -507,12 +510,13 @@ void ActionScene::selectItem(Ref* pSender, int id) {
 		mSelectedItemQuantity[id] = 1;
 	}
 	else {
+		/*
 		if (!logics::hInst->getActor()->inven.checkItemQuantity(inventoryType_race, id, mSelectedItemQuantity[id] + 1))
 		{
 			//과다 입력
 			return;
 		}
-
+		*/
 		mSelectedItemQuantity[id]++;
 	}
 
@@ -561,11 +565,33 @@ void ActionScene::showItemSelect(errorCode err) {
 		return;
 	}
 
-	int nMenuIdx = 0;
 	int newLine = 2;
-
+	/*
 	vector<intPair> vec;
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)inventoryType_race);
+	*/
+	trade::tradeMap * m = logics::hInst->getTrade()->get();
+	POPUP_LIST(mPopupLayer
+		, gridSize
+		, newLine
+		, Vec2(0, 6)
+		, Vec2(9, 1)
+		, margin
+		, POPUP_NODE_MARGIN
+		, nodeSize
+		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
+		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue;
+		, MainScene::getItemImg(it->first)
+		, CC_CALLBACK_1(ActionScene::selectItem, this, it->first)
+		, getRomeNumber(logics::hInst->getItem(it->first).grade)
+		, wstring_to_utf8(logics::hInst->getItem(it->first).name)
+		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
+		, gui::inst()->EmptyString
+		, gui::inst()->EmptyString
+	)
+
+		/*
+	
 
 	int cnt = vec.size();
 
@@ -582,12 +608,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		l->setOpacity(192);
 		_item item = logics::hInst->getItem(id);
 
-		int heightIdx = 2;
-		//item image
-		/*
-		auto sprite = gui::inst()->addSpriteAutoDimension(0, heightIdx++, img, l, ALIGNMENT_CENTER, gridSize, Size::ZERO, Size::ZERO);
-		sprite->setContentSize(Size(20, 20));
-		*/
+		int heightIdx = 2;	
 		
 		gui::inst()->addLabelAutoDimension(0, heightIdx++, getSkillIcon(item.type), l, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
 
@@ -608,6 +629,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	}
 
 	mPopupLayer->addChild(sv, 1, CHILD_ID_RACE);
+	*/
 	updatePoint();
 }
 
@@ -637,4 +659,16 @@ void ActionScene::updatePoint() {
 	}
 }
 
-
+void ActionScene::onEnter() {
+	Scene::onEnter();
+	updatePoint();
+}
+void ActionScene::onEnterTransitionDidFinish() {
+	Scene::onEnterTransitionDidFinish();
+}
+void ActionScene::onExitTransitionDidStart() {
+	Scene::onExitTransitionDidStart();
+}
+void ActionScene::onExit() {
+	Scene::onExit();
+}

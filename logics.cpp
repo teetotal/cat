@@ -1371,11 +1371,22 @@ errorCode logics::runRaceSetRunners(int id) {
 	return error_success;
 }
 errorCode logics::runRaceSetItems(itemsVector &items) {
-	
+	/*
 	for (int m = 0; m < (int)items.size(); m++) {
 		if (!mActor->inven.checkItemQuantity(inventoryType_race, items[m].itemId, items[m].val))
 			return error_not_enough_item;
 	}	
+	*/
+	//차감
+	int mPrice = 0;
+	for (int m = 0; m < (int)items.size(); m++) {
+		mPrice += mTrade.getPriceBuy(items[m].itemId);		
+	}
+	if (mActor->point < mPrice)
+		return error_not_enough_point;
+	else
+		mActor->point -= mPrice;
+
 
 	_raceParticipant p;
 	p.idx = raceParticipantNum;
@@ -1387,8 +1398,7 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 	for (int m = 0; m < (int)items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
 			p.items[idx] = items[m].itemId;
-			if (!addInventory(items[m].itemId, -1))
-				return error_not_enough_item;
+			//if (!addInventory(items[m].itemId, -1))	return error_not_enough_item;
 			idx++;
 			mQuest.push(achievement_category_race_use_item, items[m].itemId, 1);
 			mQuest.push(achievement_category_race_use_item_type, mItems[items[m].itemId].type, 1);

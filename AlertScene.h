@@ -33,8 +33,7 @@ public:
 
 private:
 	void callback(Ref* pSender, SCENECODE type);
-
-	
+	void invokeItem(Ref* pSender, int id);	
 };
 
 #endif 

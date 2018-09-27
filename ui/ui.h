@@ -34,11 +34,46 @@ struct IMG_LEVEL {
 
 typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 
+#define POPUP_LIST(_PARENT_NODE, _GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4) \
+	int nCnt = 0; \
+	for _FOR { \
+		_CONTINUE \
+		nCnt++; \
+	} \
+	Size __nodeSize = _NODE_SIZE; \
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), _MARGIN); \
+	if(_NEWLINE > 0) { \
+		__nodeSize.width = (sizeOfScrollView.width / (float)_NEWLINE) - _NODE_MARGIN; \
+	} else { \
+		__nodeSize.height = sizeOfScrollView.height; \
+	} \
+	Size innerSize = (_NEWLINE > 0) ? Size(sizeOfScrollView.width, ((nCnt / _NEWLINE) + 1) * (__nodeSize.height + _NODE_MARGIN)) : Size((__nodeSize.width  + _NODE_MARGIN) * nCnt, __nodeSize.height + _NODE_MARGIN);\
+	ScrollView * sv = gui::inst()->addScrollView(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), _MARGIN, "", innerSize); \
+	for _FOR { \
+		_CONTINUE \
+		Layout* l = gui::inst()->createLayout(__nodeSize, "", true, Color3B::WHITE); \
+		l->setOpacity(192); \
+		int heightIdx = 1; \
+		gui::inst()->addTextButtonAutoDimension(0, heightIdx++, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		if(_IMG.compare(gui::inst()->EmptyString) != 0) gui::inst()->addSpriteAutoDimension(0, heightIdx++, _IMG, l, ALIGNMENT_CENTER, _GRID_SIZE, Size::ZERO, Size::ZERO)->setContentSize(Size(20, 20)); \
+		heightIdx = 1;\
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ3, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		gui::inst()->addLayoutToScrollView(sv, l, _NODE_MARGIN, _NEWLINE); \
+	} \
+	_PARENT_NODE->removeChildByTag(99, true); \
+	_PARENT_NODE->addChild(sv, 1, 99); 
+
 class gui {
 public:
     gui(){
-        if(hInstance == NULL)
-            hInstance = this;
+		if (hInstance == NULL) {		
+			EmptyString = " ";
+			hInstance = this;
+		}
+            
     };
     ~gui(){
         //hInstance = NULL;
@@ -334,6 +369,7 @@ public:
     void addBGScrolling(const string img, Node * p, float duration);
 
 	int mModalTouchCnt;
+	string EmptyString;
 
 private:
     float mOriginX, mOriginY;

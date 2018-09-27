@@ -48,6 +48,10 @@ private:
 	virtual bool onTouchEnded(Touch* touch, Event* event);
 	int mTouchCnt;
 
+	virtual void onEnter();
+	virtual void onEnterTransitionDidFinish();
+	virtual void onExitTransitionDidStart();
+	virtual void onExit();
 
 	enum SUFFER_STATE {
 		SUFFER_STATE_NONE,
@@ -59,7 +63,7 @@ private:
 	race_mode mRaceMode;
 
 	LayerColor * mPopupLayer, *mPopupLayerBackground;
-	void initRace();
+	bool initRace();
 	void showItemSelect(errorCode err);
 	void selectItem(Ref* pSender, int id); //아이템 선택
 	void updateSelectItem(); //선택한 아이템 정보 갱신
