@@ -37,7 +37,7 @@
 //levelup bonus $
 #define bonusCashPerLevel 100
 //HP 추가 간격 5분?
-#define HPIncreaseInterval	(5.f * 60.f)
+#define HPIncreaseInterval	(30.f * 60.f)
 //최대 아이템 보상/비용
 #define maxTrainingItems 10
 //기본 HP

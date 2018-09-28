@@ -340,6 +340,7 @@ LayerColor * MainScene::createMessagePopup(LayerColor* &layerBG, Node * parent, 
 	LayerColor * layer = gui::inst()->addPopup(layerBG, parent, Size(240, 150)
 			, "bg_temp.png"
 			, Color4B::WHITE);
+	layerBG->setLocalZOrder(ZORDER_POPUP);
 	
 	gui::inst()->addLabelAutoDimension(0, 0, title, layer, 16, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 	gui::inst()->addLabelAutoDimension(0, 2, msg, layer, fontSize, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
@@ -506,6 +507,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	closePopup();
 	auto size = Size(300, 200);
 	layer = gui::inst()->addPopup(layerGray, this, size);
+	layerGray->setLocalZOrder(ZORDER_POPUP);
 	int fontSize = 12;
 	auto l = gui::inst()->createLayout(size, "", true, Color3B::WHITE);
 	l->setPosition(Vec2(layerGray->getContentSize().width / 2, layerGray->getContentSize().height / 2));
@@ -789,6 +791,7 @@ void MainScene::dailyReward() {
 
     this->removeChild(layerGray);
     layer = gui::inst()->addPopup(layerGray, this, size, "bg_inventory.png", Color4B::WHITE);
+	layerGray->setLocalZOrder(ZORDER_POPUP);
     gui::inst()->addTextButtonAutoDimension(8,0
             ,"Close"
             , layer
@@ -996,7 +999,7 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	layer = gui::inst()->addPopup(layerGray, this, size
 		, isSell ? BG_SELL : BG_INVENTORY
 		, Color4B::WHITE);
-
+	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
@@ -1184,7 +1187,7 @@ void MainScene::showBuy(inventoryType type) {
 	mQuantityItemId = -1;
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_BUY, Color4B::WHITE);
-
+	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
@@ -1323,7 +1326,7 @@ void MainScene::showCollection() {
 	//this->removeChild(layerGray);
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_COLLECTION, Color4B::WHITE);
-
+	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
@@ -1490,6 +1493,7 @@ void MainScene::actionList() {
     //this->removeChild(layerGray);
 	closePopup();
     layer = gui::inst()->addPopup(layerGray, this, size, BG_ACTION, Color4B::WHITE);
+	layerGray->setLocalZOrder(ZORDER_POPUP);
     gui::inst()->addTextButtonAutoDimension(8,0
             ,"CLOSE"
             , layer
@@ -1659,6 +1663,7 @@ void MainScene::showRace() {
 	//this->removeChild(layerGray);
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
+	layerGray->setLocalZOrder(ZORDER_POPUP);
 
 	gui::inst()->addTextButtonAutoDimension(0, 0, "ITEM", layer
 		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_item)
@@ -1729,7 +1734,7 @@ void MainScene::updateQuests() {
 		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, wstring_to_utf8(sz), this
 			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 10, ALIGNMENT_NONE);
 		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
-		q->setZOrder(1);
+		q->setLocalZOrder(ZORDER_QUEST);
 		mQuestButtons.push_back(pMenu);
 
 		cnt++;
@@ -1737,14 +1742,6 @@ void MainScene::updateQuests() {
 		if (cnt >= questCnt)
 			return;
 	}
-	/*
-	if (cnt < questCnt) {
-		for (int n = questCnt - cnt; n > cnt - 1; n--) {
-			mQuestButtons[n]->removeAllChildren();
-			this->removeChild(mQuestButtons[n]);
-		}
-	}
-	*/
 }
 
 string MainScene::getItemImg(int id) {
@@ -1779,6 +1776,8 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 		code = SCENECODE_FARMING;
 		break;
 	case achievement_category_race: //경묘 전체
+	case achievement_category_race_use_item: // 경묘 아이템 사용
+	case achievement_category_race_use_item_type: // 경묘 아이템 사용 타입
 	case achievement_category_race_item: // 경묘 아이템 모드
 	case achievement_category_race_speed: // 경묘 스피드 모드
 	case achievement_category_race_1vs1: //경묘 1:1

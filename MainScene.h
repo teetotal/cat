@@ -23,6 +23,11 @@ USING_NS_CC;
 #define BG_SELL "bg_sell.png"
 #define BG_RACE "bg_race.png"
 
+enum ZORDER {
+	ZORDER_BASE	= 0,
+	ZORDER_QUEST = 1,
+	ZORDER_POPUP,
+};
 enum CHILD_ID {
 	CHILD_ID_INVENTORY = 1000,
 	CHILD_ID_ACTION,

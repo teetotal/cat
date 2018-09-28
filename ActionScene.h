@@ -14,9 +14,9 @@ USING_NS_CC;
 
 class ActionScene : public Scene {
 public:
-    static Scene* createScene(int id);
+	static Scene* createScene(int id);
 
-    virtual bool init();
+	virtual bool init();
 
 	static ActionScene* create(int id)
 	{
@@ -59,7 +59,7 @@ private:
 		SUFFER_STATE_SHIELD,
 		SUFFER_STATE_ATTACK,
 	};
-		
+
 	race_mode mRaceMode;
 
 	LayerColor * mPopupLayer, *mPopupLayerBackground;
@@ -67,7 +67,7 @@ private:
 	void showItemSelect(errorCode err);
 	void selectItem(Ref* pSender, int id); //아이템 선택
 	void updateSelectItem(); //선택한 아이템 정보 갱신
-    void callback2(Ref* pSender, SCENECODE type);
+	void callback2(Ref* pSender, SCENECODE type);
 	void invokeItem(Ref* pSender, int idx);
 	void removeSelectItem(Ref* pSender, int idx);
 	Sprite* createRunner(int idx);
@@ -99,11 +99,22 @@ private:
 	};
 
 	void updatePoint();
+	void jump(Ref* pSender);
+	void onJumpFinished() {
+		resetHeight(raceParticipantNum);
+	};
 
+	void resetHeight(int idx) {
+		Vec2 position = mRunner[idx]->getPosition();
+		position.y = mRunnerInitPosition[idx].y;
+		mRunner[idx]->setPosition(position);
+	};
+	
 	Label * mPoint;
 
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
+	Vec2 mRunnerInitPosition[raceParticipantNum + 1];
 	//Start Count
 	Label * mCounting;
 	Label * mBoostPercent;

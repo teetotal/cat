@@ -121,6 +121,9 @@ bool ActionScene::init() {
 		Director::getInstance()->popScene();
 	
 	err = logics::hInst->runRaceSetRunners(mRaceId);
+	if (err != error_success)
+		Director::getInstance()->popScene();
+
 	switch (logics::hInst->getRace()->at(mRaceId).mode) {
 	case race_mode_item:
 	case race_mode_1vs1:
@@ -165,14 +168,33 @@ bool ActionScene::initRace() {
 	
 		
 	//아이템 설정
-	for (int i = 0; i < mSelectItems.size(); i++) {
-		_item item = logics::hInst->getItem(mSelectItems[i].itemId);
-		//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
-		wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
-		string sz = wstring_to_utf8(szW);
-		mSkillItem[i] = gui::inst()->addTextButton(0, 3 + i, sz, this,
-			CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
+	switch (mRaceMode) {
+	case race_mode_item:
+	case race_mode_1vs1:
+		for (int i = 0; i < mSelectItems.size(); i++) {
+			_item item = logics::hInst->getItem(mSelectItems[i].itemId);
+			//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
+			wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
+			string sz = wstring_to_utf8(szW);
+			mSkillItem[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
+				CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
+		}
+
+		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
+
+		// danger 
+		for (int n = 0; n < 10; n++) {
+			auto sprite = Sprite::create("danger.png");
+			sprite->setAnchorPoint(Vec2(0, 0));
+			sprite->setPosition(100 * (n + 1), mRunnerInitPosition[raceParticipantNum].y + 10/*magin*/);
+			mFullLayer->addChild(sprite);
+		}
+
+		break;
+	default:
+		break;
 	}
+	
 
 	counting();
 	return true;
@@ -277,10 +299,10 @@ RepeatForever * ActionScene::getRunningAnimation(bool isSpeedUp) {
 Sprite* ActionScene::createRunner(int idx) {
 	mSufferState[idx] = SUFFER_STATE_NONE;
 		
-	auto p = gui::inst()->addSprite(0, 7, RACE_DEFAULT_IMG, mFullLayer);
+	auto p = gui::inst()->addSprite(0, 8, RACE_DEFAULT_IMG, mFullLayer);
+	p->setAnchorPoint(Vec2(0, 0));
 	p->setPosition(Vec2(0
-		, p->getPosition().y + 
-		p->getContentSize().height / 2 + 
+		, p->getPosition().y + p->getContentSize().height / 2 + 
 		((raceParticipantNum - idx) * (p->getContentSize().height / 2))
 	));
 	//gui::inst()->setScale(p, RUNNER_WIDTH);
@@ -292,7 +314,7 @@ Sprite* ActionScene::createRunner(int idx) {
 
 	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 10, ALIGNMENT_CENTER, color);
 	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
-
+	mRunnerInitPosition[idx] = p->getPosition();
 	return p;
 }
 
@@ -390,6 +412,8 @@ void ActionScene::timer(float f) {
 						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");							
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_ATTACK;
+					//제자리로
+					resetHeight(n);
 				}				
 				break;
 			}
@@ -397,8 +421,10 @@ void ActionScene::timer(float f) {
 		else {
 			if (mSufferState[n] != SUFFER_STATE_NONE) {
 				mRunner[n]->stopAllActions();
-				mRunner[n]->runAction(getRunningAnimation());				
+				mRunner[n]->runAction(getRunningAnimation());					
 				mSufferState[n] = SUFFER_STATE_NONE;
+
+				resetHeight(n);
 			}
 		}	
 		float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
@@ -580,7 +606,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		, POPUP_NODE_MARGIN
 		, nodeSize
 		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
-		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue;
+		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue; if (logics::hInst->getItem(it->first).grade < logics::hInst->getRace()->at(mRaceId).level || logics::hInst->getItem(it->first).grade > logics::hInst->getRace()->at(mRaceId).level + 2) continue;
 		, MainScene::getItemImg(it->first)
 		, CC_CALLBACK_1(ActionScene::selectItem, this, it->first)
 		, getRomeNumber(logics::hInst->getItem(it->first).grade)
@@ -657,6 +683,19 @@ void ActionScene::updatePoint() {
 		mPoint->setString(sz);
 		mPoint->runAction(gui::inst()->createActionFocus());
 	}
+}
+
+void ActionScene::jump(Ref* pSender) {	
+	if (mRunnerInitPosition[raceParticipantNum].y == mRunner[raceParticipantNum]->getPosition().y) {
+		float jumpHeight = mRunner[raceParticipantNum]->getContentSize().height * 0.5;
+		mRunner[raceParticipantNum]->runAction(
+			Sequence::create(
+				MoveBy::create(RACE_UPDATE_INTERVAL / 2, Vec2(0, jumpHeight))
+				, MoveBy::create(RACE_UPDATE_INTERVAL / 2, Vec2(0, -1 * jumpHeight))
+				, CallFunc::create(this, callfunc_selector(ActionScene::onJumpFinished))
+				, NULL));
+	}
+	
 }
 
 void ActionScene::onEnter() {

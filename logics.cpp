@@ -17,15 +17,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		szActions = loadJsonString(CONFIG_ACTIONS);
 #else
 		szMeta = FileUtils::getInstance()->getStringFromFile(CONFIG_META);
-		szActions = FileUtils::getInstance()->getStringFromFile(CONFIG_ACTIONS);
-		/*
-		string fileFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR;
-		if (!FileUtils::getInstance()->isFileExist(fileFullPath)) {
-			//writable 경로에 파일 복사
-			FileUtils::getInstance()->writeStringToFile(FileUtils::getInstance()->getStringFromFile(CONFIG_ACTOR), fileFullPath);
-		}
-		szActor = FileUtils::getInstance()->getStringFromFile(fileFullPath);
-		*/
+		szActions = FileUtils::getInstance()->getStringFromFile(CONFIG_ACTIONS);	
 		//sqlite3
 		string sqliteFullPath = FileUtils::getInstance()->getWritablePath() + CONFIG_SQLITE3;
 		if (!FileUtils::getInstance()->isFileExist(sqliteFullPath)) {
@@ -43,12 +35,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	d.Parse(szMeta.c_str());
 	if (d.HasParseError())
 		return false;
-	/*
-	rapidjson::Document dActor;
-	dActor.Parse(szActor.c_str());
-	if (dActor.HasParseError())
-		return false;
-	*/
+	
 	rapidjson::Document dActions;
 	dActions.Parse(szActions.c_str());
 	if (dActions.HasParseError())
@@ -102,29 +89,7 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 bool logics::initActor(bool isFarmingDataLoad)
 {	
 	_actor* actor = new _actor;
-	/*
-	actor->userName = utf8_to_utf16(string(d["userName"].GetString()));
-	actor->userId = d["userId"].GetString();
-
-	actor->name = utf8_to_utf16(string(d["name"].GetString()));
-	actor->id = d["id"].GetString();
-
-	time_t lastLogin = d["lastLoginLoginTime"].GetInt64();
-	actor->lastLoginLoginTime = getNow();
-	actor->lastLoginLogoutTime = d["lastLoginLogoutTime"].GetInt64();
-	actor->lastHPUpdateTime = d["lastHPUpdateTime"].GetInt64();
-
-	actor->jobTitle = utf8_to_utf16(string(d["jobTitle"].GetString()));
-
-	actor->point = d["point"].GetInt();
-	actor->hp = d["hp"].GetInt();
-	actor->exp = d["exp"].GetInt();
-	actor->level = d["level"].GetInt();
-
-	actor->property.strength = d["property"]["strength"].GetInt();
-	actor->property.intelligence = d["property"]["intelligence"].GetInt();
-	actor->property.appeal = d["property"]["appeal"].GetInt();
-	*/
+	
 	//actor
 	{
 		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal FROM actor WHERE idx = 1");
@@ -181,14 +146,7 @@ bool logics::initActor(bool isFarmingDataLoad)
 			else
 				break;
 		}
-	}
-	/*
-	const rapidjson::Value& collection = d["collection"];
-	for (rapidjson::SizeType i = 0; i < collection.Size(); i++) {
-		int id = collection[rapidjson::SizeType(i)].GetInt();
-		actor->collection[id] = true;
-	}
-	*/
+	}	
 	mActor = actor;
 
 	//inventory
@@ -462,7 +420,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	}
 
 	//basic 	
-	int goals[] =		{ 0, 10,	20,		50,		114,	242,	498,	1010,	2034,	4082,	8178,	16370,	32754 }; //레벨 별 속성
+	int goals[] =		{ 0, 8,		16,		32,		64,		128,	256,	512,	1024,	2048,	4096,	8192,	16384 }; //레벨 별 속성
 	
 	int raceItem[] =	{ 0, 211,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215,	215	}; //레벨별 지급 race 아이템 
 	int raceItem_a[] =	{ 0, 0,		0,		0,		0,		0,		0,		0,		0,		222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템
@@ -473,7 +431,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
 	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
 	int uniqueId = 0;
-	for (int n = mActor->level; n <= LEVEL_MAX; n++) {
+	for (int n = 1; n <= LEVEL_MAX; n++) {
 
 		if (specificQuests.find(n) != specificQuests.end()) {
 			queue<Quest::_quest*> q = specificQuests[n];
@@ -552,21 +510,6 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}		
 	}
 
-	
-	//achievement		
-	/*
-	rapidjson::Value & pQuests = pAchievement["quests"];
-	for (rapidjson::SizeType i = 0; i < pQuests.Size(); i++) {
-		mAchievement.setAchievementAccumulation(
-			pQuests[rapidjson::SizeType(i)]["level"].GetInt()
-			, pQuests[rapidjson::SizeType(i)]["category"].GetInt()
-			, pQuests[rapidjson::SizeType(i)]["id"].GetInt()
-			, pQuests[rapidjson::SizeType(i)]["accumulation"].GetInt()
-			, pQuests[rapidjson::SizeType(i)]["isFinished"].GetBool()
-			, pQuests[rapidjson::SizeType(i)]["isReceived"].GetBool()
-		);
-	}
-	*/
 	{
 		sqlite3_stmt * stmt = Sql::inst()->select("select uniqueId, accumulation, isFinished, isReceived from quest");
 		if (stmt == NULL)
@@ -592,27 +535,6 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 	}
 	
-
-	//accumulation	
-	/*
-	rapidjson::Value & pAccumulation = pAchievement["accumulation"];
-	for (rapidjson::Value::ConstMemberIterator it = pAccumulation.MemberBegin();
-		it != pAccumulation.MemberEnd(); ++it)
-	{
-		const char * category = it->name.GetString();
-		//const rapidjson::Value& list = d["achievement"]["accumulation"][category];
-		const rapidjson::Value& list = it->value;
-
-		for (rapidjson::SizeType i = 0; i < list.Size(); i++) {
-			int id = list[rapidjson::SizeType(i)]["id"].GetInt();
-			int value = list[rapidjson::SizeType(i)]["value"].GetInt();
-			mAchievement.setAccumulation(atoi(category)
-				, id
-				, value
-			);
-		}
-	}
-	*/
 	{
 		sqlite3_stmt * stmt = Sql::inst()->select("select category, id, cnt from achievement_accumulation");
 		if (stmt == NULL)
@@ -642,31 +564,6 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	
 	return true;
 }
-/*
-bool logics::initAchievement(rapidjson::Value & p)
-{
-	bool isDaily = true;
-	for (int n = 0; n < 2; n++) 
-	{
-		const rapidjson::Value &v = isDaily ? p["daily"]: p["totally"];
-		
-		for (rapidjson::SizeType i = 0; i < v.Size(); i++)
-		{			
-			mAchievement.addAchieve(
-				n
-				, utf8_to_utf16(v[rapidjson::SizeType(i)]["title"].GetString())
-				, v[rapidjson::SizeType(i)]["category"].GetInt()
-				, v[rapidjson::SizeType(i)]["id"].GetInt()
-				, v[rapidjson::SizeType(i)]["value"].GetInt()
-				, v[rapidjson::SizeType(i)]["rewardId"].GetInt()
-				, v[rapidjson::SizeType(i)]["rewardValue"].GetInt()
-			);
-		}
-		isDaily = false;
-	}
-	return true;
-}
-*/
 
 void logics::finalize() {
 	if(mActor)
@@ -1321,9 +1218,8 @@ errorCode logics::runRaceSetRunners(int id) {
 
 	_race race = mRace[id];
 
-	if (mActor->property.total() < race.min) {
-		return error_not_enough_property;
-	}
+	//if (mActor->property.total() < race.min) return error_not_enough_property;
+	
 	if (!increaseHP(-1)) {
 		return error_not_enough_hp;
 	}
@@ -1352,13 +1248,34 @@ errorCode logics::runRaceSetRunners(int id) {
 	for (int n = 0; n < raceParticipantNum; n++) {
 		_raceParticipant p;
 		p.idx = n;
+		switch (race.mode) {
+		case race_mode_item :		
+		case race_mode_1vs1:
+			if (race.mode == race_mode_1vs1 && n != 0)
+				break;
+			p.strength = getRandValue(sum);
+			p.intelligence = sum - p.strength;
+			p.appeal = 0;
+			break;
+		case race_mode_speed:
+		case race_mode_friend_1:
+			p.strength = getRandValue(sum);
+			p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
+			p.intelligence = getRandValue(sum - p.strength);
+			p.appeal = sum - p.strength - p.intelligence;
+			break;		
+		default:
+			break;
+			
+		}
+		/*
 		if ((race.mode == race_mode_1vs1 && n == 0) || race.mode != race_mode_1vs1) {
 			p.strength = getRandValue(sum);
 			p.strength == 0 ? p.strength = 1 : p.strength = p.strength;
 			p.intelligence = getRandValue(sum - p.strength);
 			p.appeal = sum - p.strength - p.intelligence;
 		}
-
+		*/
 		//AI advantage
 		//p.strength += (int)(p.strength * raceAIAdvantageRatio * mRace[id].level);
 		
@@ -1392,7 +1309,18 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 	p.idx = raceParticipantNum;
 	p.strength = mActor->property.strength;
 	p.intelligence = mActor->property.intelligence;
-	p.appeal = mActor->property.appeal;
+
+	switch (mRace[mRaceCurrent.id].mode) {
+	case race_mode_item:
+	case race_mode_1vs1:	
+		break;
+	case race_mode_speed:
+	case race_mode_friend_1:
+		p.appeal = mActor->property.appeal;
+		break;
+	default:
+		break;
+	}
 
 	int idx = 0;
 	for (int m = 0; m < (int)items.size(); m++) {
