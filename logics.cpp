@@ -1307,15 +1307,18 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 
 	_raceParticipant p;
 	p.idx = raceParticipantNum;
-	p.strength = mActor->property.strength;
-	p.intelligence = mActor->property.intelligence;
-
+	
 	switch (mRace[mRaceCurrent.id].mode) {
 	case race_mode_item:
 	case race_mode_1vs1:	
+		p.strength = mActor->property.strength + mActor->property.appeal / 2;
+		p.intelligence = mActor->property.intelligence + mActor->property.appeal / 2;
+		p.appeal = 0;
 		break;
 	case race_mode_speed:
 	case race_mode_friend_1:
+		p.strength = mActor->property.strength;
+		p.intelligence = mActor->property.intelligence;
 		p.appeal = mActor->property.appeal;
 		break;
 	default:

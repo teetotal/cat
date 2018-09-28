@@ -9,7 +9,7 @@
 #define RACE_UPDATE_INTERVAL 0.3
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
-#define RACE_GOAL_DISTANCE 2.5
+#define RACE_GOAL_DISTANCE 3.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  4
 
@@ -55,13 +55,29 @@ bool ActionScene::init() {
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
 
+	for (int n = 0; n < 4; n++) {
+
+		for (int i = 1; i <= 3; i++) {
+			auto s = Sprite::create("layers/race/" + to_string(i) + ".png");
+			Vec2 point = Vec2(gui::inst()->mVisibleX / 2 + gui::inst()->mOriginX + (n * gui::inst()->mVisibleX)
+				, gui::inst()->mVisibleY / 2 + gui::inst()->mOriginY);
+			s->setContentSize(Size(gui::inst()->mVisibleX, gui::inst()->mVisibleY));
+			s->setAnchorPoint(Vec2(0.5, 0.5));
+			s->setPosition(point);
+
+			mFullLayer->addChild(s);
+		}
+	}
+	/*
 	gui::inst()->addBGScrolling("layers/race/1.png", mFullLayer, 0);
 	gui::inst()->addBGScrolling("layers/race/2.png", mFullLayer, 0);
 	gui::inst()->addBGScrolling("layers/race/3.png", mFullLayer, 0);
+	*/
 	//gui::inst()->addBGScrolling("layers/race/4.png", this, 3000);
 	//gui::inst()->addBGScrolling("layers/race/5.png", this, 3000);
 	
 	auto finishLine = gui::inst()->addSprite(0, 0, "finish.png", mFullLayer);
+	finishLine->setAnchorPoint(Vec2::ZERO);
 
 	mGoalLength = Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE - finishLine->getContentSize().width;
 	
@@ -74,6 +90,8 @@ bool ActionScene::init() {
 	label1->setPosition(Vec2(mGoalLength/2, label1->getPosition().y));
 	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
+	auto label3 = gui::inst()->addLabelAutoDimension(0, 2, "Fin", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
+	label3->setPosition(Vec2(mGoalLength, label3->getPosition().y));
 
 
 	_race race = logics::hInst->getRace()->at(mRaceId);
@@ -184,9 +202,12 @@ bool ActionScene::initRace() {
 
 		// danger 
 		for (int n = 0; n < 10; n++) {
+			float y = mRunnerInitPosition[raceParticipantNum].y + 10/*magin*/;
 			auto sprite = Sprite::create("danger.png");
 			sprite->setAnchorPoint(Vec2(0, 0));
-			sprite->setPosition(100 * (n + 1), mRunnerInitPosition[raceParticipantNum].y + 10/*magin*/);
+			sprite->setPosition(300 * (n + 1), y);
+			//sprite->setScaleX(0.5);
+			sprite->runAction(MoveTo::create(10 + (n * 2), Vec2(0, y)));
 			mFullLayer->addChild(sprite);
 		}
 
@@ -690,8 +711,8 @@ void ActionScene::jump(Ref* pSender) {
 		float jumpHeight = mRunner[raceParticipantNum]->getContentSize().height * 0.5;
 		mRunner[raceParticipantNum]->runAction(
 			Sequence::create(
-				MoveBy::create(RACE_UPDATE_INTERVAL / 2, Vec2(0, jumpHeight))
-				, MoveBy::create(RACE_UPDATE_INTERVAL / 2, Vec2(0, -1 * jumpHeight))
+				MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight))
+				, MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight))
 				, CallFunc::create(this, callfunc_selector(ActionScene::onJumpFinished))
 				, NULL));
 	}

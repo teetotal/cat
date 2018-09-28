@@ -85,6 +85,11 @@ public:
             , int fontSize = GRID_DEFAULT_FONT_SIZE
             , Color4F bgColor = Color4F::WHITE
     );
+
+	Vec2 getCenter() {
+
+	};
+
     float getRealPixel(float x);
     float getSizeFromRealPixel(float x);
 
@@ -371,14 +376,13 @@ public:
 	int mModalTouchCnt;
 	string EmptyString;
 
+	float mOriginX, mOriginY;
+	float mVisibleX, mVisibleY;
+	float mWidth;
+	float mHeight;
+
+	Size mResolution;
 private:
-    float mOriginX, mOriginY;
-    float mVisibleX, mVisibleY;
-    float mWidth;
-    float mHeight;
-
-    Size mResolution;
-
     const char* mDefaultFont;
     int mDefaultFontSize;
 
