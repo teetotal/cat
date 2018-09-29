@@ -1373,6 +1373,7 @@ void logics::invokeRaceItem(int idx, itemType type, int quantity) {
 	if (mRaceParticipants->at(idx).currentSuffer == itemType_race_shield) // 방어막이면 공격 안당함
 		return;
 
+	clearRaceItem(idx);
 	for (int m = 0; m < quantity; m++)
 		mRaceParticipants->at(idx).sufferItems.push(type);
 	return;
@@ -1385,10 +1386,7 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 	//아이템 대상에게 적용
 	switch (type) {
 	case itemType_race_shield:		//방어 쉴드
-		while (!mRaceParticipants->at(seq).sufferItems.empty())
-		{
-			mRaceParticipants->at(seq).sufferItems.pop();
-		}
+		clearRaceItem(seq);
 		//mRaceParticipants->at(seq).sufferItems.push(itemType_race_shield);
 		//break;
 	case itemType_race_speedUp:		//속업
@@ -1562,14 +1560,14 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 switch (mRaceParticipants->at(n).currentSuffer) {
 		 case itemType_race_shield:
 			 if (mRaceParticipants->at(n).sufferItems.size() > 0 ) {
-				 //여기에 올수가 없어야 정상
 				 switch (mRaceParticipants->at(n).sufferItems.front()) {
 				 case itemType_race_attactFront:
 				 case itemType_race_attactFirst:
+					 //여기에 올수가 없어야 정상
 					 mRaceParticipants->at(n).sufferItems.pop();
 					 break;
-					 default:
-						 break;
+				default:
+					break;
 				 }
 			 }
 			 break;

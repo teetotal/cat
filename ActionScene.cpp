@@ -370,13 +370,14 @@ void ActionScene::timer(float f) {
 			continue;
 		//rank
 		
-		if (p.ratioLength >= 100.f) {			
+		if (p.ratioLength >= 100.f) {	//결승점에서는 순위		
 			mRunner[n]->stopAllActions();
+			mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
 			mRunnerLabel[n]->setString(to_string(p.rank));
 			continue;
 		}
-		else { //순위 전에는 사용한 아이템 
-			mRunnerLabel[n]->setString(getSkillIcon(p.shootCurrentType));
+		else { //순위 전에는 겪고있는 아이템 
+			mRunnerLabel[n]->setString(getSkillIcon(p.currentSuffer));
 		}
 
 		if (p.currentSuffer != itemType_max) {

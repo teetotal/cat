@@ -586,6 +586,12 @@ private:
 	void invokeRaceItemAI();
 	//race 순위에 아이템 적용
 	void invokeRaceByRank(int rank, itemType type, int quantity);
+	void clearRaceItem(int idx) {
+		while (!mRaceParticipants->at(idx).sufferItems.empty())
+		{
+			mRaceParticipants->at(idx).sufferItems.pop();
+		}
+	};
 	//SIA를 고려한 기본 스피드
 	int getBaseSpeed(int s, int i, int a, float ranPercent, int boost);
 	
