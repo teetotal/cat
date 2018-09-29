@@ -13,6 +13,8 @@
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  4
 
+#define RUNNER_MARGIN 35
+
 //#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene(int id)
 {	
@@ -69,11 +71,11 @@ bool ActionScene::init() {
 	}
 	//finish
 	auto finishLine = gui::inst()->addSprite(0, 0, "finish.png", mFullLayer);
-	finishLine->setAnchorPoint(Vec2(1,0));
+	finishLine->setAnchorPoint(Vec2(0,0));
 
 	mGoalLength = Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE - finishLine->getContentSize().width;
 	
-	finishLine->setPosition(Vec2(mGoalLength, 120));
+	finishLine->setPosition(Vec2(mGoalLength - RUNNER_MARGIN, 120));
 
 	//구간 표시
 	auto label0 = gui::inst()->addLabelAutoDimension(0, 2, "75%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
@@ -82,7 +84,9 @@ bool ActionScene::init() {
 	label1->setPosition(Vec2(mGoalLength/2, label1->getPosition().y));
 	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
-	
+	auto label3 = gui::inst()->addLabelAutoDimension(0, 2, "0%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
+	label3->setPosition(Vec2(mGoalLength - RUNNER_MARGIN, label2->getPosition().y));
+
 	_race race = logics::hInst->getRace()->at(mRaceId);
 
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
@@ -217,6 +221,9 @@ void ActionScene::counter(float f) {
 				}
 			}
 		}
+		else {
+			gui::inst()->addLabel(0, 6, "Tap!!", this, 12, ALIGNMENT_CENTER, Color3B::GRAY)->runAction(Blink::create(20, 15*5));
+		}
 	}	
 	mCount--;
 }
@@ -304,11 +311,13 @@ Sprite* ActionScene::createRunner(int idx) {
 	
 	// danger 
 	if (isItemMode()) {
+		const float baseDistance = (mFullLayer->getContentSize().width * 1.5 / DANGER_CNT);
 		for (int n = 0; n < DANGER_CNT; n++) {
 			float y = mRunnerInitPosition[idx].y + 10/*magin*/;
 			auto sprite = Sprite::create("danger.png");
 			sprite->setAnchorPoint(Vec2(0, 0));
-			sprite->setPosition(300 * (n + 1), y);
+			float x = baseDistance * (n + 1) + getRandValue(100);
+			sprite->setPosition(x, y);
 
 			mDangers[idx][n] = sprite;
 			mFullLayer->addChild(sprite);
@@ -353,7 +362,8 @@ void ActionScene::timer(float f) {
 			if (mRunner[n]) {
 				mRunner[n]->stopAllActions();
 				mRunner[n]->runAction(getRunningAnimation());
-				mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
+				//mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
+				mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, Vec2(0, mRunner[n]->getPosition().y)));
 			}
 		}
 		/*
@@ -433,7 +443,7 @@ void ActionScene::timer(float f) {
 		float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
 		Vec2 position = mRunner[n]->getPosition();
 		position.x = x;
-		mRunner[n]->runAction(MoveTo::create(0.3, position));
+		mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, position));
 		
 		//mRunnerLabel[n]->setString(to_string(p.currentLength) + "-" + to_string(p.sufferItems.size()) + "," + to_string(p.currentSuffer));
 	}

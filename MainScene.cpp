@@ -509,10 +509,12 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	layer = gui::inst()->addPopup(layerGray, this, size);
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 	int fontSize = 12;
-	auto l = gui::inst()->createLayout(size, "", true, Color3B::WHITE);
+	//auto l = gui::inst()->createLayout(size, "", true, Color3B::WHITE);
+	LayerColor * l = layer;
+	/*
 	l->setPosition(Vec2(layerGray->getContentSize().width / 2, layerGray->getContentSize().height / 2));
 	l->setAnchorPoint(Vec2(0.5, 0.5));
-	
+	*/
 	_training t = logics::hInst->getActionList()->at(id);	
 	
 	string pay = " ";
@@ -530,7 +532,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	gui::inst()->addLabelAutoDimension(2, 1, wstring_to_utf8(t.name), l, 14, ALIGNMENT_NONE);
 	
 	int idx = 2;
-	float animationDelay = 0.15f;
+	float animationDelay = 0.1f;
 	int cntAnimationMotion = 6;
 	int loopAnimation = 4 * 3;// * t.level; //레벨이 높을 수록 오래 
 	float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
@@ -553,8 +555,6 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	*/
 	auto animate = RepeatForever::create(Animate::create(animation));
 	pMan->runAction(animate);
-
-	
 	
 	//loading bar 연출
 	auto loadingbar = gui::inst()->addProgressBar(3, idx++, LOADINGBAR_IMG_SMALL, l, 10, size);
@@ -563,22 +563,23 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
 	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "Max " + reward, l, 12, ALIGNMENT_NONE);
 	
-	layerGray->addChild(l);
+	//layerGray->addChild(l);
 	//touch
 	Menu * pTouchButton = NULL;
-	gui::inst()->addTextButtonRaw(pTouchButton, 0, idx, "Touch", l, CC_CALLBACK_1(MainScene::callback1, this), 0, ALIGNMENT_NONE, Color3B::RED);	
+	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, idx, "rat1.png", "rat2.png", l, CC_CALLBACK_1(MainScene::callback1, this), ALIGNMENT_NONE);
+	//gui::inst()->addTextButtonRaw(pTouchButton, 0, idx, "Touch", l, CC_CALLBACK_1(MainScene::callback1, this), 0, ALIGNMENT_NONE, Color3B::RED);	
 
 	//start touch count
 	mActionCnt = 0;
 	mActionTouchCnt = 0;
 
 	gui::inst()->mModalTouchCnt = 0;	
-	const int waitTimes = (int)(0.75 / animationDelay);
+	//const int waitTimes = (int)(0.75 / animationDelay);
 	
 
 	this->schedule([=](float delta) {		
 		//touch 이동
-		if (mActionCnt % waitTimes == 0) {
+		if (mActionCnt % 10 < 3) {
 			Vec2 position = Vec2(getRandValue(l->getContentSize().width), getRandValue(l->getContentSize().height));
 			float marginX = pTouchButton->getChildren().at(0)->getContentSize().width;
 			float marginY = pTouchButton->getChildren().at(0)->getContentSize().height;
@@ -589,7 +590,9 @@ void MainScene::callbackAction(Ref* pSender, int id){
 			if (position.y > l->getContentSize().height - marginY)
 				position.y = l->getContentSize().height - marginY;
 
-			pTouchButton->setPosition(position);
+			//pTouchButton->setPosition(position);
+			pTouchButton->runAction(MoveTo::create(animationDelay, position));
+			
 		}
 		
 		
@@ -606,7 +609,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 		if (percent >= 100.0f) {
 			this->unschedule("updateLoadingBar");
 			pMan->stopAllActions();
-			callbackActionAnimation(id, mActionCnt / waitTimes);
+			callbackActionAnimation(id, mActionCnt / 2);
 		}
 	}, animationDelay, "updateLoadingBar");
 

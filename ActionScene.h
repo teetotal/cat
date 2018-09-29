@@ -12,7 +12,7 @@
 
 USING_NS_CC;
 
-#define DANGER_CNT 10
+#define DANGER_CNT 5
 #define DANGER_SPEED 70
 
 class ActionScene : public Scene {

@@ -422,14 +422,21 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	//basic 	
 	int goals[] =		{ 0, 8,		16,		32,		64,		128,	256,	512,	1024,	2048,	4096,	8192,	16384 }; //레벨 별 속성
 	
+	/*
 	int raceItem[] =	{ 0, 211,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215,	215	}; //레벨별 지급 race 아이템 
 	int raceItem_a[] =	{ 0, 0,		0,		0,		0,		0,		0,		0,		0,		222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템
 	int raceItem_b[] =	{ 0, 0,		230,	230,	231,	231,	231,	232,	232,	233,	233,	234,	234 }; //레벨별 지급 race 1등 공격 아이템 
 	int raceItem_c[] =	{ 0, 0,		0,		220,	220,	220,	221,	221,	221,	0,		0,		0,		0}; //레벨별 지급 race 전방 공격 아이템
+	*/
+	int raceItem[]	 = { 0, 50,		50,		50,		50,		50,		50,		50,		50,		51,		51,		51,		51 }; //레벨별 지급 race 아이템 
+	int raceItem_a[] = { 0, 0,		0,		0,		0,		0,		0,		0,		0,		51,		51,		51,		51 }; //레벨별 지급 race 전방 공격 아이템
+	int raceItem_b[] = { 0, 0,		50,		50,		50,		50,		50,		50,		50,		51,		51,		51,		51 }; //레벨별 지급 race 1등 공격 아이템 
+	int raceItem_c[] = { 0, 0,		0,		50,		50,		50,		50,		50,		50,		0,		0,		0,		0 }; //레벨별 지급 race 전방 공격 아이템
 
-
+	/*
 	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
 	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
+	*/
 	int uniqueId = 0;
 	for (int n = 1; n <= LEVEL_MAX; n++) {
 
@@ -452,7 +459,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			, achievement_property_id_total
 			, totalProperty
 			, raceItem[n]
-			, n //레벨 만큼 준다
+			, 1
 		);
 		//race
 		if (raceItem_a[n] > 0) {
@@ -464,7 +471,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				, achievement_race_id_first
 				, nRaceTry
 				, raceItem_a[n]
-				, n
+				, 1
 			);
 		}
 		//farm
@@ -477,7 +484,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				, achievement_farming_id_plant
 				, nFarmTry
 				, raceItem_b[n]
-				, n  //레벨 만큼 준다
+				, 1
 			);
 		}
 
@@ -491,7 +498,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				, 204
 				, use
 				, raceItem_c[n]
-				, n  //레벨 만큼 준다
+				, 1
 			);
 		}
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {			
@@ -504,7 +511,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
                         , it->first
                         , 1
                         , 51
-                        , n
+                        , 1
                 );
 			}
 		}		
@@ -1585,7 +1592,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 mRaceParticipants->at(n).totalLength += length;
 		 mRaceParticipants->at(n).currentLength = length;
 		 mRaceParticipants->at(n).ratioLength = (((float)mRaceParticipants->at(n).totalLength / (float)raceLength) * 100.0f);
-		 if (mRaceParticipants->at(n).totalLength >= raceLength)
+		 if (mRaceParticipants->at(n).totalLength > raceLength)
 			 mRaceParticipants->at(n).rank = lastRank + 1;
 	 }
 	 
