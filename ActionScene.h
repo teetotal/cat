@@ -12,6 +12,9 @@
 
 USING_NS_CC;
 
+#define DANGER_CNT 10
+#define DANGER_SPEED 70
+
 class ActionScene : public Scene {
 public:
 	static Scene* createScene(int id);
@@ -41,6 +44,8 @@ public:
 		mRaceMode = logics::hInst->getRace()->at(id).mode;
 	};
 
+	void update(float delta) override;
+
 private:
 	virtual bool onTouchBegan(Touch* touch, Event* event) {
 		return true;
@@ -52,7 +57,7 @@ private:
 	virtual void onEnterTransitionDidFinish();
 	virtual void onExitTransitionDidStart();
 	virtual void onExit();
-
+	
 	enum SUFFER_STATE {
 		SUFFER_STATE_NONE,
 		SUFFER_STATE_SPEEDUP,
@@ -109,6 +114,17 @@ private:
 		position.y = mRunnerInitPosition[idx].y;
 		mRunner[idx]->setPosition(position);
 	};
+
+	bool isItemMode() {
+		switch (mRaceMode) {
+		case race_mode_item:
+		case race_mode_1vs1:
+			return true;
+		default:
+			break;
+		}
+		return false;
+	};
 	
 	Label * mPoint;
 
@@ -144,6 +160,8 @@ private:
 
 	wstring names[raceParticipantNum + 1];
 	Color3B txtColors[raceParticipantNum + 1];
+	//typedef vector<Sprite*> VecSprite;
+	Sprite * mDangers[raceParticipantNum + 1][DANGER_CNT];
 
 	//play횟수
 	int mPlayCnt;

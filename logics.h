@@ -516,6 +516,11 @@ public:
 			winCnt = 0;
 		};
 	};
+	void invokeRaceItem(int idx, itemType type, int quantity);
+	//장애물에 걸림
+	void invokeRaceObstacle(int idx, int level) {
+		invokeRaceItem(idx, itemType_race_attactFront, level);
+	}
 	RaceWin mRaceWin;
 	//-----------------------------------------------------------------------charge
 	errorCode runRecharge(int id, int quantity);	

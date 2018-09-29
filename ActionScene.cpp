@@ -54,9 +54,8 @@ bool ActionScene::init() {
 	txtColors[idx] = Color3B::WHITE;
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
-
+	//background
 	for (int n = 0; n < 4; n++) {
-
 		for (int i = 1; i <= 3; i++) {
 			auto s = Sprite::create("layers/race/" + to_string(i) + ".png");
 			Vec2 point = Vec2(gui::inst()->mVisibleX / 2 + gui::inst()->mOriginX + (n * gui::inst()->mVisibleX)
@@ -68,16 +67,9 @@ bool ActionScene::init() {
 			mFullLayer->addChild(s);
 		}
 	}
-	/*
-	gui::inst()->addBGScrolling("layers/race/1.png", mFullLayer, 0);
-	gui::inst()->addBGScrolling("layers/race/2.png", mFullLayer, 0);
-	gui::inst()->addBGScrolling("layers/race/3.png", mFullLayer, 0);
-	*/
-	//gui::inst()->addBGScrolling("layers/race/4.png", this, 3000);
-	//gui::inst()->addBGScrolling("layers/race/5.png", this, 3000);
-	
+	//finish
 	auto finishLine = gui::inst()->addSprite(0, 0, "finish.png", mFullLayer);
-	finishLine->setAnchorPoint(Vec2::ZERO);
+	finishLine->setAnchorPoint(Vec2(1,0));
 
 	mGoalLength = Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE - finishLine->getContentSize().width;
 	
@@ -90,23 +82,8 @@ bool ActionScene::init() {
 	label1->setPosition(Vec2(mGoalLength/2, label1->getPosition().y));
 	auto label2 = gui::inst()->addLabelAutoDimension(0, 2, "25%", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
 	label2->setPosition(Vec2(mGoalLength * 3 / 4, label2->getPosition().y));
-	auto label3 = gui::inst()->addLabelAutoDimension(0, 2, "Fin", mFullLayer, 0, ALIGNMENT_NONE, Color3B::GRAY);
-	label3->setPosition(Vec2(mGoalLength, label3->getPosition().y));
-
-
+	
 	_race race = logics::hInst->getRace()->at(mRaceId);
-
-	for (int n = 0; n < raceParticipantNum; n++) {
-		if (race.mode == race_mode_1vs1 && n != 0)
-			continue;
-		mRunner[n] = createRunner(n);
-	}
-	//나는 무조건 있어야 하니까.
-	mRunner[raceParticipantNum] = createRunner(raceParticipantNum);
-
-	mFullLayer->runAction(Follow::create(mRunner[raceParticipantNum]
-		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height * 2)
-	));
 
 	mFullLayer->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(mFullLayer);	
@@ -142,19 +119,11 @@ bool ActionScene::init() {
 	if (err != error_success)
 		Director::getInstance()->popScene();
 
-	switch (logics::hInst->getRace()->at(mRaceId).mode) {
-	case race_mode_item:
-	case race_mode_1vs1:
-	case race_mode_friend_1:
-		//경묘 선수 초기 셋팅 및 아이템 선택
+	if (isItemMode()) 
 		showItemSelect(err);
-		break;
-	case race_mode_speed:
+	else 
 		initRace();
-		break;
-	default:
-		break;
-	}
+	
     return true;
 }
 
@@ -174,21 +143,22 @@ bool ActionScene::initRace() {
 		return false;
 	}
 
-	
-	//rank
-	/*
-	for (int n = 0; n <= raceParticipantNum; n++) {
-		mRankLabel[n] = gui::inst()->addLabel(8, 0, to_string(n+1) + "0" + wstring_to_utf8(names[n]), this, 8, ALIGNMENT_NONE);
-		mRankLabel[n]->setColor(txtColors[n]);
-		mRankLabel[n]->setPosition(Vec2(mRankLabel[n]->getPosition().x, mRankLabel[n]->getPosition().y - n * 10));
+	_race race = logics::hInst->getRace()->at(mRaceId);
+
+	for (int n = 0; n < raceParticipantNum; n++) {
+		if (race.mode == race_mode_1vs1 && n != 0)
+			continue;
+		mRunner[n] = createRunner(n);
 	}
-	*/
-	
-		
+	//나는 무조건 있어야 하니까.
+	mRunner[raceParticipantNum] = createRunner(raceParticipantNum);
+
+	mFullLayer->runAction(Follow::create(mRunner[raceParticipantNum]
+		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height * 2)
+	));
+			
 	//아이템 설정
-	switch (mRaceMode) {
-	case race_mode_item:
-	case race_mode_1vs1:
+	if (isItemMode()) {
 		for (int i = 0; i < mSelectItems.size(); i++) {
 			_item item = logics::hInst->getItem(mSelectItems[i].itemId);
 			//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
@@ -197,26 +167,9 @@ bool ActionScene::initRace() {
 			mSkillItem[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
 				CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
 		}
-
 		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
-
-		// danger 
-		for (int n = 0; n < 10; n++) {
-			float y = mRunnerInitPosition[raceParticipantNum].y + 10/*magin*/;
-			auto sprite = Sprite::create("danger.png");
-			sprite->setAnchorPoint(Vec2(0, 0));
-			sprite->setPosition(300 * (n + 1), y);
-			//sprite->setScaleX(0.5);
-			sprite->runAction(MoveTo::create(10 + (n * 2), Vec2(0, y)));
-			mFullLayer->addChild(sprite);
-		}
-
-		break;
-	default:
-		break;
 	}
 	
-
 	counting();
 	return true;
 }
@@ -234,18 +187,33 @@ void ActionScene::counter(float f) {
 	if (mCount == 0) {
 		sz = "Go!";
 		mCounting->setColor(Color3B::RED);
-		mCounting->runAction(EaseIn::create(ScaleTo::create(0.2, 4), 3.f));
 	}
 	else {
-		mCounting->setColor(Color3B::BLUE);
-		mCounting->runAction(Sequence::create(EaseIn::create(ScaleTo::create(0.3, 4), 3.f), EaseIn::create(ScaleTo::create(0.3, 1), 3.f), NULL));
+		mCounting->setColor(Color3B::YELLOW);
 	}
+	mCounting->runAction(Sequence::create(EaseIn::create(ScaleTo::create(0.5, 4), 0.4f), EaseOut::create(ScaleTo::create(0.5, 1), 0.4f), NULL));
 	mCounting->setString(sz);
 	
 	if (mCount < 0) {
 		this->removeChild(mCounting);
 		unschedule(schedule_selector(ActionScene::counter));
 		this->schedule(schedule_selector(ActionScene::timer), RACE_UPDATE_INTERVAL);
+
+		if (isItemMode()) {
+			this->scheduleUpdate();
+			//Danger
+			for (int idx = 0; idx <= raceParticipantNum; idx++) {
+				for (int n = 0; n < DANGER_CNT; n++) {
+					Sprite * p = mDangers[idx][n];
+					Vec2 position = p->getPosition();
+					//시간 = 거리 / 속력
+					float distance = position.x;
+					float speed = DANGER_SPEED;
+					float time = distance / speed;
+					p->runAction(MoveTo::create(time, Vec2(-1 * p->getContentSize().width, position.y)));
+				}
+			}
+		}
 	}	
 	mCount--;
 }
@@ -283,16 +251,9 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 			return Director::getInstance()->popScene();
 
 		err = logics::hInst->runRaceSetRunners(mRaceId);
-		switch (logics::hInst->getRace()->at(mRaceId).mode) {
-		case race_mode_item:
-		case race_mode_1vs1:
-		case race_mode_friend_1:
-			//경묘 선수 초기 셋팅 및 아이템 선택
+		if (isItemMode()) {
 			showItemSelect(err);
-			break;
-		default:
-			break;
-		}
+		}		
 		break;
 	default:		
 		break;
@@ -321,9 +282,9 @@ Sprite* ActionScene::createRunner(int idx) {
 	mSufferState[idx] = SUFFER_STATE_NONE;
 		
 	auto p = gui::inst()->addSprite(0, 8, RACE_DEFAULT_IMG, mFullLayer);
-	p->setAnchorPoint(Vec2(0, 0));
+	p->setAnchorPoint(Vec2(1, 0));
 	p->setPosition(Vec2(0
-		, p->getPosition().y + p->getContentSize().height / 2 + 
+		, 10+ p->getPosition().y + p->getContentSize().height / 2 + 
 		((raceParticipantNum - idx) * (p->getContentSize().height / 2))
 	));
 	//gui::inst()->setScale(p, RUNNER_WIDTH);
@@ -336,6 +297,21 @@ Sprite* ActionScene::createRunner(int idx) {
 	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 10, ALIGNMENT_CENTER, color);
 	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
 	mRunnerInitPosition[idx] = p->getPosition();
+
+	
+	// danger 
+	if (isItemMode()) {
+		for (int n = 0; n < DANGER_CNT; n++) {
+			float y = mRunnerInitPosition[idx].y + 10/*magin*/;
+			auto sprite = Sprite::create("danger.png");
+			sprite->setAnchorPoint(Vec2(0, 0));
+			sprite->setPosition(300 * (n + 1), y);
+
+			mDangers[idx][n] = sprite;
+			mFullLayer->addChild(sprite);
+		}
+	}
+
 	return p;
 }
 
@@ -426,26 +402,28 @@ void ActionScene::timer(float f) {
 				break;
 			default:				
 				if (mSufferState[n] != SUFFER_STATE_ATTACK) {
+					//제자리로
+					resetHeight(n);
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
 					for (int n = 0; n < 8; n++)
-						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");							
+						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");		
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_ATTACK;
-					//제자리로
-					resetHeight(n);
+					
 				}				
 				break;
 			}
 		}
 		else {
 			if (mSufferState[n] != SUFFER_STATE_NONE) {
+				resetHeight(n);
+
 				mRunner[n]->stopAllActions();
 				mRunner[n]->runAction(getRunningAnimation());					
 				mSufferState[n] = SUFFER_STATE_NONE;
 
-				resetHeight(n);
 			}
 		}	
 		float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
@@ -458,6 +436,19 @@ void ActionScene::timer(float f) {
 }
 
 void ActionScene::result() {
+	//remove danger
+	if (isItemMode()) {
+		this->unscheduleUpdate();
+		for (int i = 0; i <= raceParticipantNum; i++) {
+			for (int j = 0; j < DANGER_CNT; j++) {
+				if (mDangers[i][j]) {
+					mDangers[i][j]->stopAllActions();
+					mFullLayer->removeChild(mDangers[i][j]);
+					mDangers[i][j] = NULL;
+				}
+			}
+		}
+	}
 	Size grid = Size(5, 8);
 	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, Size(300, 200), BG_RACE, Color4B::WHITE);
 
@@ -473,7 +464,8 @@ void ActionScene::result() {
 	sz = L"";
 	int prize = logics::hInst->getRaceReward(mRaceCurrent->id, mRaceCurrent->rank - 1);
 	if (mRaceCurrent->prize > 0) {
-		sz += L"상금: $";		
+		sz += L"상금: ";
+		sz += COIN_W;
 		sz += to_wstring(prize);
 	}
 
@@ -711,12 +703,37 @@ void ActionScene::jump(Ref* pSender) {
 		float jumpHeight = mRunner[raceParticipantNum]->getContentSize().height * 0.5;
 		mRunner[raceParticipantNum]->runAction(
 			Sequence::create(
-				MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight))
-				, MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight))
+				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), 0.4)
+				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), 0.4)
 				, CallFunc::create(this, callfunc_selector(ActionScene::onJumpFinished))
 				, NULL));
 	}
 	
+}
+
+void ActionScene::update(float delta) {
+	for (int i = 0; i <= raceParticipantNum; i++) {
+		Vec2 position = mRunner[i]->getPosition();
+		Size size = mRunner[i]->getContentSize();
+		Vec2 center = Vec2(position.x - size.width / 2, position.y + size.height / 2);
+		float radius = size.height / 3;
+		/*
+		if (i == raceParticipantNum) {
+			auto draw = DrawNode::create();
+			draw->drawCircle(center, radius, 0, 100, true, Color4F::BLACK);
+			mFullLayer->addChild(draw);
+		}
+		*/
+		for (int j = 0; j < DANGER_CNT; j++) {
+			
+			if (mDangers[i][j]->getTag() != 1 && mDangers[i][j]->getBoundingBox().intersectsCircle(center, radius)) {
+				logics::hInst->invokeRaceObstacle(i, 1);
+				//mDangers[i][j]->runAction(Blink::create(1, 20));
+				//mDangers[i][j] = NULL;
+				mDangers[i][j]->setTag(1);
+			}
+		}
+	}
 }
 
 void ActionScene::onEnter() {

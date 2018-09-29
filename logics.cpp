@@ -1361,15 +1361,23 @@ int logics::getRaceReward(int id, int rankIdx) {
 	return race.rewards.at(rankIdx).prize;
 }
 
+
 void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		if (mRaceParticipants->at(n).currentRank == rank) {
-			for(int m=0; m < quantity; m++)
-				mRaceParticipants->at(n).sufferItems.push(type);
-			return;
-		}
+		if (mRaceParticipants->at(n).currentRank == rank)
+			return invokeRaceItem(n, type, quantity);
 	}
 }
+
+void logics::invokeRaceItem(int idx, itemType type, int quantity) {
+	if (mRaceParticipants->at(idx).currentSuffer == itemType_race_shield) // 방어막이면 공격 안당함
+		return;
+
+	for (int m = 0; m < quantity; m++)
+		mRaceParticipants->at(idx).sufferItems.push(type);
+	return;
+}
+
 
 void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRank) {
 	if (mRaceParticipants->at(seq).shootItemCount >= raceItemSlot)
@@ -1381,8 +1389,8 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 		{
 			mRaceParticipants->at(seq).sufferItems.pop();
 		}
-		mRaceParticipants->at(seq).sufferItems.push(itemType_race_shield);
-		break;
+		//mRaceParticipants->at(seq).sufferItems.push(itemType_race_shield);
+		//break;
 	case itemType_race_speedUp:		//속업
 		for (int n = 0; n < quantity; n++) {
 			mRaceParticipants->at(seq).sufferItems.push(type);
@@ -1397,8 +1405,8 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 			invokeRaceByRank(1, itemType_race_attactFirst, quantity);
 		break;
 
-        default:
-            break;
+	default:
+		break;
 	}
 	mRaceParticipants->at(seq).shootItemCount++;
 	mRaceParticipants->at(seq).shootCurrentType = type;
@@ -1554,6 +1562,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 switch (mRaceParticipants->at(n).currentSuffer) {
 		 case itemType_race_shield:
 			 if (mRaceParticipants->at(n).sufferItems.size() > 0 ) {
+				 //여기에 올수가 없어야 정상
 				 switch (mRaceParticipants->at(n).sufferItems.front()) {
 				 case itemType_race_attactFront:
 				 case itemType_race_attactFirst:
