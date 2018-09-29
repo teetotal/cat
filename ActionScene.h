@@ -105,10 +105,7 @@ private:
 
 	void updatePoint();
 	void jump(Ref* pSender);
-	void onJumpFinished() {
-		resetHeight(raceParticipantNum);
-	};
-
+	void jumpByIdx(int idx);
 	void resetHeight(int idx) {
 		Vec2 position = mRunner[idx]->getPosition();
 		position.y = mRunnerInitPosition[idx].y;

@@ -205,6 +205,9 @@ void ActionScene::counter(float f) {
 			for (int idx = 0; idx <= raceParticipantNum; idx++) {
 				for (int n = 0; n < DANGER_CNT; n++) {
 					Sprite * p = mDangers[idx][n];
+					if (p == NULL)
+						break;
+
 					Vec2 position = p->getPosition();
 					//시간 = 거리 / 속력
 					float distance = position.x;
@@ -700,6 +703,8 @@ void ActionScene::updatePoint() {
 }
 
 void ActionScene::jump(Ref* pSender) {	
+	jumpByIdx(raceParticipantNum);
+	/*
 	if (mRunnerInitPosition[raceParticipantNum].y == mRunner[raceParticipantNum]->getPosition().y) {
 		float jumpHeight = mRunner[raceParticipantNum]->getContentSize().height * 0.5;
 		mRunner[raceParticipantNum]->runAction(
@@ -709,11 +714,30 @@ void ActionScene::jump(Ref* pSender) {
 				, CallFunc::create(this, callfunc_selector(ActionScene::onJumpFinished))
 				, NULL));
 	}
-	
+	*/
+}
+
+void ActionScene::jumpByIdx(int idx) {
+	if (mRunnerInitPosition[idx].y == mRunner[idx]->getPosition().y) {
+		float jumpHeight = mRunner[idx]->getContentSize().height * 0.5;
+		auto callfuncAction = CallFunc::create([this, idx]() {
+			resetHeight(idx);
+		});
+		mRunner[idx]->runAction(
+			Sequence::create(
+				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), 0.4)
+				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), 0.4)
+				, callfuncAction
+				, NULL));
+	}
 }
 
 void ActionScene::update(float delta) {
+	
 	for (int i = 0; i <= raceParticipantNum; i++) {
+		if (mRunner[i] == NULL)
+			continue;
+
 		Vec2 position = mRunner[i]->getPosition();
 		Size size = mRunner[i]->getContentSize();
 		Vec2 center = Vec2(position.x - size.width / 2, position.y + size.height / 2);
@@ -726,12 +750,16 @@ void ActionScene::update(float delta) {
 		}
 		*/
 		for (int j = 0; j < DANGER_CNT; j++) {
-			
 			if (mDangers[i][j]->getTag() != 1 && mDangers[i][j]->getBoundingBox().intersectsCircle(center, radius)) {
-				logics::hInst->invokeRaceObstacle(i, 1);
-				//mDangers[i][j]->runAction(Blink::create(1, 20));
-				//mDangers[i][j] = NULL;
+				logics::hInst->invokeRaceObstacle(i, logics::hInst->getRace()->at(mRaceId).level);
+				mDangers[i][j]->runAction(Blink::create(1, 10));
 				mDangers[i][j]->setTag(1);
+			}
+			else if(i != raceParticipantNum 
+				&& mDangers[i][j]->getPosition().x - position.x < 5
+				&& mDangers[i][j]->getPosition().x - position.x > 0)
+			{ // jump
+				jumpByIdx(i);
 			}
 		}
 	}
