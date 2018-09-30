@@ -116,6 +116,7 @@ enum itemType {
 	itemType_race_speedUp,		//속업
 	itemType_race_attactFront,	//전방 공격
 	itemType_race_attactFirst,	//1등 공격
+	itemType_race_obstacle,		//장애물
 	itemType_adorn = 300, //치장
 	itemType_adorn_head,
     itemType_farming = 400, //농사
@@ -519,7 +520,7 @@ public:
 	void invokeRaceItem(int idx, itemType type, int quantity);
 	//장애물에 걸림
 	void invokeRaceObstacle(int idx, int level) {
-		invokeRaceItem(idx, itemType_race_attactFront, level);
+		invokeRaceItem(idx, itemType_race_obstacle, level);
 	}
 	RaceWin mRaceWin;
 	//-----------------------------------------------------------------------charge
@@ -533,6 +534,13 @@ public:
 
 	//achievement
 	//achievement mAchievement;
+	void achieveReward() {
+		for (int n = 0; n < getQuests()->getQuests()->size(); n++) {
+			Quest::_quest * p = getQuests()->getQuests()->at(n);
+			if (p->isFinished && p->isReceived == false)
+				achieveReward(p);
+		}
+	};
 	void achieveReward(Quest::_quest * p) {
 		addInventory(p->rewardId, p->rewardValue);		
 		getQuests()->rewardReceive(p);

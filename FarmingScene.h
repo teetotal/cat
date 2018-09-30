@@ -94,10 +94,7 @@ private:
 	};
 
 	ParticleSystemQuad * createClinkParticle(Vec2 position) {
-		auto particle = ParticleSystemQuad::create(PARTICLE_CLINK);
-		particle->setPosition(position);
-
-		return particle;
+		return gui::inst()->createParticle(PARTICLE_CLINK, position);
 	};
 	//update point 
 	void updatePoint();

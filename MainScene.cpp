@@ -271,7 +271,7 @@ bool MainScene::initFarm() {
 
 	if (logics::hInst->getFarm()->countField() == 0) {
 		for (int x = 2; x < 7; x++) {
-			for (int y = 2; y < 7; y++) {
+			for (int y = 2; y < 6; y++) {
 				field * node = new field(x, y - 1);
 				//node->sprite = NULL;
 				//node->l = gui::inst()->createLayout(gridSize, "", true, c[rand() % 5]);
@@ -505,7 +505,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	}
 
 	closePopup();
-	auto size = Size(300, 200);
+	auto size = Size(400, 200);
 	layer = gui::inst()->addPopup(layerGray, this, size);
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 	int fontSize = 12;
@@ -1010,9 +1010,9 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
+	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
+	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
 	
@@ -1198,9 +1198,9 @@ void MainScene::showBuy(inventoryType type) {
 	int nMenuIdx = 0;
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
+	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
+	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
 
@@ -1314,9 +1314,14 @@ void MainScene::showAchievement() {
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, BG_ACHIEVEMENT, Color4B::WHITE);
 
+	gui::inst()->addTextButtonAutoDimension(0, 0, wstring_to_utf8(L"전체수령"), layer
+		, CC_CALLBACK_1(MainScene::recieveAllAchievement, this)
+		, 0, ALIGNMENT_NONE, Color3B::BLUE, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+	);
+
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
-		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+		, 12, ALIGNMENT_NONE, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
 	int nMenuIdx = 0;	
 

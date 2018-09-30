@@ -214,13 +214,16 @@ void FarmingScene::updateFarming(float fTimer) {
 				if (mMode == Mode_Max
 					&& mThiefCnt < 1
 					&& p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow) > 1
-					&& getRandValue(5) == 0
-					&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.appeal
-					&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.intelligence
+					&& getRandValue(4) == 0
+					&& logics::hInst->getItem(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId).grade >= logics::hInst->getActor()->level
+					//&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.appeal
+					//&& logics::hInst->getActor()->property.strength > logics::hInst->getActor()->property.intelligence
 					) {					
 					mThiefCnt++;
 					pThiefField = p;
-					p->accumulation++;
+					//p->accumulation++;
+					//1개 빼고 다 훔쳐먹음
+					pThiefField->accumulation = pThiefField->getGrownCnt(logics::hInst->getFarm()->getSeed(pThiefField->seedId)->timeGrow) - 1;
 				}
 			}
 			break;
@@ -234,7 +237,6 @@ void FarmingScene::updateFarming(float fTimer) {
 		stopAction(mCharacter);
 		mCharacter->runAction(getThiefAnimate());
 		mCharacter->setPosition(gui::inst()->getPointVec2(pThiefField->x, pThiefField->y, ALIGNMENT_CENTER));
-		
 	}
 }
 
@@ -576,7 +578,7 @@ void FarmingScene::showInfo(MainScene::field * p) {
 	if (mPopupBackground == NULL) {
 		Size size = Size(150, 150);
 		mPopupLayer = gui::inst()->createModalLayer(mPopupBackground, size);
-		mPopupLayer->setOpacity(128);
+		mPopupLayer->setOpacity(192);
 		this->addChild(mPopupBackground, 99);
 	}
 
@@ -586,28 +588,39 @@ void FarmingScene::showInfo(MainScene::field * p) {
 		).name
 	);
 
-	string szHarvest;
+	string szHarvest, szRemain;
+	string szReaped = "Reaped: " + to_string(p->accumulation);
+
 	switch (p->status) {
 	case farming::farming_status_decay:
 		szHarvest = "Decay T.T";
-		break;
-	case farming::farming_status_grown:
-		szHarvest = "Grown: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
-		szHarvest += "\nRemain: " + to_string(p->finishTime - getNow()) + " sec";
-		break;
+		break;	
 	case farming::farming_status_harvest:
 		szHarvest = "Harvest: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
 		break;
+	case farming::farming_status_grown:
+		szHarvest = "Grown: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
 	default:
-		szHarvest += "Remain: " + to_string(p->finishTime - getNow()) + " sec";
+		szRemain = "";
+		int nRemain = p->finishTime - getNow();
+		int min = nRemain / 60;
+		int sec = nRemain % 60;
+		if (min > 0)
+			szRemain += to_string(min) + " min ";
+		szRemain += to_string(sec) + " sec..";
 		break;
 	} 
 
-	Size grid = Size(3, 6);
-
-	gui::inst()->addSpriteAutoDimension(1, 1, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
-	gui::inst()->addLabelAutoDimension(1, 2, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
-	gui::inst()->addLabelAutoDimension(1, 3, szHarvest, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	Size grid = Size(3, 7);
+	int idx = 1;
+	gui::inst()->addSpriteAutoDimension(1, idx++, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(1, idx++, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	if(szHarvest.size() > 1)
+		gui::inst()->addLabelAutoDimension(1, idx++, szHarvest, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	if(szReaped.size() > 1)
+		gui::inst()->addLabelAutoDimension(1, idx++, szReaped, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::GRAY, grid, Size::ZERO, Size::ZERO);
+	if(szRemain.size() > 1)
+		gui::inst()->addLabelAutoDimension(1, idx++, szRemain, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
 
 	//close
 	gui::inst()->addTextButtonAutoDimension(2, 0, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)

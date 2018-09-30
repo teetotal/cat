@@ -208,6 +208,11 @@ private:
 	void showAchievement(); //업적 보기
 	void showAchievementCategory(Ref* pSender); //업적 카테고리
 	void achievementCallback(Ref* pSender, Quest::_quest * p);
+	void recieveAllAchievement(Ref * pSender) {
+		logics::hInst->achieveReward();
+		updateState(true);
+		callback2(this, SCENECODE_CLOSEPOPUP);
+	};
 	//Collection
 	void showCollection(); //도감 보기
 	//Race

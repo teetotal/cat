@@ -414,6 +414,21 @@ void ActionScene::timer(float f) {
 					mSufferState[n] = SUFFER_STATE_SHIELD;
 				}
 				break;
+			case itemType_race_obstacle:
+				if (mSufferState[n] != SUFFER_STATE_OBSTACLE) {
+					//제자리로
+					resetHeight(n);
+					mRunner[n]->stopAllActions();
+					auto animation = Animation::create();
+					animation->setDelayPerUnit(0.1);
+					for (int n = 0; n < 6; n++)
+						animation->addSpriteFrameWithFile("action/97/" + to_string(n) + ".png");
+					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
+					mSufferState[n] = SUFFER_STATE_OBSTACLE;
+
+				}
+				break;
+				
 			default:				
 				if (mSufferState[n] != SUFFER_STATE_ATTACK) {
 					//제자리로
@@ -624,6 +639,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	logics::hInst->getActor()->inven.getWarehouse(vec, (int)inventoryType_race);
 	*/
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
+	
 	POPUP_LIST(mPopupLayer
 		, gridSize
 		, newLine
@@ -733,10 +749,11 @@ void ActionScene::jumpByIdx(int idx) {
 		auto callfuncAction = CallFunc::create([this, idx]() {
 			resetHeight(idx);
 		});
+		const float ratio = 0.2;
 		mRunner[idx]->runAction(
 			Sequence::create(
-				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), 0.4)
-				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), 0.4)
+				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), ratio)
+				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), ratio)
 				, callfuncAction
 				, NULL));
 	}

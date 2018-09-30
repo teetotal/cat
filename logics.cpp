@@ -874,7 +874,13 @@ errorCode logics::isValidTraining(int id) {
 	return error_success;
 }
 
-errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type, float preservationRatio) {
+errorCode logics::runTraining(int id
+	, itemsVector &rewards
+	, _property * rewardProperty
+	, int &point
+	, trainingType &type
+	, float preservationRatio) 
+{
     errorCode err = isValidTraining(id);
     if (err != error_success) {
         return err;
@@ -898,30 +904,27 @@ errorCode logics::runTraining(int id, itemsVector &rewards, _property * rewardPr
 	//preservationRaio만큼 보전해서 줌
 	//give point
 	int preservation = (int)(preservationRatio * (float)mTraining[id].reward.point);
-	printf("point: %d \n" , preservation);
+	//printf("point: %d \n" , preservation);
 	point = getRandValue(mTraining[id].reward.point);
 	if (point < preservation)
 		point = preservation;
 
 	mActor->point += point;
 	//give growth
-	preservation = (int)(preservationRatio * (float)mTraining[id].reward.strength);
-	printf("strength: %d \n", preservation);
-	rewardProperty->strength = getRandValue(mTraining[id].reward.strength);
-	if (rewardProperty->strength < preservation)
-		rewardProperty->strength = preservation;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.strength / 2);
+	//printf("strength: %d \n", preservation);
+	rewardProperty->strength = (mTraining[id].reward.strength / 2);
+	rewardProperty->strength += preservation;
 
-	preservation = (int)(preservationRatio * (float)mTraining[id].reward.intelligence);
-	printf("intelligence: %d \n", preservation);
-	rewardProperty->intelligence = getRandValue(mTraining[id].reward.intelligence);
-	if (rewardProperty->intelligence < preservation)
-		rewardProperty->intelligence = preservation;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.intelligence / 2);
+	//printf("intelligence: %d \n", preservation);
+	rewardProperty->intelligence = (mTraining[id].reward.intelligence / 2);
+	rewardProperty->intelligence += preservation;
 
-	preservation = (int)(preservationRatio * (float)mTraining[id].reward.appeal);
-	printf("appeal: %d \n", preservation);
-	rewardProperty->appeal = getRandValue(mTraining[id].reward.appeal);
-	if (rewardProperty->appeal < preservation)
-		rewardProperty->appeal = preservation;
+	preservation = (int)(preservationRatio * (float)mTraining[id].reward.appeal / 2);
+	//printf("appeal: %d \n", preservation);
+	rewardProperty->appeal = (mTraining[id].reward.appeal / 2);
+	rewardProperty->appeal += preservation;
 
 	addProperty(rewardProperty->strength
 		, rewardProperty->intelligence
@@ -1583,6 +1586,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 			 break;
 		 case itemType_race_attactFront:
 		 case itemType_race_attactFirst:
+		 case itemType_race_obstacle:
 			 length = 0;
 			 break;
 		 default:
@@ -1625,18 +1629,24 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 }
 		 mQuest.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
 		 
-		 if (mRaceCurrent.rank == 1) {
+		 //업적 및 연승 기록
+		 switch (mRaceCurrent.rank) {
+		 case 1:
 			 mQuest.push(achievement_category_race, achievement_race_id_first, 1);
 			 mQuest.push(ac, achievement_race_id_first, 1);
-			 
+
 			 mRaceWin.winCnt++;
 
-		 }			 
-		 else if (mRaceCurrent.rank == 2) {
+			 break;
+		 case 2:
 			 mQuest.push(achievement_category_race, achievement_race_id_second, 1);
 			 mQuest.push(ac, achievement_race_id_second, 1);
-		 }			 
-			 
+
+		 default:
+			 mRaceWin.winCnt = 0;
+			 break;
+		 }
+
 		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
 			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
 				 //상금 지급

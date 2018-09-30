@@ -91,7 +91,9 @@ public:
 			int maxGrown = 1 << (this->level - 1);;
 			int currentGrown = (getNow() - this->timePlant) / timeGrow;
 			int nGrown = min(maxGrown, currentGrown);
-			return nGrown - accumulation;
+			if(nGrown < maxGrown)
+				return nGrown - accumulation;
+			return nGrown - accumulation + this->level - 1;
 		};
 	};
 	

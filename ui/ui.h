@@ -55,7 +55,11 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 		l->setOpacity(192); \
 		int heightIdx = 1; \
 		gui::inst()->addTextButtonAutoDimension(0, heightIdx++, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-		if(_IMG.compare(gui::inst()->EmptyString) != 0) gui::inst()->addSpriteAutoDimension(0, heightIdx++, _IMG, l, ALIGNMENT_CENTER, _GRID_SIZE, Size::ZERO, Size::ZERO)->setContentSize(Size(20, 20)); \
+		if(_IMG.compare(gui::inst()->EmptyString) != 0) { \
+			Menu * pSpriteMenu; \
+			auto pMenuSprite = gui::inst()->addSpriteButtonRaw(pSpriteMenu, 0, heightIdx++, _IMG, _IMG, l, _CALLBACK, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO); \
+			gui::inst()->setScale(pMenuSprite, 20); \
+		} \
 		heightIdx = 1;\
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
@@ -372,6 +376,17 @@ public:
 
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
+
+	//particle
+	ParticleSystemQuad * createParticle(string szParticle, int x, int y) {
+		return createParticle(szParticle, getPointVec2(x, y));
+	};
+	ParticleSystemQuad * createParticle(string szParticle, Vec2 position) {
+		auto particle = ParticleSystemQuad::create(szParticle);
+		particle->setPosition(position);
+
+		return particle;
+	};
 
 	int mModalTouchCnt;
 	string EmptyString;

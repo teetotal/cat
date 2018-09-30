@@ -5,6 +5,9 @@
 #include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 
+#define REWARD_POINT_ADVERTISEMENT 500
+#define REWARD_HP_ADVERTISEMENT 10
+
 Scene* AlertScene::createScene(errorCode err)
 {
 	return AlertScene::create(err);
@@ -51,7 +54,7 @@ bool AlertScene::init(errorCode err)
 				, CC_CALLBACK_1(AlertScene::callback, this, sceneCode1)
 				, 0
 				, ALIGNMENT_CENTER
-				, Color3B::ORANGE
+				, Color3B::YELLOW
 				, grid
 				, Size::ZERO
 				, Size::ZERO
@@ -59,7 +62,7 @@ bool AlertScene::init(errorCode err)
 		}
 		else {
 			POPUP_LIST(layer
-				, Size(3, 4)
+				, Size(3, 5)
 				, 2
 				, Vec2(0, 7)
 				, Vec2(9, 3)
@@ -73,7 +76,7 @@ bool AlertScene::init(errorCode err)
 				, "Lv." + to_string(logics::hInst->getItem(vec[n].key).grade)
 				, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)				
 				, "x " + to_string(vec[n].val)
-				, gui::inst()->EmptyString
+				, "+HP " + to_string(logics::hInst->getItem(vec[n].key).value)
 				, gui::inst()->EmptyString
 			)
 		}
@@ -88,7 +91,7 @@ bool AlertScene::init(errorCode err)
 			, CC_CALLBACK_1(AlertScene::callback, this, sceneCode1)
 			, 0
 			, ALIGNMENT_CENTER
-			, Color3B::ORANGE
+			, Color3B::YELLOW
 			, grid
 			, Size::ZERO
 			, Size::ZERO
@@ -98,7 +101,7 @@ bool AlertScene::init(errorCode err)
 			, CC_CALLBACK_1(AlertScene::callback, this, sceneCode2)
 			, 0
 			, ALIGNMENT_CENTER
-			, Color3B::ORANGE
+			, Color3B::YELLOW
 			, grid
 			, Size::ZERO
 			, Size::ZERO
@@ -130,14 +133,32 @@ void AlertScene::callback(Ref* pSender, SCENECODE type) {
 	case SCENECODE_POINT_ADVERTISEMENT://포인트 광고 
 	case SCENECODE_POINT_SHOP://포인트 충전
 							  //임시
-		logics::hInst->increasePoint(500);
-		Director::getInstance()->popScene();
+		this->addChild(gui::inst()->createParticle("particles/particle_clink.plist", 4, 3));
+		logics::hInst->increasePoint(REWARD_POINT_ADVERTISEMENT);
+		gui::inst()->addLabel(4, 3, COIN + to_string(REWARD_POINT_ADVERTISEMENT), this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)
+			->runAction(
+			Sequence::create(
+				EaseIn::create(ScaleBy::create(0.5, 3), 0.4)
+				, EaseOut::create(ScaleBy::create(0.5, 1/3), 0.4)
+				, CallFunc::create([this]() { closeScene();	})
+				, NULL
+			)
+		);
 		break;
 	case SCENECODE_HP_ADVERTISEMENT://HP 광고
 	case SCENECODE_HP_SHOP://HP 충전
 						   //임시
-		logics::hInst->increaseHP(10);
-		Director::getInstance()->popScene();
+		logics::hInst->increaseHP(REWARD_HP_ADVERTISEMENT);
+		this->addChild(gui::inst()->createParticle("particles/particle_clink.plist", 4, 3));
+		gui::inst()->addLabel(4, 3, "+HP" + to_string(REWARD_HP_ADVERTISEMENT), this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)
+			->runAction(
+				Sequence::create(
+					EaseIn::create(ScaleBy::create(0.5, 3), 0.4)
+					, EaseOut::create(ScaleBy::create(0.5, 1 / 3), 0.4)
+					, CallFunc::create([this]() { closeScene();	})
+					, NULL
+				)
+			);
 		break;	
 	default:
 		break;
@@ -150,6 +171,15 @@ void AlertScene::invokeItem(Ref* pSender, int id) {
 		//alert(err);
 	}
 	else {
-		Director::getInstance()->popScene();
+		this->addChild(gui::inst()->createParticle("particles/particle_clink.plist", 4, 3));
+		gui::inst()->addLabel(4, 3, "+HP" + to_string(logics::hInst->getItem(id).value), this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)
+			->runAction(
+				Sequence::create(
+					EaseIn::create(ScaleBy::create(0.5, 3), 0.4)
+					, EaseOut::create(ScaleBy::create(0.5, 1 / 3), 0.4)
+					, CallFunc::create([this]() { closeScene();	})
+					, NULL
+				)
+			);
 	}
 }
