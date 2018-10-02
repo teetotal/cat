@@ -8,6 +8,7 @@
 #include "ActionScene.h"
 #include "AlertScene.h"
 #include "FarmingScene.h"
+#include "ActionBasic.h"
 
 using namespace cocos2d::ui;
 
@@ -18,9 +19,6 @@ using namespace cocos2d::ui;
 #define ACHIEVEMENT_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 90); auto gridSize = Size(3, 6);
 #define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(178, 70); auto gridSize = Size(3, 4);
-
-#define LOADINGBAR_IMG "loadingbar_big.png"
-#define LOADINGBAR_IMG_SMALL "loadingbar_small.png"
 
 #define nodeMargin 4
 
@@ -496,13 +494,18 @@ void MainScene::callbackActionAnimation(int id, int maxTimes) {
 void MainScene::callbackAction(Ref* pSender, int id){
 	if (id == -1)
 		return;    
-	//this->removeChild(layerGray);
-	
+
 	errorCode err = logics::hInst->isValidTraining(id);
 	if (err != error_success) {
 		alert(err);
 		return;
 	}
+
+	ActionBasic * p = ActionBasic::create();
+	if (!p->runAction(id))
+		return alert(error_invalid_id);
+	Director::getInstance()->pushScene(p);
+	return;
 
 	closePopup();
 	auto size = Size(400, 200);
@@ -574,9 +577,7 @@ void MainScene::callbackAction(Ref* pSender, int id){
 	mActionTouchCnt = 0;
 
 	gui::inst()->mModalTouchCnt = 0;	
-	//const int waitTimes = (int)(0.75 / animationDelay);
 	
-
 	this->schedule([=](float delta) {		
 		//touch 이동
 		if (mActionCnt % 10 < 3) {

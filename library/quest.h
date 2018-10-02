@@ -65,6 +65,7 @@ public:
 			if (mQuests[n]->uniqueId == uniqueId)
 				return mQuests[n];
 		}
+		return nullptr;
 	};
 
 	void addQuest(int uniqueId

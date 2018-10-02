@@ -40,10 +40,17 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	dActions.Parse(szActions.c_str());
 	if (dActions.HasParseError())
 		return false;
+	//L10N
+	const rapidjson::Value& V = d["L10N"];
+	for (rapidjson::Value::ConstMemberIterator iter = V.MemberBegin(); iter != V.MemberEnd(); ++iter) {
+		string szKey = iter->name.GetString();				
+		string szValue = iter->value.GetString(); 
+		mL10NMap[szKey] = utf8_to_utf16(szValue);
+	}
 
 	if(!initErrorMessage(d["errors"]))
 		return false;
-	if (!initItems(d["items"]))
+	if (!initItems(d["items"], d["raceItems"]))
 		return false;
 	if (!initSeed(d["farming"], d["seed"]))
 		return false;
@@ -215,7 +222,7 @@ bool logics::initErrorMessage(rapidjson::Value & p)
 	}
 	return true;
 }
-bool logics::initItems(rapidjson::Value & p)
+bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 {
 	for (rapidjson::SizeType i = 0; i < p.Size(); i++)
 	{
@@ -227,6 +234,21 @@ bool logics::initItems(rapidjson::Value & p)
 		string sz = p[rapidjson::SizeType(i)]["name"].GetString();
 		item.name = utf8_to_utf16(sz);
 		insertItem(item);
+	}
+	//race item
+	
+	int id = 2000;
+	for (int n = 1; n <= LEVEL_MAX + 2; n++) {
+		for (rapidjson::SizeType i = 0; i < pRace.Size(); i++) {
+			_item item;
+			item.id = id++;
+			item.type = (itemType)pRace[rapidjson::SizeType(i)]["type"].GetInt();
+			item.value = n;
+			item.grade = n;
+			string sz = pRace[rapidjson::SizeType(i)]["name"].GetString();
+			item.name = utf8_to_utf16(sz);
+			insertItem(item);
+		}
 	}
 	return true;
 }
@@ -420,22 +442,12 @@ bool logics::initAchievement(rapidjson::Value & v) {
 	}
 
 	//basic 	
-	int goals[] =		{ 0, 8,		16,		32,		64,		128,	256,	512,	1024,	2048,	4096,	8192,	16384 }; //레벨 별 속성
-	
 	/*
-	int raceItem[] =	{ 0, 211,	211,	211,	212,	212,	213,	213,	214,	214,	215,	215,	215	}; //레벨별 지급 race 아이템 
-	int raceItem_a[] =	{ 0, 0,		0,		0,		0,		0,		0,		0,		0,		222,	222,	222,	222 }; //레벨별 지급 race 전방 공격 아이템
-	int raceItem_b[] =	{ 0, 0,		230,	230,	231,	231,	231,	232,	232,	233,	233,	234,	234 }; //레벨별 지급 race 1등 공격 아이템 
-	int raceItem_c[] =	{ 0, 0,		0,		220,	220,	220,	221,	221,	221,	0,		0,		0,		0}; //레벨별 지급 race 전방 공격 아이템
-	*/
+	int goals[] =		{ 0, 8,		16,		32,		64,		128,	256,	512,	1024,	2048,	4096,	8192,	16384 }; //레벨 별 속성
 	int raceItem[]	 = { 0, 50,		50,		50,		50,		50,		50,		50,		50,		51,		51,		51,		51 }; //레벨별 지급 race 아이템 
 	int raceItem_a[] = { 0, 0,		0,		0,		0,		0,		0,		0,		0,		51,		51,		51,		51 }; //레벨별 지급 race 전방 공격 아이템
 	int raceItem_b[] = { 0, 0,		50,		50,		50,		50,		50,		50,		50,		51,		51,		51,		51 }; //레벨별 지급 race 1등 공격 아이템 
 	int raceItem_c[] = { 0, 0,		0,		50,		50,		50,		50,		50,		50,		0,		0,		0,		0 }; //레벨별 지급 race 전방 공격 아이템
-
-	/*
-	int farmItem[] =	{ 0, 0,		0,		400,	401,	401,	402,	403,	404,	405,	406,	407,	407 }; //레벨별 지급 farm 아이템 
-	int actionItem[] =	{ 0, 0,		0,		1,		2,		3,		4,		5,		6,		7,		8,		8,		8 }; //레벨별 지급 action 아이템 
 	*/
 	int uniqueId = 0;
 	for (int n = 1; n <= LEVEL_MAX; n++) {
@@ -451,70 +463,46 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 
 		//action
-		int totalProperty = goals[n];
-		mQuest.addQuest(
-			uniqueId++
-			, L"능력치 " + to_wstring(totalProperty) + L" 올리기"
-			, achievement_category_property
-			, achievement_property_id_total
-			, totalProperty
-			, raceItem[n]
-			, 1
-		);
-		//race
-		if (raceItem_a[n] > 0) {
-			int nRaceTry = n / 2;
-			mQuest.addQuest(
-				uniqueId++
-				, L"경묘 1등 " + to_wstring(nRaceTry) + L"번 하기"
-				, achievement_category_race
-				, achievement_race_id_first
-				, nRaceTry
-				, raceItem_a[n]
-				, 1
-			);
-		}
-		//farm
-		if (raceItem_b[n] > 0) {
-			int nFarmTry = 1 << n;
-			mQuest.addQuest(
-				uniqueId++
-				, L"농사 " + to_wstring(nFarmTry) + L"번 씨 뿌리기"
-				, achievement_category_farming
-				, achievement_farming_id_plant
-				, nFarmTry
-				, raceItem_b[n]
-				, 1
-			);
-		}
-
-		//race item
-		if (raceItem_c[n] > 0) {
-			int use = n;
-			mQuest.addQuest(
-				uniqueId++
-				, L"경묘 1등 공격 아이템 " + to_wstring(use) + L"번 사용하기"
-				, achievement_category_race_use_item_type
-				, 204
-				, use
-				, raceItem_c[n]
-				, 1
-			);
-		}
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {			
-			//int nRaceTry = n * 1.5;
-			if(it->second.level == n){
-                mQuest.addQuest(
-                        uniqueId++
-                        , it->second.name + L" 하기"
-                        , achievement_category_training
-                        , it->first
-                        , 1
-                        , 51
-                        , 1
-                );
+			if (it->second.level == n) {
+				mQuest.addQuest(
+					uniqueId++
+					, getQuestTitle("QUEST_TITLE_ACTION", it->second.name, 1)
+					, achievement_category_training
+					, it->first
+					, 1
+					, getQuestRewardItem(n)
+					, 1
+				);
 			}
-		}		
+		}
+		//property
+		addQuest_property(uniqueId++, n);
+		//farm
+		addQuest_farm_seed(uniqueId++, n);
+		//race item
+		addQuest_race_foremost(uniqueId++, n);
+		addQuest_race_front(uniqueId++, n);
+		addQuest_race_speedup(uniqueId++, n);
+		addQuest_race_shield(uniqueId++, n);
+		//action accumulation
+		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {
+			int nCnt = n - (n - it->second.level);
+			if (it->second.level < n && it->second.level >= n - 3) {
+				mQuest.addQuest(
+					uniqueId++
+					, getQuestTitle("QUEST_TITLE_ACTION", it->second.name, nCnt)
+					, achievement_category_training
+					, it->first
+					, nCnt
+					, getQuestRewardItem(n)
+					, n
+				);
+			}
+		}
+		//race win
+		addQuest_race_win(uniqueId++, n);
+			
 	}
 
 	{
@@ -1384,6 +1372,10 @@ void logics::invokeRaceItem(int idx, itemType type, int quantity) {
 		return;
 
 	clearRaceItem(idx);
+	//itemType_race_attactFront은 2배
+	if (type == itemType_race_attactFront)
+		quantity *= 2;
+
 	for (int m = 0; m < quantity; m++)
 		mRaceParticipants->at(idx).sufferItems.push(type);
 	return;

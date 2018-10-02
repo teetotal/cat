@@ -37,6 +37,8 @@ private:
 	void closeScene() {
 		Director::getInstance()->popScene();
 	};
+
+	Layout * mLayer;
 };
 
 #endif 

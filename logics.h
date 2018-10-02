@@ -618,7 +618,7 @@ private:
 		
 	bool initActor(bool isFarmingDataLoad);
 	bool initErrorMessage(rapidjson::Value &p);
-	bool initItems(rapidjson::Value &p);
+	bool initItems(rapidjson::Value &p, rapidjson::Value &pRace);
 	bool initSeed(rapidjson::Value &farming, rapidjson::Value &seed);
 	bool initTraining(rapidjson::Value &p);
 	bool initJobTitle(rapidjson::Value &p);
@@ -630,6 +630,85 @@ private:
 	static void threadRun();
 	
 	void saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type);
+
+	//quest
+	int getQuestRewardItem(int level) {
+		return (level < LEVEL_MAX / 2) ? 50 : 51;
+	};
+	wstring getQuestTitle(const string L10NKey, int val) {
+		wchar_t buf[1024] = { 0 };
+		swprintf(buf, mL10NMap[L10NKey].c_str(), val);
+		wstring title = buf;
+		return title;
+	};
+	wstring getQuestTitle(const string L10NKey, wstring sz, int val) {
+		wchar_t buf[1024] = { 0 };
+		swprintf(buf, mL10NMap[L10NKey].c_str(), sz.c_str(), val);		
+		wstring title = buf;
+		return title;
+	};
+	void addQuest_property(int uniqueId, int level) {
+		//action				
+		int val = level * 8;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_PROPERTY", val)
+			, achievement_category_property
+			, achievement_property_id_total
+			, val, getQuestRewardItem(level), level);
+	};
+	void addQuest_race_win(int uniqueId, int level) {
+		//race				
+		int val = level / 2;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_RACE_WIN", val)
+			, achievement_category_race
+			, achievement_race_id_first
+			, val, getQuestRewardItem(level), level);
+	};
+	void addQuest_race_foremost(int uniqueId, int level) {
+		//QUEST_TITLE_RACE_ITEM_FOREMOST				
+		int val = level;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_RACE_ITEM_FOREMOST", val)
+			, achievement_category_race_use_item_type
+			, 204
+			, val, getQuestRewardItem(level), level);
+	};
+	void addQuest_race_front(int uniqueId, int level) {
+		//QUEST_TITLE_RACE_ITEM_FRONT				
+		int val = level;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_RACE_ITEM_FRONT", val)
+			, achievement_category_race_use_item_type
+			, 203
+			, val, getQuestRewardItem(level), level);
+	};
+	void addQuest_race_speedup(int uniqueId, int level) {
+		//QUEST_TITLE_RACE_ITEM_SPEEDUP				
+		int val = level;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_RACE_ITEM_SPEEDUP", val)
+			, achievement_category_race_use_item_type
+			, 202
+			, val, getQuestRewardItem(level), level);
+	};
+	void addQuest_race_shield(int uniqueId, int level) {
+		//QUEST_TITLE_RACE_ITEM_SHIELD				
+		int val = level;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_RACE_ITEM_SHIELD", val)
+			, achievement_category_race_use_item_type
+			, 201
+			, val, getQuestRewardItem(level), level);
+	};	
+	
+	void addQuest_farm_seed(int uniqueId, int level) {
+		//action				
+		int val = 1 << level;
+		mQuest.addQuest(uniqueId, getQuestTitle("QUEST_TITLE_FARM_SEED", val)
+			, achievement_category_farming
+			, achievement_farming_id_plant
+			, val, getQuestRewardItem(level), level);
+	};
+
+
+
+	map<string, wstring> mL10NMap;
+
     //farming
     farming mFarming;
 	

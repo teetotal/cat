@@ -1,4 +1,6 @@
-﻿#include <stdint.h>
+﻿#include <stdio.h>
+#include <wchar.h>
+#include <stdint.h>
 #include <iostream>
 #include <fstream>
 #include <time.h>

@@ -230,6 +230,8 @@ void ActionScene::counter(float f) {
 
 void ActionScene::invokeItem(Ref* pSender, int idx) {
 	//mSkillItem[idx]->setString("");
+	//item은 무조건 제자리에서
+	this->resetHeight(idx);
 	mSkillItem[idx]->setEnabled(false);
 	//아이템 사용
 	if(mSelectItems.size() > idx)

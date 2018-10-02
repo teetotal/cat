@@ -23,6 +23,9 @@ USING_NS_CC;
 #define BG_SELL "bg_sell.png"
 #define BG_RACE "bg_race.png"
 
+#define LOADINGBAR_IMG "loadingbar_big.png"
+#define LOADINGBAR_IMG_SMALL "loadingbar_small.png"
+
 enum ZORDER {
 	ZORDER_BASE	= 0,
 	ZORDER_QUEST = 1,

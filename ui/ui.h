@@ -388,6 +388,17 @@ public:
 		return particle;
 	};
 
+	void addToCenter(Node * p, Node * pParent) {
+		p->setAnchorPoint(Vec2(0.5, 0.5));
+		//bg->setOpacity(200);
+		Size size = Director::getInstance()->getVisibleSize();
+		Vec2 point = Vec2(size.width / 2, size.height / 2);
+		point.x += Director::getInstance()->getVisibleOrigin().x;
+		point.y += Director::getInstance()->getVisibleOrigin().y;
+		p->setPosition(point);
+		pParent->addChild(p);
+	};
+
 	int mModalTouchCnt;
 	string EmptyString;
 
