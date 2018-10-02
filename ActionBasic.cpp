@@ -28,7 +28,7 @@ bool ActionBasic::init()
 	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 10);
 	mTitle = gui::inst()->addLabel(4, 0, " ", this);
 	mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
-	//mRewardInfo = gui::inst()->addLabel(0, 0, " ", this);
+	mRewardInfo = gui::inst()->addLabel(4, 1, " ", this);
 	return true;
 }
 
@@ -55,14 +55,16 @@ bool ActionBasic::runAction(int id) {
 	if (mAction.cost.intelligence > 0) pay += "I: " + to_string(mAction.cost.intelligence) + " ";
 	if (mAction.cost.appeal > 0) pay += "A: " + to_string(mAction.cost.appeal) + " ";
 
-	string reward;
+	string reward = "Max ";
 	if (mAction.reward.point > 0)         reward += COIN + to_string(mAction.reward.point) + " ";
 	if (mAction.reward.strength > 0)      reward += "S: " + to_string(mAction.reward.strength) + " ";
 	if (mAction.reward.intelligence > 0)  reward += "I: " + to_string(mAction.reward.intelligence) + " ";
 	if (mAction.reward.appeal > 0)        reward += "A: " + to_string(mAction.reward.appeal) + " ";
 
+	mRewardInfo->setString(reward);
 	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)	gui::inst()->addLabel(4, 1, "Max " + reward, this, 12, ALIGNMENT_NONE);
+	//if (reward.size() > 1)	gui::inst()->addLabel(4, 1, "Max " + reward, this, 12, ALIGNMENT_NONE);
+	return true;
 }
 
 Sprite * ActionBasic::createAnimate(_training &t) {
@@ -112,7 +114,7 @@ void ActionBasic::runAction_tap(_training &t) {
 		if (percent >= 100.0f) {
 			this->unschedule("updateLoadingBar");
 			pMan->stopAllActions();
-			callbackActionAnimation(t.id, mActionCnt * 2);
+			callbackActionAnimation(t.id, mActionCnt * 4);
 		}
 	}, animationDelay, "updateLoadingBar");
 }
