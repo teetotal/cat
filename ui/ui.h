@@ -90,10 +90,6 @@ public:
             , Color4F bgColor = Color4F::WHITE
     );
 
-	Vec2 getCenter() {
-
-	};
-
     float getRealPixel(float x);
     float getSizeFromRealPixel(float x);
 

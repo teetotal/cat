@@ -125,7 +125,27 @@ float getTouchRatio(float sec, int cnt){
 	*/
 	return min(1.f, ((float)cnt / (max * sec)));
 }
+wstring sprint(const wchar_t * format, ...) {
+	wchar_t buffer[512] = {0,};
+	va_list args;
+	va_start(args, format);
+	int len = vswprintf(buffer, 512, format, args);
+	//fputws(buffer, stdout);
+	va_end(args);
+	wstring sz = buffer;
+	return sz;
+}
 
+string sprint(const char * format, ...) {
+	char buffer[512] = { 0, };
+	va_list args;
+	va_start(args, format);
+	int len = vsnprintf(buffer, 512, format, args);
+	//fputws(buffer, stdout);
+	va_end(args);
+	string sz = buffer;
+	return sz;
+}
 /*
 char* intToChar(int n) {
 	char *buf = new char[10];

@@ -636,15 +636,7 @@ private:
 		return (level < LEVEL_MAX / 2) ? 50 : 51;
 	};
 	wstring getQuestTitle(const string L10NKey, int val) {
-		wchar_t buf[1024] = { 0 };
-		swprintf(buf, mL10NMap[L10NKey].c_str(), val);
-		wstring title = buf;
-		return title;
-	};
-	wstring getQuestTitle(const string L10NKey, wstring sz, int val) {
-		wchar_t buf[1024] = { 0 };
-		swprintf(buf, mL10NMap[L10NKey].c_str(), sz.c_str(), val);		
-		wstring title = buf;
+		wstring title = sprint(mL10NMap[L10NKey].c_str(), val);
 		return title;
 	};
 	void addQuest_property(int uniqueId, int level) {

@@ -13,3 +13,4 @@ int rounding(float f); //반올림
 //char* intToChar(int n);
 tm * getLocalTm(time_t t);
 float getTouchRatio(float sec, int cnt);
+

@@ -1737,10 +1737,12 @@ void MainScene::updateQuests() {
 		if (p->isFinished || p->isReceived)
 			continue;
 			
-		wstring sz = p->title + L" " + to_wstring(p->accumulation) + L"/" + to_wstring(p->value);
+		//wstring sz = p->title + L" " + to_wstring(p->accumulation) + L"/" + to_wstring(p->value);
+        string sz = wstring_to_utf8(p->title);
+        sz += " " + to_string(p->accumulation) + "/" + to_string(p->value);
 		//if (p->accumulation >= p->value) sz = L"COMPLETE";
 		Menu * pMenu = NULL;
-		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, wstring_to_utf8(sz), this
+		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
 			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 10, ALIGNMENT_NONE);
 		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
 		q->setLocalZOrder(ZORDER_QUEST);

@@ -22,10 +22,22 @@ private:
 	virtual void onExitTransitionDidStart();
 	virtual void onExit();
 
+	bool onTouchBegan(Touch* touch, Event* event) {
+		return true;
+	};
+	bool onTouchEnded(Touch* touch, Event* event) {
+		mActionTouchCnt++;
+		return true;
+	};
+	void onTouchMoved(Touch *touch, Event *event) {};
 
 	void runAction_touch(_training &t);
+	void runAction_tap(_training &t);
+
+	Sprite * createAnimate(_training &t);
+
 	void callbackTouch(Ref* pSender) {
-		mActionTouchCnt++;;
+		mActionTouchCnt++;
 	};
 	void callbackActionAnimation(int id, int maxTimes);
 

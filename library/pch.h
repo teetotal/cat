@@ -31,5 +31,7 @@ string wstring_to_utf8(const wstring& str, bool isLabel);
 string loadJsonString(const char *path);
 void saveFile(const char* path, string sz);
 string getRomeNumber(int n);
+wstring sprint(const wchar_t * format, ...);
+string sprint(const char * format, ...);
 
 

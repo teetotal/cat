@@ -5,6 +5,11 @@
 #include "ActionBasic.h"
 #include "SimpleAudioEngine.h"
 
+float animationDelay = 0.1f;
+int cntAnimationMotion = 6;
+int loopAnimation = 4 * 3;
+float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
+
 Scene* ActionBasic::createScene()
 {
 	return ActionBasic::create();
@@ -35,6 +40,11 @@ bool ActionBasic::runAction(int id) {
 	if (logics::hInst->isValidTraining(id) != error_success)
 		return false;
 
+	//start touch count
+	mActionCnt = 0;
+	mActionTouchCnt = 0;
+	gui::inst()->mModalTouchCnt = 0;
+
 	mAction = logics::hInst->getActionList()->at(id);
 	//title
 	mTitle->setString(wstring_to_utf8(mAction.name));
@@ -52,28 +62,13 @@ bool ActionBasic::runAction(int id) {
 	if (mAction.reward.appeal > 0)        reward += "A: " + to_string(mAction.reward.appeal) + " ";
 
 	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)	gui::inst()->addLabel(0, 0, "Max " + reward, this, 12, ALIGNMENT_NONE);
+	if (reward.size() > 1)	gui::inst()->addLabel(4, 1, "Max " + reward, this, 12, ALIGNMENT_NONE);
 }
 
-
-void ActionBasic::runAction_touch(_training &t) {	
-	
-	auto size = Size(400, 200);
-	int fontSize = 12;
-	Layout * l = gui::inst()->createLayout(size, "", true);
-	l->setOpacity(128);
-	gui::inst()->addToCenter(l, this);
-	
-	int idx = 2;
-	float animationDelay = 0.1f;
-	int cntAnimationMotion = 6;
-	int loopAnimation = 4 * 3;// * t.level; //레벨이 높을 수록 오래 
-	float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
-
+Sprite * ActionBasic::createAnimate(_training &t) {
 	string path = "action/" + to_string(t.type) + "/0.png";
 	auto pMan = Sprite::create(path);
-	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
-	l->addChild(pMan);
+	//pMan->setPosition(gui::inst()->getCenter());
 
 	auto animation = Animation::create();
 	animation->setDelayPerUnit(animationDelay);
@@ -84,15 +79,57 @@ void ActionBasic::runAction_touch(_training &t) {
 
 	auto animate = RepeatForever::create(Animate::create(animation));
 	pMan->runAction(animate);
+
+	return pMan;
+}
+
+
+void ActionBasic::runAction_tap(_training &t) {
+
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->setSwallowTouches(true);
+	listener->onTouchBegan = CC_CALLBACK_2(ActionBasic::onTouchBegan, this);
+	listener->onTouchEnded = CC_CALLBACK_2(ActionBasic::onTouchEnded, this);
+	listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 	
+	Sprite * pMan = createAnimate(t);
+	gui::inst()->addToCenter(pMan, this);
+	
+	//tap
+	const int duration = 5;
+	const int times = 4;
+	gui::inst()->addLabel(1, 5, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
+	gui::inst()->addLabel(6, 3, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
+
+	this->schedule([=](float delta) {
+		
+		float percent = mLoadingBar->getPercent();
+		percent += step;
+		mActionCnt++;
+		mLoadingBar->setPercent(percent);
+
+		if (percent >= 100.0f) {
+			this->unschedule("updateLoadingBar");
+			pMan->stopAllActions();
+			callbackActionAnimation(t.id, mActionCnt * 2);
+		}
+	}, animationDelay, "updateLoadingBar");
+}
+
+void ActionBasic::runAction_touch(_training &t) {	
+	auto size = Size(400, 200);
+	Layout * l = gui::inst()->createLayout(size);
+	gui::inst()->addToCenter(l, this);
+		
+	Sprite * pMan = createAnimate(t);
+	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
+
+	l->addChild(pMan);
+
 	//touch
 	Menu * pTouchButton = NULL;
-	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, idx, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
-
-	//start touch count
-	mActionCnt = 0;
-	mActionTouchCnt = 0;
-	gui::inst()->mModalTouchCnt = 0;
+	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
 
 	this->schedule([=](float delta) {
 		//touch 이동
@@ -109,18 +146,11 @@ void ActionBasic::runAction_touch(_training &t) {
 
 			//pTouchButton->setPosition(position);
 			pTouchButton->runAction(MoveTo::create(animationDelay, position));
-
 		}
-
 
 		float percent = mLoadingBar->getPercent();
 		percent += step;
 		mActionCnt++;
-		float ratio = getTouchRatio(animationDelay, gui::inst()->mModalTouchCnt);
-		gui::inst()->mModalTouchCnt = 0;
-		//CCLOG("%f", ratio * step);
-		percent += ratio * step;
-
 		mLoadingBar->setPercent(percent);
 
 		if (percent >= 100.0f) {
@@ -205,7 +235,15 @@ void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 
 void ActionBasic::onEnter() {
 	Scene::onEnter();
-	runAction_touch(mAction);
+	switch (mAction.type) {
+	case trainingType_party:
+		runAction_tap(mAction);
+		break;
+	default:
+		runAction_touch(mAction);
+		break;
+	}
+	
 }
 void ActionBasic::onEnterTransitionDidFinish() {
 	Scene::onEnterTransitionDidFinish();
