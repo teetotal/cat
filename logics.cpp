@@ -467,7 +467,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 			if (it->second.level == n) {
 				mQuest.addQuest(
 					uniqueId++
-					, it->second.name + getQuestTitle("QUEST_TITLE_ACTION", 1)
+					, it->second.name + getL10N("QUEST_TITLE_ACTION", 1)
 					, achievement_category_training
 					, it->first
 					, 1
@@ -488,10 +488,13 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		//action accumulation
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {
 			int nCnt = n - (n - it->second.level);
+			if (nCnt < 2)
+				continue;
+
 			if (it->second.level < n && it->second.level >= n - 3) {
 				mQuest.addQuest(
 					uniqueId++
-					, it->second.name + getQuestTitle("QUEST_TITLE_ACTION", nCnt)
+					, it->second.name + getL10N("QUEST_TITLE_ACTION", nCnt)
 					, achievement_category_training
 					, it->first
 					, nCnt

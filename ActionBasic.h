@@ -25,32 +25,32 @@ private:
 	bool onTouchBegan(Touch* touch, Event* event) {
 		return true;
 	};
-	bool onTouchEnded(Touch* touch, Event* event) {
-		mActionTouchCnt++;
-		return true;
-	};
+	bool onTouchEnded(Touch* touch, Event* event);
 	void onTouchMoved(Touch *touch, Event *event) {};
-
+	
+	void run();
 	void runAction_touch(_training &t);
 	void runAction_tap(_training &t);
 
 	Sprite * createAnimate(_training &t);
 
-	void callbackTouch(Ref* pSender) {
-		mActionTouchCnt++;
-	};
+	void callbackTouch(Ref* pSender);
 	void callbackActionAnimation(int id, int maxTimes);
 
 	void callback(Ref* pSender, SCENECODE type);
 	void closeScene() {
 		Director::getInstance()->popScene();
 	};
-	Label * mTitle, * mRewardInfo;
+
+	void addTouchCnt();
+	Label * mTitle, * mRewardInfo, * mTouchInfo;
 	LoadingBar * mLoadingBar;
 	Layout * mLayer;
 
-	int mActionCnt, mActionTouchCnt;
+	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
 	_training mAction;
+
+	bool mIsStop;
 };
 
 #endif 

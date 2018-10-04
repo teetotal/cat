@@ -111,7 +111,7 @@ private:
     gui mGrid;
     ui_gacha  mGacha;
     LayerColor * layer, *layerGray;    
-    cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
+    //cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
     bool mIsParticleFinished;
     LoadingBar * loadingBar;
 

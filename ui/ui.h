@@ -369,6 +369,13 @@ public:
 	Vec2 getCenterFromSize(Size size) {
 		return Vec2(size.width / 2, size.height / 2);
 	};
+	Vec2 getCenter() {
+		Size size = Director::getInstance()->getVisibleSize();
+		Vec2 point = Vec2(size.width / 2, size.height / 2);
+		point.x += Director::getInstance()->getVisibleOrigin().x;
+		point.y += Director::getInstance()->getVisibleOrigin().y;
+		return point;
+	};
 
     //이미지 하나를 3배 복제해서 스크롤링, 리턴 없음
     void addBGScrolling(const string img, Node * p, float duration);
@@ -387,11 +394,13 @@ public:
 	void addToCenter(Node * p, Node * pParent) {
 		p->setAnchorPoint(Vec2(0.5, 0.5));
 		//bg->setOpacity(200);
+		/*
 		Size size = Director::getInstance()->getVisibleSize();
 		Vec2 point = Vec2(size.width / 2, size.height / 2);
 		point.x += Director::getInstance()->getVisibleOrigin().x;
 		point.y += Director::getInstance()->getVisibleOrigin().y;
-		p->setPosition(point);
+		*/
+		p->setPosition(getCenter());
 		pParent->addChild(p);
 	};
 

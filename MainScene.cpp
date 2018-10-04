@@ -13,6 +13,7 @@
 using namespace cocos2d::ui;
 
 #define PARTICLE_FINAL "particles/particle_finally.plist"
+#define PARTICLE_MAGIC "particles/particle_magic.plist"
 
 #define INVENTORY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 4);
 #define BUY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 70); auto gridSize = Size(3, 4);
@@ -43,8 +44,7 @@ bool MainScene::init()
 	layerGray = NULL;
 	layer = NULL;
 	mAlertLayer = NULL;
-    hInst = this;
-    mParitclePopup = NULL;
+    hInst = this;    
 	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB, false)) {
 		CCLOG("logics Init Failure !!!!!!!!!!!!!!");
 		return false;
@@ -63,14 +63,14 @@ bool MainScene::init()
 
 	Color3B fontColor = Color3B::BLACK;
 	//BG
-	/*
+	
 	auto bg = Sprite::create(BG_HOME);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
 	//bg->setOpacity(50);
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
-	*/
+	
     mGrid.init("fonts/Goyang.ttf", 14);
 
 	//farming init
@@ -198,12 +198,13 @@ bool MainScene::init()
 	//quest 표시
 	updateQuests();
     //gacha
+	/*
     mParitclePopup = mGacha.createLayer(mParitclePopupLayer
             , this
             , "crystal_marvel.png"
             , "particles/particle_magic.plist"
             , PARTICLE_FINAL);
-	
+	*/
 	mLevel = logics::hInst->getActor()->level;
 
     updateState(false);
@@ -383,6 +384,19 @@ void MainScene::updateState(bool isInventoryUpdated) {
     name += to_string(logics::hInst->getActor()->level);
     if(name.compare(mName->getString()) != 0 ){
         mName->runAction(gui::inst()->createActionFocus());
+		//level up effect
+		Vec2 center = gui::inst()->getCenter();
+		this->addChild(gui::inst()->createParticle(PARTICLE_FINAL, 4, 3));
+		const float duration = 1;
+		const float scale = 3;
+		gui::inst()->addLabel(4, 3
+			, wstring_to_utf8(logics::hInst->getL10N("LEVEL_UP", logics::hInst->getActor()->level))
+			, this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)
+			->runAction(Sequence::create(
+				EaseIn::create(ScaleBy::create(duration, scale), 0.4)
+				, EaseOut::create(ScaleBy::create(duration, 1 / scale), 0.4)
+				, RemoveSelf::create()
+				, NULL));
 	}
 
     mName->setString(name);
@@ -678,7 +692,7 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		store();
 		break;
 	case SCENECODE_POPUP_2:
-		this->removeChild(mParitclePopupLayer);
+		//this->removeChild(mParitclePopupLayer);
 		break;
 	case SCENECODE_COLLECTION:
 		//dailyReward();
@@ -1404,7 +1418,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		, nodeMargin
 		, nodeSize
 		, (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it)
-		, if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue;
+		, if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue; switch (type) { case 0: break; case 1: if (it->second.reward.strength == 0) continue; break; case 2: if (it->second.reward.intelligence == 0) continue; break; case 3: if (it->second.reward.appeal == 0) continue; break; default: break; }
 		, getItemImg(it->first)
 		, CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
 		, "Lv." + to_string(it->second.level)
@@ -1414,6 +1428,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		, gui::inst()->EmptyString
 		)
 
+		
 	/*
 
 	__training * pTraining = logics::hInst->getActionList();

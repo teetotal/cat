@@ -29,6 +29,7 @@ bool ActionBasic::init()
 	mTitle = gui::inst()->addLabel(4, 0, " ", this);
 	mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
 	mRewardInfo = gui::inst()->addLabel(4, 1, " ", this);
+	mTouchInfo = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
 	return true;
 }
 
@@ -107,14 +108,13 @@ void ActionBasic::runAction_tap(_training &t) {
 	this->schedule([=](float delta) {
 		
 		float percent = mLoadingBar->getPercent();
-		percent += step;
-		mActionCnt++;
+		percent += step;		
 		mLoadingBar->setPercent(percent);
 
 		if (percent >= 100.0f) {
 			this->unschedule("updateLoadingBar");
 			pMan->stopAllActions();
-			callbackActionAnimation(t.id, mActionCnt * 4);
+			callbackActionAnimation(t.id, mMaxTouchCnt);
 		}
 	}, animationDelay, "updateLoadingBar");
 }
@@ -123,12 +123,12 @@ void ActionBasic::runAction_touch(_training &t) {
 	auto size = Size(400, 200);
 	Layout * l = gui::inst()->createLayout(size);
 	gui::inst()->addToCenter(l, this);
-		
+	/*
 	Sprite * pMan = createAnimate(t);
 	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
 
 	l->addChild(pMan);
-
+	*/
 	//touch
 	Menu * pTouchButton = NULL;
 	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
@@ -157,8 +157,8 @@ void ActionBasic::runAction_touch(_training &t) {
 
 		if (percent >= 100.0f) {
 			this->unschedule("updateLoadingBar");
-			pMan->stopAllActions();
-			callbackActionAnimation(t.id, mActionCnt / 2);
+			//pMan->stopAllActions();
+			callbackActionAnimation(t.id, mMaxTouchCnt);
 		}
 	}, animationDelay, "updateLoadingBar");
 	
@@ -166,7 +166,7 @@ void ActionBasic::runAction_touch(_training &t) {
 }
 
 void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
-
+	mIsStop = true;
 	vector<_itemPair> rewards;
 	_property property;
 	int point;
@@ -224,6 +224,23 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 
 }
 
+void ActionBasic::addTouchCnt() {
+	if (!mIsStop) {
+		mActionTouchCnt++;
+		string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
+		mTouchInfo->setString(sz);
+	}
+}
+
+void ActionBasic::callbackTouch(Ref* pSender) {
+	addTouchCnt();
+};
+
+bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
+	addTouchCnt();
+	return true;
+};
+
 void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 	
 	switch(type){
@@ -234,18 +251,51 @@ void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 	}
 }
 
-
-void ActionBasic::onEnter() {
-	Scene::onEnter();
+void ActionBasic::run() {
+	mIsStop = false;
+	float nMax = (100.f / step);
 	switch (mAction.type) {
 	case trainingType_party:
 		runAction_tap(mAction);
+		mMaxTouchCnt = nMax * 4;
 		break;
 	default:
 		runAction_touch(mAction);
+		mMaxTouchCnt = nMax / 2;
+		break;
+	}
+}
+
+void ActionBasic::onEnter() {
+	Scene::onEnter();
+	/*
+	auto layer = gui::inst()->createLayout(Size(300, 200), "", true);
+	layer->setAnchorPoint(Vec2(0.5, 0.5));
+	layer->setPosition(gui::inst()->getCenter());
+	this->addChild(layer);
+	layer->runAction(FadeOut::create(3));
+	*/
+	mIsStop = true;
+	string sz;
+	switch (mAction.type) {
+	case trainingType_party:
+		sz = logics::hInst->getL10N("ACTION_TAP");
+		break;
+	default:
+		sz = logics::hInst->getL10N("ACTION_TOUCH");
 		break;
 	}
 	
+	gui::inst()->addLabel(4, 3, sz, this)
+		->runAction(
+			Sequence::create(
+				FadeOut::create(3)
+				, CallFunc::create([this]() { run();	})
+				, NULL)
+		);
+
+
+	//this->scheduleOnce(schedule_selector(ActionBasic::run), 3.0f);
 }
 void ActionBasic::onEnterTransitionDidFinish() {
 	Scene::onEnterTransitionDidFinish();
