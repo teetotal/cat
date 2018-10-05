@@ -236,7 +236,7 @@ void FarmingScene::updateFarming(float fTimer) {
 
 	//도둑질
 	if (pThiefField) {
-		stopAction(mCharacter);
+        stopActionCharacter();
 		mCharacter->runAction(getThiefAnimate());
 		mCharacter->setPosition(gui::inst()->getPointVec2(pThiefField->x, pThiefField->y, ALIGNMENT_CENTER));
 	}
@@ -247,7 +247,7 @@ bool FarmingScene::onTouchBegan(Touch* touch, Event* event) {
 	//찾기
 	if (mCharacter->getBoundingBox().containsPoint(touch->getLocation())) {
 		mMode = Mode_Farming;
-		stopAction(mCharacter);
+        stopActionCharacter();
 		mCharacter->runAction(getFarmingAnimation());
 		return true;
 	}
@@ -483,11 +483,11 @@ void FarmingScene::createSeedMenu()
 	int margin = 10;
 	int layerSize = 30;
 
-	int cnt = logics::hInst->getFarm()->getSeeds()->size();
+	int cnt = (int)logics::hInst->getFarm()->getSeeds()->size();
 
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size(-1, -1), Size(-1, -1));
+    Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1));
 	//mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
-	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * cnt + margin, sizeOfScrollView.height), this);
+	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * cnt + margin, sizeOfScrollView.height), this);
 	mScrollView->setBackGroundColor(Color3B::WHITE);
 	mScrollView->setBackGroundColorOpacity(64);
 	mScrollView->setBackGroundColorType(Layout::BackGroundColorType::GRADIENT);
@@ -520,9 +520,9 @@ void FarmingScene::addSprite(MainScene::field * p, int seedId) {
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
 	p->sprite->setPosition(position);
-	float ratio = mGridSize.height / p->sprite->getContentSize().height;
-	//p->sprite->setContentSize(mGridSize);
-	p->sprite->setScale(ratio);
+    
+	p->sprite->setScale(mGridSize.height / p->sprite->getContentSize().height);
+    
 	this->addChild(p->sprite, 1);
 }
 
@@ -654,7 +654,7 @@ Sequence * FarmingScene::getThiefAnimate() {
 }
 
 void FarmingScene::onActionFinished() {
-	stopAction(mCharacter);
+    stopActionCharacter();
 	mCharacter->runAction(MainScene::getIdleAnimation());
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
     gui::inst()->setScale(mCharacter, 50);

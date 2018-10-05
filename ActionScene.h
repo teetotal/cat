@@ -53,10 +53,10 @@ private:
 	virtual bool onTouchEnded(Touch* touch, Event* event);
 	int mTouchCnt;
 
-	virtual void onEnter();
-	virtual void onEnterTransitionDidFinish();
-	virtual void onExitTransitionDidStart();
-	virtual void onExit();
+	virtual void onEnter() override;
+	virtual void onEnterTransitionDidFinish() override;
+	virtual void onExitTransitionDidStart() override;
+	virtual void onExit() override;
 	
 	enum SUFFER_STATE {
 		SUFFER_STATE_NONE,
@@ -80,6 +80,23 @@ private:
 	void counting();
 	wstring getSkillIconW(itemType type) {
 		wstring szImg;
+        switch (type) {
+            case itemType_race_shield:        //방어 쉴드
+                szImg = L"┛";
+                break;
+            case itemType_race_speedUp:        //속업
+                szImg = L"┲";
+                break;
+            case itemType_race_attactFront:    //전방 공격
+                szImg = L"┡";
+                break;
+            case itemType_race_attactFirst:    //1등 공격
+                szImg = L"┼";
+                break;
+            default:
+                break;
+        }
+        /*
 		switch (type) {
 		case itemType_race_shield:		//방어 쉴드
 			szImg = L"쉴드";
@@ -96,6 +113,7 @@ private:
 		default:
 			break;
 		}
+         */
 		return szImg;
 	};
 	string getSkillIcon(itemType type) {
@@ -136,8 +154,8 @@ private:
 	int mCount;
 	//Label * mRankLabel[raceParticipantNum + 1];
 
-	MenuItemFont * mSelectedItem[raceItemSlot];
-	MenuItemFont * mSkillItem[raceItemSlot];
+	MenuItemLabel * mSelectedItem[raceItemSlot];
+	MenuItemLabel * mSkillItem[raceItemSlot];
 	Layout * mFullLayer;
 
 	void timer(float f);
@@ -159,7 +177,7 @@ private:
 	wstring names[raceParticipantNum + 1];
 	Color3B txtColors[raceParticipantNum + 1];
 	//typedef vector<Sprite*> VecSprite;
-	Sprite * mDangers[raceParticipantNum + 1][DANGER_CNT];
+	Sprite * mDangers[raceParticipantNum + 1][DANGER_CNT*2];
 
 	//play횟수
 	int mPlayCnt;

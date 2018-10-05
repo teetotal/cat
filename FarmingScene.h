@@ -88,9 +88,15 @@ private:
 	RepeatForever * getFarmingAnimation();
 	void updateFarming(float f);
 
+    
+    void stopActionCharacter() {
+        mCharacter->stopAllActions();
+        mCharacter->setScale(1.f);
+    };
+    
 	void stopAction(Sprite * p) {
 		p->stopAllActions();
-		p->setScale(1.f);
+        p->setScale(mGridSize.height / p->getContentSize().height);
 	};
 
 	ParticleSystemQuad * createClinkParticle(Vec2 position) {

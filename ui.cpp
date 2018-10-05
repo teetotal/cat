@@ -136,7 +136,7 @@ bool gui::drawGrid(Node * p
                 , origin
                 , margin);
         draw->drawLine(Point(startX, startY), Point(endX, endY), Color4F::GRAY);
-        p->addChild(draw, 1000);
+        p->addChild(draw);
     }
 
     for(int y=0; y<=gridY; y++){
@@ -151,7 +151,7 @@ bool gui::drawGrid(Node * p
                 , origin
                 , margin);
         draw->drawLine(Point(startX, startY), Point(endX, endY), Color4F::GRAY);
-        p->addChild(draw, 1000);
+        p->addChild(draw);
     }
 
     return true;
@@ -220,46 +220,6 @@ Label * gui::addLabelAutoDimension(int x
     );
 }
 
-Label * gui::createLabel(int x, int y, const string text,int fontSize, ALIGNMENT align, const Color3B color
-                         , Size dimension
-                         , Size grid
-                         , Size origin
-                         , Size margin
-                    ){
-    if(fontSize == 0)
-        fontSize = mDefaultFontSize;
-    
-    float pointX, pointY;
-    float pointX_NONE, pointY_NONE;
-    getPoint(x,y
-             , pointX, pointY
-             , pointX_NONE, pointY_NONE
-             , ALIGNMENT_CENTER
-             , dimension
-             , grid
-             , origin
-             , margin
-             );
-    
-    Label * label = Label::createWithTTF(text, mDefaultFont, fontSize);
-    label->setColor(color);
-    
-    float pX;
-    switch (align) {
-        case ALIGNMENT_NONE:
-            pX = pointX_NONE;
-            label->setAnchorPoint(Vec2(0.f, 0.5f));
-            break;
-        case ALIGNMENT_CENTER:
-        default:
-            pX = pointX;
-            break;
-    }
-    label->setPosition(Point(pX, pointY));
-    
-    return label;
-}
-
 Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid
@@ -268,25 +228,24 @@ Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, AL
         , const string img
         , bool isBGImg
 ){
+    if(fontSize == 0)
+        fontSize = mDefaultFontSize;
 
-    Label * label = createLabel(x, y, text, fontSize, align, color
-                                , dimension
-                                , grid
-                                , origin
-                                , margin
-                                );
     float pointX, pointY;
     float pointX_NONE, pointY_NONE;
     getPoint(x,y
-             , pointX, pointY
-             , pointX_NONE, pointY_NONE
-             , ALIGNMENT_CENTER
-             , dimension
-             , grid
-             , origin
-             , margin
-             );
-    
+            , pointX, pointY
+            , pointX_NONE, pointY_NONE
+            , ALIGNMENT_CENTER
+            , dimension
+            , grid
+            , origin
+            , margin
+    );
+
+    Label * label = Label::createWithTTF(text, mDefaultFont, fontSize);
+    label->setColor(color);
+
     float pX;
 
     if(img.compare("") != 0){
@@ -301,20 +260,35 @@ Label * gui::addLabel(Node *p, int x, int y, const string text, int fontSize, AL
                     , pointY));
 
         }else{
+
             pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (sprite->getContentSize().width /2) :
                  pointX_NONE + ((sprite->getContentSize().width + label->getContentSize().width) /2);
 
             sprite->setPosition(Point(pX, pointY));
             label->setPosition(Point(pX + (sprite->getContentSize().width /2) + (label->getContentSize().width / 2), pointY));
         }
+
         p->addChild(sprite);
+
+    }else{		
+		switch (align) {
+		case ALIGNMENT_NONE:
+			pX = pointX_NONE;
+			label->setAnchorPoint(Vec2(0.f, 0.5f));
+			break;
+		case ALIGNMENT_CENTER:
+			pX = pointX;
+		}
+        //pX = (align == ALIGNMENT_NONE) ? pointX_NONE + (label->getContentSize().width / 2) : pointX;
+
+        label->setPosition(Point(pX, pointY));
     }
 
     p->addChild(label);
 
     return label;
 }
-MenuItemLabel * gui::addTextButtonAutoDimension(int x, int y, const string text, Node *p, const ccMenuCallback &callback
+MenuItemFont * gui::addTextButtonAutoDimension(int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size grid
         , Size origin
@@ -324,7 +298,7 @@ MenuItemLabel * gui::addTextButtonAutoDimension(int x, int y, const string text,
 ){
     return addTextButton(x, y, text, p, callback, fontSize, align, color, p->getContentSize(), grid, origin, margin, img, isBGImg);
 }
-MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string text, Node *p, const ccMenuCallback &callback
+MenuItemFont * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string text, Node *p, const ccMenuCallback &callback
         , int fontSize, ALIGNMENT align, const Color3B color
         , Size dimension
         , Size grid
@@ -334,23 +308,14 @@ MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string t
         , bool isBGImg
 ) {
 
-    //if(fontSize > 0) MenuItemFont::setFontSize(fontSize);
+    if(fontSize > 0)
+        MenuItemFont::setFontSize(fontSize);
 
     //MenuItemLabel::create(<#Node *label#>, <#const ccMenuCallback &callback#>) 요걸로 교체
-    /*
     auto pItem = MenuItemFont::create(text, callback);
     pItem->setColor(color);	
-    
-     */
-    if(fontSize == 0)
-        fontSize = mDefaultFontSize;
-    
-    auto label = Label::createWithTTF(text, mDefaultFont, fontSize);
-    label->setColor(color);
-    auto pItem = MenuItemLabel::create(label, callback);
-    
     pMenu = Menu::create(pItem, NULL);
-    
+
     float pointX, pointY;
     float pointX_NONE, pointY_NONE;
     getPoint(x,y
@@ -405,7 +370,8 @@ MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string t
 
     p->addChild(pMenu);
 
-    //if(fontSize > 0) MenuItemFont::setFontSize(mDefaultFontSize);
+    if(fontSize > 0)
+        MenuItemFont::setFontSize(mDefaultFontSize);
 
     return pItem;
 }
@@ -464,10 +430,7 @@ gui::createModalLayer(LayerColor * &layerBG, Size size, const string bgImg, Colo
 
 LayerColor * gui::addPopup(LayerColor * &layerBG, Node * p, Size size, const string bgImg, Color4B bgColor){
 
-    Vec2 start = getPointVec2(0, 6);
-    Vec2 end = getPointVec2(8, 0);
-    Size sizeLayer = Size(end.x - start.x, end.y - start.y);
-    LayerColor * layer = createModalLayer(layerBG, sizeLayer, bgImg, bgColor);
+    LayerColor * layer = createModalLayer(layerBG, size, bgImg, bgColor);
     p->addChild(layerBG);
     return layer;
 }
@@ -503,33 +466,37 @@ void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int ne
     p->addChild(e);
 }
 
-Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size grid, Size origin, Size margin) {
-//    if (size.width <= 0) size = Director::getInstance()->getVisibleSize();
+Size gui::getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin) {
+	if (size.width <= 0)
+		size = Director::getInstance()->getVisibleSize();
 
 	float svX1, svY1, svX2, svY2;
-	getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, grid, origin, margin);
-	getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, grid, origin, margin);
+	getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+	getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
 	return Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2));
 }
 
-ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size grid, Size origin, Size margin, const string bgImg, Size innerSize, Node * parent){
+ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const string bgImg, Size innerSize, Node * parent){
 	
-//    if (size.width <= 0) size = Director::getInstance()->getVisibleSize();
+	if (size.width <= 0)
+		size = Director::getInstance()->getVisibleSize();
 
     ScrollView * sv = ScrollView::create();
-//    sv->setBackGroundColor(Color3B::GRAY);
-//    sv->setBackGroundColorType(Layout::BackGroundColorType::SOLID);
+    //sv->setBackGroundColor(Color3B::GRAY);
+    //sv->setBackGroundColorType(Layout::BackGroundColorType::SOLID);
     if(bgImg.compare("") != 0)
         sv->setBackGroundImage(bgImg);
 
     float svX1, svY1, svX2, svY2;
-    getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, grid, origin, margin);
-    getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, grid, origin, margin);
+    getPoint(p1.x, p1.y, svX1, svY1, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), margin);
+    getPoint(p2.x, p2.y, svX2, svY2, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), margin);
 
     sv->setPosition(Vec2(std::min(svX1, svX2), std::min(svY1, svY2)));
+
     sv->setContentSize(Size(svX2 - svX1, std::max(svY1, svY2) - std::min(svY1, svY2)));
-    
+
+
     if(innerSize.width > 0 && innerSize.height > 0)
         sv->setInnerContainerSize(innerSize);
 

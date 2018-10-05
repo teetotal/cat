@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeChun on 24/08/2018.
 //
 
@@ -78,8 +78,8 @@ bool AlertScene::init(errorCode err)
 			POPUP_LIST(mLayer
 				, Size(3, 5)
 				, 2
-				, Vec2(0, 7)
-				, Vec2(9, 3)
+				, Vec2(0, 6)
+				, Vec2(9, 2)
 				, Size::ZERO
 				, 4
 				, Size(120, 70)

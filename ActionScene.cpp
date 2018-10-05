@@ -10,11 +10,11 @@
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 3.5
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 10); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 5); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  4
 
 #define RUNNER_MARGIN 35
-#define RUNNER_WIDTH 75
+float RUNNER_WIDTH;
 
 //#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene(int id)
@@ -25,6 +25,14 @@ Scene* ActionScene::createScene(int id)
 bool ActionScene::init() {		
 	mPlayCnt = 0;
     mScale = -1;
+    RUNNER_WIDTH = 75 * gui::inst()->mVisibleY / 270;
+    
+    for (int idx = 0; idx <= raceParticipantNum; idx++) {
+        for (int n = 0; n < DANGER_CNT * 2; n++) {
+            mDangers[idx][n] = NULL;
+        }
+    }
+
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
@@ -172,7 +180,7 @@ bool ActionScene::initRace() {
 			wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
 			string sz = wstring_to_utf8(szW);
 			mSkillItem[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
-				CC_CALLBACK_1(ActionScene::invokeItem, this, i), 20, ALIGNMENT_NONE, Color3B::BLACK);
+                                                       CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::ORANGE);
 		}
 		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
 	}
@@ -210,7 +218,7 @@ void ActionScene::counter(float f) {
 			this->scheduleUpdate();
 			//Danger
 			for (int idx = 0; idx <= raceParticipantNum; idx++) {
-				for (int n = 0; n < DANGER_CNT; n++) {
+				for (int n = 0; n < DANGER_CNT * 2; n++) {
 					Sprite * p = mDangers[idx][n];
 					if (p == NULL)
 						break;
@@ -235,6 +243,8 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 	//mSkillItem[idx]->setString("");
 	//item은 무조건 제자리에서
 	this->resetHeight(raceParticipantNum);
+    mSkillItem[idx]->setString(" ");
+    mSkillItem[idx]->setColor(Color3B::GRAY);
 	mSkillItem[idx]->setEnabled(false);
 	//아이템 사용
 	if(mSelectItems.size() > idx)
@@ -320,8 +330,12 @@ Sprite* ActionScene::createRunner(int idx) {
 	
 	// danger 
 	if (isItemMode()) {
-		const float baseDistance = (mFullLayer->getContentSize().width * 1.5 / DANGER_CNT);
-		for (int n = 0; n < DANGER_CNT; n++) {
+        float nDanger = DANGER_CNT;
+        if(mRaceMode == race_mode_1vs1)
+            nDanger *= 2;
+        
+		const float baseDistance = (mFullLayer->getContentSize().width * 1.5 / nDanger);
+		for (int n = 0; n < nDanger; n++) {
 			float y = mRunnerInitPosition[idx].y + 10/*magin*/;
 			auto sprite = Sprite::create("danger.png");
             gui::inst()->setScale(sprite, RUNNER_WIDTH / 5);
@@ -399,6 +413,9 @@ void ActionScene::timer(float f) {
 		}
 
 		if (p.currentSuffer != itemType_max) {
+            //제자리로
+            resetHeight(n);
+            
 			switch (p.currentSuffer)
 			{
 			case itemType_race_speedUp:
@@ -421,8 +438,7 @@ void ActionScene::timer(float f) {
 				break;
 			case itemType_race_obstacle:
 				if (mSufferState[n] != SUFFER_STATE_OBSTACLE) {
-					//제자리로
-					resetHeight(n);
+					
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
@@ -436,8 +452,7 @@ void ActionScene::timer(float f) {
 				
 			default:				
 				if (mSufferState[n] != SUFFER_STATE_ATTACK) {
-					//제자리로
-					resetHeight(n);
+					
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
@@ -474,7 +489,7 @@ void ActionScene::result() {
 	if (isItemMode()) {
 		this->unscheduleUpdate();
 		for (int i = 0; i <= raceParticipantNum; i++) {
-			for (int j = 0; j < DANGER_CNT; j++) {
+			for (int j = 0; j < DANGER_CNT * 2; j++) {
 				if (mDangers[i][j]) {
 					mDangers[i][j]->stopAllActions();
 					mFullLayer->removeChild(mDangers[i][j]);
@@ -630,7 +645,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	for (int n = 0; n < raceItemSlot; n++) {
 		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(1 + (3 * (n)), 5, "EMPTY", mPopupLayer
 			, CC_CALLBACK_1(ActionScene::removeSelectItem, this, n)
-			, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+			, 24, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 		);
 	}
 		
@@ -646,8 +661,8 @@ void ActionScene::showItemSelect(errorCode err) {
 	POPUP_LIST(mPopupLayer
 		, gridSize
 		, newLine
-		, Vec2(0, 6)
-		, Vec2(9, 1)
+		, Vec2(0, 5)
+		, Vec2(9, 0)
 		, margin
 		, POPUP_NODE_MARGIN
 		, nodeSize
@@ -728,7 +743,10 @@ void ActionScene::update(float delta) {
 			mFullLayer->addChild(draw);
 		}
 		*/
-		for (int j = 0; j < DANGER_CNT; j++) {
+		for (int j = 0; j < DANGER_CNT * 2; j++) {
+            if(mDangers[i][j] == NULL)
+                continue;
+            
 			if (mDangers[i][j]->getTag() != 1 && mDangers[i][j]->getBoundingBox().intersectsCircle(center, radius)) {
 				logics::hInst->invokeRaceObstacle(i, logics::hInst->getRace()->at(mRaceId).level);
 				mDangers[i][j]->runAction(Blink::create(1, 10));

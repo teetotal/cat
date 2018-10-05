@@ -41,14 +41,14 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 		nCnt++; \
 	} \
 	Size __nodeSize = _NODE_SIZE; \
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), Size(-1,-1), Size::ZERO, _MARGIN); \
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), _MARGIN); \
 	if(_NEWLINE > 0) { \
 		__nodeSize.width = (sizeOfScrollView.width / (float)_NEWLINE) - _NODE_MARGIN; \
 	} else { \
 		__nodeSize.height = sizeOfScrollView.height; \
 	} \
 	Size innerSize = (_NEWLINE > 0) ? Size(sizeOfScrollView.width, ((nCnt / _NEWLINE) + 1) * (__nodeSize.height + _NODE_MARGIN)) : Size((__nodeSize.width  + _NODE_MARGIN) * nCnt, __nodeSize.height + _NODE_MARGIN);\
-    ScrollView * sv = gui::inst()->addScrollView(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), Size(-1,-1), Size::ZERO, _MARGIN, "", innerSize); \
+	ScrollView * sv = gui::inst()->addScrollView(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), _MARGIN, "", innerSize); \
 	for _FOR { \
 		_CONTINUE \
 		Layout* l = gui::inst()->createLayout(__nodeSize, "", true, Color3B::WHITE); \
@@ -67,8 +67,8 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		gui::inst()->addLayoutToScrollView(sv, l, _NODE_MARGIN, _NEWLINE); \
 	} \
-    _PARENT_NODE->removeChildByTag(99, true); \
-_PARENT_NODE->addChild(sv, 1, 99); 
+	_PARENT_NODE->removeChildByTag(99, true); \
+	_PARENT_NODE->addChild(sv, 1, 99); 
 
 class gui {
 public:
@@ -143,18 +143,6 @@ public:
             , const string img = ""
             , bool isBGImg = true
     );
-    
-    Label * createLabel(int x
-                     , int y
-                     , const string text
-                     , int fontSize = 0
-                     , ALIGNMENT align = ALIGNMENT_CENTER
-                     , const Color3B color = Color3B::BLACK
-                     , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                     , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
-                     , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-                     , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
-                     );
 
     Label * addLabel(Node *p
             , int x
@@ -170,7 +158,7 @@ public:
             , const string img = ""
             , bool isBGImg = true
     );
-    MenuItemLabel* addTextButtonAutoDimension(int x
+    MenuItemFont* addTextButtonAutoDimension(int x
             , int y
             , const string text
             , Node* p
@@ -184,7 +172,7 @@ public:
             , const string img = ""
             , bool isBGImg = true
     );
-	MenuItemLabel * addTextButton(int x
+	MenuItemFont * addTextButton(int x
 		, int y
 		, const string text
 		, Node* p
@@ -203,7 +191,7 @@ public:
 		return addTextButtonRaw(pMenu, x, y, text, p, callback, fontSize, align, color, dimension, grid, origin, margin, img, isBGImg);
 	};
 
-    MenuItemLabel* addTextButtonRaw(
+    MenuItemFont* addTextButtonRaw(
 			Menu* &pMenu
 			, int x
             , int y
@@ -309,11 +297,12 @@ public:
             , int newlineInterval = 0
     );
 
-	Size getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size grid, Size origin, Size margin);
+	Size getScrollViewSize(Vec2 p1, Vec2 p2, Size size, Size margin);
 
     ScrollView * addScrollView(Vec2 p1
             , Vec2 p2
-            , Size size, Size grid, Size origin, Size margin
+            , Size size
+            , Size margin
             , const string bgImg = ""
             , Size innerSize = Size(0, 0)
 			, Node * parent = NULL

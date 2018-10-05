@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -116,7 +116,7 @@ private:
     LoadingBar * loadingBar;
 
     Label * mName, * mJobTitle, * mExp, * mProperties;
-    MenuItemFont * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
+    MenuItemLabel * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
     Layout * mAlertLayer;
 
 	//Quantity
@@ -146,7 +146,7 @@ private:
 		noticeEffect(hInst->mAchievement);
 	};
 
-	static void noticeEffect(MenuItemFont * p) {
+	static void noticeEffect(MenuItemLabel * p) {
 		if (p) {
 			p->stopAllActions();
 			p->runAction(gui::inst()->createActionBlink());

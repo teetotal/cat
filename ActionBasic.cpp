@@ -81,7 +81,7 @@ Sprite * ActionBasic::createAnimate(_training &t) {
 	}
 
 	auto animate = RepeatForever::create(Animate::create(animation));
-	pMan->runAction(animate);
+    pMan->runAction(animate);
 
 	return pMan;
 }
@@ -97,6 +97,7 @@ void ActionBasic::runAction_tap(_training &t) {
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 	
 	Sprite * pMan = createAnimate(t);
+    gui::inst()->setScale(pMan, 80);
 	gui::inst()->addToCenter(pMan, this);
 	
 	//tap
@@ -120,7 +121,7 @@ void ActionBasic::runAction_tap(_training &t) {
 }
 
 void ActionBasic::runAction_touch(_training &t) {	
-	auto size = Size(400, 200);
+	auto size = Size(400, 150);
 	Layout * l = gui::inst()->createLayout(size);
 	gui::inst()->addToCenter(l, this);
 	/*
@@ -131,8 +132,9 @@ void ActionBasic::runAction_touch(_training &t) {
 	*/
 	//touch
 	Menu * pTouchButton = NULL;
-	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
-
+	auto item = gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
+    gui::inst()->setScale(item, 70);
+    
 	this->schedule([=](float delta) {
 		//touch 이동
 		if (mActionCnt % 10 < 3) {
@@ -257,7 +259,7 @@ void ActionBasic::run() {
 	switch (mAction.type) {
 	case trainingType_party:
 		runAction_tap(mAction);
-		mMaxTouchCnt = nMax * 4;
+		mMaxTouchCnt = nMax * 3;
 		break;
 	default:
 		runAction_touch(mAction);
