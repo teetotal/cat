@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
     #include "stdafx.h"
@@ -552,7 +552,7 @@ public:
 		return wstring_to_utf8(mL10NMap[L10NKey]);
 	};
 	wstring getL10N(const string L10NKey, int val) {
-		wstring title = sprint(mL10NMap[L10NKey].c_str(), val);
+		wstring title = sprint(mL10NMap[L10NKey], val);
 		return title;
 	};
 

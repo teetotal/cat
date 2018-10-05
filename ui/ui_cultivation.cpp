@@ -73,7 +73,7 @@ Layout * ui_cultivation::init(int id
     Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, l);
 	
 	//progress
-    mProgressBar = gui::inst()->addProgressBar(0, 0, progressBarImg, l, mCurrentPercent, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
+    mProgressBar = gui::inst()->addProgressBar(0, 0, progressBarImg, l, 100, mCurrentPercent, l->getContentSize(), GRID_SIZE, Size::ZERO, Size::ZERO);
 	
 	mRemain = gui::inst()->addLabelAutoDimension(0, 0
 		, "          ", l, 8, ALIGNMENT_CENTER, Color3B::WHITE, GRID_SIZE, Size::ZERO, Size::ZERO);

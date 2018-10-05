@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -125,15 +125,11 @@ float getTouchRatio(float sec, int cnt){
 	*/
 	return min(1.f, ((float)cnt / (max * sec)));
 }
-wstring sprint(const wchar_t * format, ...) {
-	wchar_t buffer[512] = {0,};
-	va_list args;
-	va_start(args, format);
-	int len = vswprintf(buffer, 512, format, args);
-	//fputws(buffer, stdout);
-	va_end(args);
-	wstring sz = buffer;
-	return sz;
+wstring sprint(const wstring format, int val) {
+    wstring str = format;
+    wstring str2 = L"%d";
+    str.replace(str.find(str2),str2.length(),to_wstring(val));
+	return str;
 }
 
 string sprint(const char * format, ...) {

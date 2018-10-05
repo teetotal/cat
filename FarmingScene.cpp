@@ -1,4 +1,4 @@
-﻿#include "FarmingScene.h"
+#include "FarmingScene.h"
 #include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 #include "ui/CocosGUI.h"
@@ -88,7 +88,7 @@ bool FarmingScene::init()
 	//grid
 	//gui::inst()->drawGrid(this);
 	
-	gui::inst()->addSprite(2, 0, "owl.png", this);
+    gui::inst()->setScale(gui::inst()->addSprite(2, 0, "owl.png", this), 50);
 	//quest	
 	for (int n = 0; n < QUEST_CNT; n++) {
 		mQuestLayer[n] = gui::inst()->createLayout(mGridSize, "", true);
@@ -103,6 +103,8 @@ bool FarmingScene::init()
 	mCharacter = MainScene::getIdle();
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
 	//mCharacter->setAnchorPoint(Vec2(0.5, 0));
+    //gui::inst()->setScale(mCharacter, 50);
+    onActionFinished();
 	this->addChild(mCharacter, 99);
 
 	updateFarming(0);
@@ -255,9 +257,9 @@ bool FarmingScene::onTouchBegan(Touch* touch, Event* event) {
 	while (logics::hInst->getFarm()->getField(n++, f)) {
 		MainScene::field * p = (MainScene::field*)f;
 		if (p->sprite != NULL && p->sprite->getBoundingBox().containsPoint(touch->getLocation())) {
-			mCurrentNodeId = p->id;
+			mCurrentNodeId = n-1;
 			p->sprite->setAnchorPoint(Vec2(0.5, 0.5));
-			p->sprite->setZOrder(2);
+			p->sprite->setLocalZOrder(2);
 			setOpacity();
 			mMode = Mode_Seed;
 			return true;
@@ -354,7 +356,7 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 				case farming::farming_status_harvest:
 					isRemove = true;					
 				case farming::farming_status_grown:											
-					err = logics::hInst->farmingHarvest(pField->id, productId, earning);
+					err = logics::hInst->farmingHarvest(n-1, productId, earning);
 					if (err != error_success) {
 						CCLOG("farmingHarvest error errorCode = %d, seedId = %d,  %s", err, pField->seedId, wstring_to_utf8(logics::hInst->getErrorMessage(err)).c_str());
 						return;
@@ -385,7 +387,8 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 		if (mCurrentNodeId != -1) {			
 			logics::hInst->getFarm()->getField(mCurrentNodeId, f);
 			MainScene::field * pField = (MainScene::field *)f;
-			pField->sprite->setPosition(touch->getLocation());
+            if(pField->sprite)
+                pField->sprite->setPosition(touch->getLocation());
 		}			
 		break;
 	default:
@@ -415,9 +418,9 @@ void FarmingScene::swap(MainScene::field* a, MainScene::field * b) {
 
 	//set Zorder
 	if (a->sprite)
-		a->sprite->setZOrder(1);
+		a->sprite->setLocalZOrder(1);
 	if (b->sprite)
-		b->sprite->setZOrder(1);
+		b->sprite->setLocalZOrder(1);
 }
 
 void FarmingScene::levelUp(MainScene::field * p) {
@@ -428,7 +431,7 @@ void FarmingScene::levelUp(MainScene::field * p) {
 	float ratio = mGridSize.height / p->sprite->getContentSize().height;
 	p->sprite->runAction(Sequence::create(ScaleTo::create(0.1, ratio * 1.5), ScaleTo::create(0.1, ratio), NULL));
 
-	p->sprite->setZOrder(1);
+	p->sprite->setLocalZOrder(1);
 }
 void FarmingScene::clear(MainScene::field * p) {
 	p->label->setString("");
@@ -489,14 +492,16 @@ void FarmingScene::createSeedMenu()
 	mScrollView->setBackGroundColorOpacity(64);
 	mScrollView->setBackGroundColorType(Layout::BackGroundColorType::GRADIENT);
 	
-	for (farming::seeds::iterator it = logics::hInst->getFarm()->getSeeds()->begin(); it != logics::hInst->getFarm()->getSeeds()->end(); ++it) {
+    farming::seeds * seeds = logics::hInst->getFarm()->getSeeds();
+    CC_ASSERT(seeds);
+	for (farming::seeds::iterator it = seeds->begin(); it != seeds->end(); ++it) {
 
 		auto layout = gui::inst()->createLayout(Size(layerSize, layerSize));
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
 		sprite->setOpacity(192);
 
-		auto label = gui::inst()->addTextButtonAutoDimension(0, 0
+		gui::inst()->addTextButtonAutoDimension(0, 0
 			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
 			, layout
 			, CC_CALLBACK_1(FarmingScene::seedCallback, this, it->second->id)
@@ -532,7 +537,7 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 		if (p->seedId != 0)
 			continue;
 		
-		errorCode err = logics::hInst->farmingPlant(p->id, seedId);
+		errorCode err = logics::hInst->farmingPlant(n-1, seedId);
 		if (err != error_success) {
 			//에러 팝업
 			Director::getInstance()->pushScene(AlertScene::createScene(err));
@@ -545,18 +550,6 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 		updatePoint();
 		break;
 	}
-	/*
-	if (s->itemQuantity <= 0) {
-		//seed menu 갱신
-		mScrollView->removeChild(s->layout);
-		mSeedVector.erase(mSeedVector.begin() + seedIdx);
-		delete s;
-		addSeedMenu();
-	}
-	else {
-		s->label->setString("x" + to_string(s->itemQuantity));
-	}
-	*/
 }
 
 RepeatForever * FarmingScene::getFarmingAnimation() {
@@ -650,7 +643,7 @@ Sequence * FarmingScene::getThiefAnimate() {
 		animation->addSpriteFrameWithFile(path);
 	}
 
-	auto callback = CallFunc::create(this, callfunc_selector(FarmingScene::onActionFinished));
+    auto callback = CallFunc::create(this, callfunc_selector(FarmingScene::onActionFinished));
 
 	auto animate = Sequence::create(
 		Repeat::create(Animate::create(animation), 1)
@@ -664,6 +657,7 @@ void FarmingScene::onActionFinished() {
 	stopAction(mCharacter);
 	mCharacter->runAction(MainScene::getIdleAnimation());
 	mCharacter->setPosition(gui::inst()->getPointVec2(mCharacterInitPosition.x, mCharacterInitPosition.y));
+    gui::inst()->setScale(mCharacter, 50);
 }
 
 void FarmingScene::onEnter() {

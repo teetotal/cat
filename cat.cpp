@@ -1,4 +1,4 @@
-﻿// cat.cpp : Defines the entry point for the console application.
+// cat.cpp : Defines the entry point for the console application.
 //
 
 #include "stdafx.h"
@@ -6,7 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <thread>
-#include "library\util.h"
+#include "library/util.h"
 
 #ifdef _WIN32
     #include <conio.h>

@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by daejung on 2018-07-24.
 //
 
@@ -311,9 +311,9 @@ MenuItemFont * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string te
     if(fontSize > 0)
         MenuItemFont::setFontSize(fontSize);
 
+    //MenuItemLabel::create(<#Node *label#>, <#const ccMenuCallback &callback#>) 요걸로 교체
     auto pItem = MenuItemFont::create(text, callback);
     pItem->setColor(color);	
-
     pMenu = Menu::create(pItem, NULL);
 
     float pointX, pointY;
@@ -526,7 +526,7 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size margin, const 
     return sv;
 }
 
-LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float defaultVal, Size dimension, Size grid, Size origin, Size margin
+LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float width, float defaultVal, Size dimension, Size grid, Size origin, Size margin
 	, LoadingBar::Direction direction)
 {
 	
@@ -536,11 +536,13 @@ LoadingBar * gui::addProgressBar(int x, int y, const string img, Node * p, float
     loadingBar->setDirection(direction);
     loadingBar->setPosition(point);
     loadingBar->setPercent(defaultVal);
-
+    setScale(loadingBar, width);
+    
 	//progress backgroung image
 	auto bgProgress = Sprite::create(img);
 	bgProgress->setOpacity(50);
 	bgProgress->setPosition(point);
+    setScale(bgProgress, width);
 	
 	p->addChild(bgProgress);
 	p->addChild(loadingBar);

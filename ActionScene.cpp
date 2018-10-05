@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -14,6 +14,7 @@
 #define POPUP_NODE_MARGIN  4
 
 #define RUNNER_MARGIN 35
+#define RUNNER_WIDTH 75
 
 //#define RUNNER_WIDTH 80
 Scene* ActionScene::createScene(int id)
@@ -23,6 +24,7 @@ Scene* ActionScene::createScene(int id)
 
 bool ActionScene::init() {		
 	mPlayCnt = 0;
+    mScale = -1;
 	auto listener = EventListenerTouchOneByOne::create();
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = CC_CALLBACK_2(ActionScene::onTouchBegan, this);
@@ -72,6 +74,7 @@ bool ActionScene::init() {
 	//finish
 	auto finishLine = gui::inst()->addSprite(0, 0, "finish.png", mFullLayer);
 	finishLine->setAnchorPoint(Vec2(0,0));
+    gui::inst()->setScale(finishLine, RUNNER_WIDTH / 2);
 
 	mGoalLength = Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE - finishLine->getContentSize().width;
 	
@@ -169,7 +172,7 @@ bool ActionScene::initRace() {
 			wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
 			string sz = wstring_to_utf8(szW);
 			mSkillItem[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
-				CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_NONE, Color3B::BLACK);
+				CC_CALLBACK_1(ActionScene::invokeItem, this, i), 20, ALIGNMENT_NONE, Color3B::BLACK);
 		}
 		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
 	}
@@ -231,7 +234,7 @@ void ActionScene::counter(float f) {
 void ActionScene::invokeItem(Ref* pSender, int idx) {
 	//mSkillItem[idx]->setString("");
 	//item은 무조건 제자리에서
-	this->resetHeight(idx);
+	this->resetHeight(raceParticipantNum);
 	mSkillItem[idx]->setEnabled(false);
 	//아이템 사용
 	if(mSelectItems.size() > idx)
@@ -294,19 +297,23 @@ Sprite* ActionScene::createRunner(int idx) {
 	mSufferState[idx] = SUFFER_STATE_NONE;
 		
 	auto p = gui::inst()->addSprite(0, 8, RACE_DEFAULT_IMG, mFullLayer);
+    
+    if(mScale == -1)
+        mScale = gui::inst()->getScale(p, RUNNER_WIDTH);
+    p->setScale(mScale);
+    
 	p->setAnchorPoint(Vec2(1, 0));
 	p->setPosition(Vec2(0
-		, 10+ p->getPosition().y + p->getContentSize().height / 2 + 
-		((raceParticipantNum - idx) * (p->getContentSize().height / 2))
+		, 10 + p->getPosition().y + p->getContentSize().height * mScale / 2 +
+		((raceParticipantNum - idx) * (p->getContentSize().height * mScale / 2))
 	));
-	//gui::inst()->setScale(p, RUNNER_WIDTH);
-    p->runAction(getRunningAnimation());
+	p->runAction(getRunningAnimation());
 
     Color3B color = txtColors[idx];
-	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 10, ALIGNMENT_CENTER, color);
+	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 14, ALIGNMENT_CENTER, color);
 	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 10);
 
-	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 10, ALIGNMENT_CENTER, color);
+	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 14, ALIGNMENT_CENTER, color);
 	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
 	mRunnerInitPosition[idx] = p->getPosition();
 
@@ -317,6 +324,7 @@ Sprite* ActionScene::createRunner(int idx) {
 		for (int n = 0; n < DANGER_CNT; n++) {
 			float y = mRunnerInitPosition[idx].y + 10/*magin*/;
 			auto sprite = Sprite::create("danger.png");
+            gui::inst()->setScale(sprite, RUNNER_WIDTH / 5);
 			sprite->setAnchorPoint(Vec2(0, 0));
 			float x = baseDistance * (n + 1) + getRandValue(100);
 			sprite->setPosition(x, y);
@@ -368,12 +376,7 @@ void ActionScene::timer(float f) {
 				mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, Vec2(0, mRunner[n]->getPosition().y)));
 			}
 		}
-		/*
-		for (int n = 0; n < mRaceParticipants->size(); n++) {
-			_raceParticipant p = mRaceParticipants->at(n);
-			CCLOG("%d-%d", n, p.shootItemCount);
-		}
-		*/
+		
 		result();
 		return;
 	}
@@ -515,8 +518,9 @@ void ActionScene::result() {
 		
 		for (int n = 0; n < 5; n++) {
 			auto star = gui::inst()->addSpriteAutoDimension(n, idx, "star.png", mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
+            star->setContentSize(Size(40, 40));
 			if (logics::hInst->mRaceWin.winCnt == n + 1) {
-				star->runAction(Sequence::create(ScaleTo::create(0.5, 1.5), ScaleTo::create(0, 1), NULL));
+				star->runAction(Sequence::create(ScaleTo::create(0.5, 2), ScaleTo::create(0.5, 1), NULL));
 			}
 
 			if(logics::hInst->mRaceWin.winCnt < n+1)
@@ -626,7 +630,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	for (int n = 0; n < raceItemSlot; n++) {
 		mSelectedItem[n] = gui::inst()->addTextButtonAutoDimension(1 + (3 * (n)), 5, "EMPTY", mPopupLayer
 			, CC_CALLBACK_1(ActionScene::removeSelectItem, this, n)
-			, 24, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
+			, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 		);
 	}
 		
@@ -636,10 +640,7 @@ void ActionScene::showItemSelect(errorCode err) {
 	}
 
 	int newLine = 2;
-	/*
-	vector<intPair> vec;
-	logics::hInst->getActor()->inven.getWarehouse(vec, (int)inventoryType_race);
-	*/
+	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 	
 	POPUP_LIST(mPopupLayer
@@ -660,47 +661,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		, gui::inst()->EmptyString
 		, gui::inst()->EmptyString
 	)
-
-		/*
-	
-
-	int cnt = vec.size();
-
-	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 6), Vec2(9, 1), size, margin);
-	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - POPUP_NODE_MARGIN;
-	//nodeSize.width = sizeOfScrollView.width - POPUP_NODE_MARGIN;
-	Size innerSize = Size(sizeOfScrollView.width , cnt * (sizeOfScrollView.height + POPUP_NODE_MARGIN));
-	ScrollView * sv = gui::inst()->addScrollView(Vec2(0, 6), Vec2(9, 1), size, margin, "", innerSize);
-
-	for (int n = 0; n < (int)vec.size(); n++) {
-		int id = vec[n].key;
-		string img = "items/" + to_string(id % 20) + ".png";
-		Layout* l = gui::inst()->createLayout(nodeSize, "", true);
-		l->setOpacity(192);
-		_item item = logics::hInst->getItem(id);
-
-		int heightIdx = 2;	
-		
-		gui::inst()->addLabelAutoDimension(0, heightIdx++, getSkillIcon(item.type), l, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-
-		heightIdx = 1;
-		//item name
-		string name = wstring_to_utf8(item.name);
-		
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, getRomeNumber(item.grade), l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_CENTER, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, name, l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-		//item quantity
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, "x " + to_string(vec[n].val), l
-			, CC_CALLBACK_1(ActionScene::selectItem, this, id), 10, ALIGNMENT_NONE, Color3B::BLACK, gridSize, Size::ZERO, Size::ZERO);
-
-		gui::inst()->addLayoutToScrollView(sv, l, POPUP_NODE_MARGIN, newLine);
-
-	}
-
-	mPopupLayer->addChild(sv, 1, CHILD_ID_RACE);
-	*/
+    
 	updatePoint();
 }
 
@@ -732,22 +693,11 @@ void ActionScene::updatePoint() {
 
 void ActionScene::jump(Ref* pSender) {	
 	jumpByIdx(raceParticipantNum);
-	/*
-	if (mRunnerInitPosition[raceParticipantNum].y == mRunner[raceParticipantNum]->getPosition().y) {
-		float jumpHeight = mRunner[raceParticipantNum]->getContentSize().height * 0.5;
-		mRunner[raceParticipantNum]->runAction(
-			Sequence::create(
-				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), 0.4)
-				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), 0.4)
-				, CallFunc::create(this, callfunc_selector(ActionScene::onJumpFinished))
-				, NULL));
-	}
-	*/
 }
 
 void ActionScene::jumpByIdx(int idx) {
 	if (mRunnerInitPosition[idx].y == mRunner[idx]->getPosition().y) {
-		float jumpHeight = mRunner[idx]->getContentSize().height * 0.5;
+		float jumpHeight = mRunner[idx]->getContentSize().height * mScale * 0.5;
 		auto callfuncAction = CallFunc::create([this, idx]() {
 			resetHeight(idx);
 		});
@@ -768,7 +718,7 @@ void ActionScene::update(float delta) {
 			continue;
 
 		Vec2 position = mRunner[i]->getPosition();
-		Size size = mRunner[i]->getContentSize();
+		Size size = Size(mRunner[i]->getContentSize().width * mScale, mRunner[i]->getContentSize().height * mScale);
 		Vec2 center = Vec2(position.x - size.width / 2, position.y + size.height / 2);
 		float radius = size.height / 3;
 		/*

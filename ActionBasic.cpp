@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeChun on 24/08/2018.
 //
 
@@ -25,7 +25,7 @@ bool ActionBasic::init()
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	gui::inst()->addToCenter(bg, this);
 
-	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 10);
+	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 10);
 	mTitle = gui::inst()->addLabel(4, 0, " ", this);
 	mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
 	mRewardInfo = gui::inst()->addLabel(4, 1, " ", this);
@@ -289,7 +289,7 @@ void ActionBasic::onEnter() {
 	gui::inst()->addLabel(4, 3, sz, this)
 		->runAction(
 			Sequence::create(
-				FadeOut::create(3)
+				FadeOut::create(2)
 				, CallFunc::create([this]() { run();	})
 				, NULL)
 		);

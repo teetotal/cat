@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -151,11 +151,12 @@ bool MainScene::init()
     //Cat Main UI
     //gui::inst()->drawGrid(this);
 
-    loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 10);
-   
+    loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 150, 10);
+    
 	//Character
 	auto pCharacter = getIdle();
 	pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
+    gui::inst()->setScale(pCharacter, 50);
 	this->addChild(pCharacter);
 
 
@@ -172,9 +173,9 @@ bool MainScene::init()
 
 	mJobTitle->setPosition(Vec2(mJobTitle->getPosition().x, mJobTitle->getPosition().y + 15));
 
-	gui::inst()->addTextButton(0, 6, wstring_to_utf8(L"╈"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 32, ALIGNMENT_CENTER, fontColor);
-	gui::inst()->addTextButton(1, 6, wstring_to_utf8(L"┲"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 32, ALIGNMENT_CENTER, fontColor);
-    mFarming = gui::inst()->addTextButton(2,6, wstring_to_utf8(L"╁"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 32, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(0, 6, "Action", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(1, 6, "Race", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
+    mFarming = gui::inst()->addTextButton(2,6, "Farm", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
 	//gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
 
 
@@ -184,13 +185,13 @@ bool MainScene::init()
 
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
-	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"├"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 32, ALIGNMENT_CENTER, fontColor);
+	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
 
-	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 16, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
 
-    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"┞"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 32, ALIGNMENT_CENTER, fontColor);
-    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"╅"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 32, ALIGNMENT_CENTER, fontColor);
-	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"╆"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 32, ALIGNMENT_CENTER, fontColor);
+    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"벼룩시장"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
+    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"상점"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
+	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
 
 	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
 	//EaseBackOut::create
@@ -386,17 +387,18 @@ void MainScene::updateState(bool isInventoryUpdated) {
         mName->runAction(gui::inst()->createActionFocus());
 		//level up effect
 		Vec2 center = gui::inst()->getCenter();
-		this->addChild(gui::inst()->createParticle(PARTICLE_FINAL, 4, 3));
+		this->addChild(gui::inst()->createParticle(PARTICLE_FINAL, 4, 3), 100);
 		const float duration = 1;
 		const float scale = 3;
-		gui::inst()->addLabel(4, 3
+		auto label = gui::inst()->addLabel(4, 3
 			, wstring_to_utf8(logics::hInst->getL10N("LEVEL_UP", logics::hInst->getActor()->level))
-			, this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)
-			->runAction(Sequence::create(
+                                           , this, 0, ALIGNMENT_CENTER, Color3B::ORANGE);
+        label->runAction(Sequence::create(
 				EaseIn::create(ScaleBy::create(duration, scale), 0.4)
 				, EaseOut::create(ScaleBy::create(duration, 1 / scale), 0.4)
 				, RemoveSelf::create()
 				, NULL));
+        label->setLocalZOrder(100);
 	}
 
     mName->setString(name);
@@ -520,115 +522,6 @@ void MainScene::callbackAction(Ref* pSender, int id){
 		return alert(error_invalid_id);
 	Director::getInstance()->pushScene(p);
 	return;
-
-	closePopup();
-	auto size = Size(400, 200);
-	layer = gui::inst()->addPopup(layerGray, this, size);
-	layerGray->setLocalZOrder(ZORDER_POPUP);
-	int fontSize = 12;
-	//auto l = gui::inst()->createLayout(size, "", true, Color3B::WHITE);
-	LayerColor * l = layer;
-	/*
-	l->setPosition(Vec2(layerGray->getContentSize().width / 2, layerGray->getContentSize().height / 2));
-	l->setAnchorPoint(Vec2(0.5, 0.5));
-	*/
-	_training t = logics::hInst->getActionList()->at(id);	
-	
-	string pay = " ";
-	if (t.cost.point > 0) pay += COIN + to_string(t.cost.point) + " ";
-	if (t.cost.strength > 0) pay += "S: " + to_string(t.cost.strength) + " ";
-	if (t.cost.intelligence > 0) pay += "I: " + to_string(t.cost.intelligence) + " ";
-	if (t.cost.appeal > 0) pay += "A: " + to_string(t.cost.appeal) + " ";
-
-	string reward;
-	if (t.reward.point > 0)         reward += COIN + to_string(t.reward.point) + " ";
-	if (t.reward.strength > 0)      reward += "S: " + to_string(t.reward.strength) + " ";
-	if (t.reward.intelligence > 0)  reward += "I: " + to_string(t.reward.intelligence) + " ";
-	if (t.reward.appeal > 0)        reward += "A: " + to_string(t.reward.appeal) + " ";
-	
-	gui::inst()->addLabelAutoDimension(2, 1, wstring_to_utf8(t.name), l, 14, ALIGNMENT_NONE);
-	
-	int idx = 2;
-	float animationDelay = 0.1f;
-	int cntAnimationMotion = 6;
-	int loopAnimation = 4 * 3;// * t.level; //레벨이 높을 수록 오래 
-	float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
-
-    string path = "action/" + to_string(t.type) + "/0.png";
-	auto pMan = Sprite::create(path);
-	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
-	l->addChild(pMan);
-
-	auto animation = Animation::create();
-	animation->setDelayPerUnit(animationDelay);
-	for (int n = 0; n < cntAnimationMotion; n++) {
-        path = "action/" + to_string(t.type) + "/" + to_string(n) + ".png";
-		animation->addSpriteFrameWithFile(path);
-	}
-	
-	/*
-	auto cb = CallFuncN::create(CC_CALLBACK_1(MainScene::callbackActionAnimation, this, id));
-	auto animate = Sequence::create(Repeat::create(Animate::create(animation), loopAnimation), cb, NULL);
-	*/
-	auto animate = RepeatForever::create(Animate::create(animation));
-	pMan->runAction(animate);
-	
-	//loading bar 연출
-	auto loadingbar = gui::inst()->addProgressBar(3, idx++, LOADINGBAR_IMG_SMALL, l, 10, size);
-	
-	
-	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	if (reward.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "Max " + reward, l, 12, ALIGNMENT_NONE);
-	
-	//layerGray->addChild(l);
-	//touch
-	Menu * pTouchButton = NULL;
-	gui::inst()->addSpriteButtonRaw(pTouchButton, 0, idx, "rat1.png", "rat2.png", l, CC_CALLBACK_1(MainScene::callback1, this), ALIGNMENT_NONE);
-	//gui::inst()->addTextButtonRaw(pTouchButton, 0, idx, "Touch", l, CC_CALLBACK_1(MainScene::callback1, this), 0, ALIGNMENT_NONE, Color3B::RED);	
-
-	//start touch count
-	mActionCnt = 0;
-	mActionTouchCnt = 0;
-
-	gui::inst()->mModalTouchCnt = 0;	
-	
-	this->schedule([=](float delta) {		
-		//touch 이동
-		if (mActionCnt % 10 < 3) {
-			Vec2 position = Vec2(getRandValue(l->getContentSize().width), getRandValue(l->getContentSize().height));
-			float marginX = pTouchButton->getChildren().at(0)->getContentSize().width;
-			float marginY = pTouchButton->getChildren().at(0)->getContentSize().height;
-
-			if (position.x > l->getContentSize().width - marginX)
-				position.x = l->getContentSize().width - marginX;
-
-			if (position.y > l->getContentSize().height - marginY)
-				position.y = l->getContentSize().height - marginY;
-
-			//pTouchButton->setPosition(position);
-			pTouchButton->runAction(MoveTo::create(animationDelay, position));
-			
-		}
-		
-		
-		float percent = loadingbar->getPercent();
-		percent += step;
-		mActionCnt++;
-		float ratio = getTouchRatio(animationDelay, gui::inst()->mModalTouchCnt);
-		gui::inst()->mModalTouchCnt = 0;
-		//CCLOG("%f", ratio * step);
-		percent += ratio * step;
-
-		loadingbar->setPercent(percent);
-
-		if (percent >= 100.0f) {
-			this->unschedule("updateLoadingBar");
-			pMan->stopAllActions();
-			callbackActionAnimation(id, mActionCnt / 2);
-		}
-	}, animationDelay, "updateLoadingBar");
-
-	return;	
 }
 
 void MainScene::runRace(Ref* pSender, int raceId) {
@@ -1586,16 +1479,16 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 		string szIcon;
 		switch (race.mode) {
 		case race_mode_item:
-			szIcon = wstring_to_utf8(L"┿");
+			szIcon = wstring_to_utf8(L"ITEM");
 			break;
 		case race_mode_speed:
-			szIcon = wstring_to_utf8(L"┲");
+			szIcon = wstring_to_utf8(L"SPEED");
 			break;
 		case race_mode_1vs1:
-			szIcon = wstring_to_utf8(L"┚");
+			szIcon = wstring_to_utf8(L"1vs1");
 			break;
 		case race_mode_friend_1:
-			szIcon = wstring_to_utf8(L"┽");
+			szIcon = wstring_to_utf8(L"Friend");
 			break;
 		default:
 			break;

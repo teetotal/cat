@@ -1,4 +1,4 @@
-﻿#include "logics.h"
+#include "logics.h"
 
 #if !defined(_WIN32) || defined(COCOS2D_DEBUG)
     #include "cocos2d.h"
@@ -173,8 +173,8 @@ bool logics::initActor(bool isFarmingDataLoad)
 				int category = sqlite3_column_int(stmt, idx++);
 				int id = sqlite3_column_int(stmt, idx++);
 				int quantity = sqlite3_column_int(stmt, idx++);
-
-				mActor->inven.pushItem(category, id, quantity);
+                if(id > 0)
+                    mActor->inven.pushItem(category, id, quantity);
 			}
 			else
 				break;
@@ -205,8 +205,9 @@ bool logics::initActor(bool isFarmingDataLoad)
 				int boost = sqlite3_column_int(stmt, idx++);
 				int level = sqlite3_column_int(stmt, idx++);
 				int accumulation = sqlite3_column_int(stmt, idx++);
-
-				mFarming.addField(id, x, y, seedId, farming::farming_status_max, timePlant, cntCare, timeLastGrow, boost, level, accumulation);
+                
+                if(id > 0)
+                    mFarming.addField(id, x, y, seedId, farming::farming_status_max, timePlant, cntCare, timeLastGrow, boost, level, accumulation);
 			}
 			else
 				break;
@@ -1949,6 +1950,8 @@ void logics::saveActor() {
 	if (vec.size() > 0) {
 		szQuery += "\nDELETE FROM inventory;\nINSERT INTO inventory(category, id, quantity) VALUES";
 		for (int n = 0; n < (int)vec.size(); n++) {
+            assert(vec[n].key != 0);
+            
 			if (n > 0) {
 				szQuery += ",";
 			}

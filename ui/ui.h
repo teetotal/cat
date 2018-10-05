@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by daejung on 2018-07-24.
 //
 
@@ -61,7 +61,7 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 			gui::inst()->setScale(pMenuSprite, 20); \
 		} \
 		heightIdx = 1;\
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+        gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ3, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
@@ -312,6 +312,7 @@ public:
             , int y
             , const string img
             , Node * p
+            , float width
             , float defaultVal = 0.f
 			, Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
 			, Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
@@ -360,9 +361,13 @@ public:
 		, const ccMenuCallback& callbackInc
 		, const ccMenuCallback& callbackSubmit);
 
+    float getScale(Node * p, float targetWidth){
+        return targetWidth / p->getContentSize().width;
+    };
+    //set Scale
 	void setScale(Node * p, float targetWidth) {
-		float ratio = targetWidth / p->getContentSize().width;
-		p->setScale(ratio);
+		//float ratio = targetWidth / p->getContentSize().width;
+		p->setScale(getScale(p, targetWidth));
 	};
 
 	//정 중앙 포인트 가져오기

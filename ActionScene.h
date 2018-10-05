@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -82,16 +82,16 @@ private:
 		wstring szImg;
 		switch (type) {
 		case itemType_race_shield:		//방어 쉴드
-			szImg = L"┛";
+			szImg = L"쉴드";
 			break;
 		case itemType_race_speedUp:		//속업
-			szImg = L"┲";
+			szImg = L"속업";
 			break;
 		case itemType_race_attactFront:	//전방 공격
-			szImg = L"┡";
+			szImg = L"전방";
 			break;
 		case itemType_race_attactFirst:	//1등 공격
-			szImg = L"┼";
+			szImg = L"1등";
 			break;
 		default:
 			break;
@@ -163,7 +163,7 @@ private:
 
 	//play횟수
 	int mPlayCnt;
-
+    float mScale;
 };
 
 
