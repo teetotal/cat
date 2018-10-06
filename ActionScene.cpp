@@ -10,8 +10,8 @@
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 3.5
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(5, 5); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
-#define POPUP_NODE_MARGIN  4
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(3, 3); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
+#define POPUP_NODE_MARGIN  1
 
 #define RUNNER_MARGIN 35
 float RUNNER_WIDTH;
@@ -654,7 +654,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		return;
 	}
 
-	int newLine = 2;
+	int newLine = 3;
 	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 	
@@ -667,7 +667,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		, POPUP_NODE_MARGIN
 		, nodeSize
 		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
-		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue; if (logics::hInst->getItem(it->first).grade < logics::hInst->getRace()->at(mRaceId).level || logics::hInst->getItem(it->first).grade > logics::hInst->getRace()->at(mRaceId).level + 2) continue;
+		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue; if (logics::hInst->getItem(it->first).grade < logics::hInst->getRace()->at(mRaceId).level || logics::hInst->getItem(it->first).grade > logics::hInst->getRace()->at(mRaceId).level + 1) continue;
 		, MainScene::getItemImg(it->first)
 		, CC_CALLBACK_1(ActionScene::selectItem, this, it->first)
 		, getRomeNumber(logics::hInst->getItem(it->first).grade)

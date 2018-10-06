@@ -568,8 +568,8 @@ RepeatForever * FarmingScene::getFarmingAnimation() {
 
 
 void FarmingScene::showInfo(MainScene::field * p) {
+    Size size = Size(150, 150);
 	if (mPopupBackground == NULL) {
-		Size size = Size(150, 150);
 		mPopupLayer = gui::inst()->createModalLayer(mPopupBackground, size);
 		mPopupLayer->setOpacity(192);
 		this->addChild(mPopupBackground, 99);
@@ -595,7 +595,7 @@ void FarmingScene::showInfo(MainScene::field * p) {
 		szHarvest = "Grown: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
 	default:
 		szRemain = "";
-		int nRemain = p->finishTime - getNow();
+		int nRemain = (int)(p->finishTime - getNow());
 		int min = nRemain / 60;
 		int sec = nRemain % 60;
 		if (min > 0)
@@ -606,7 +606,9 @@ void FarmingScene::showInfo(MainScene::field * p) {
 
 	Size grid = Size(3, 7);
 	int idx = 1;
-	gui::inst()->addSpriteAutoDimension(1, idx++, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO);
+    gui::inst()->setScale(
+	gui::inst()->addSpriteAutoDimension(1, idx++, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO)
+                          , size.height / grid.height);
 	gui::inst()->addLabelAutoDimension(1, idx++, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 	if(szHarvest.size() > 1)
 		gui::inst()->addLabelAutoDimension(1, idx++, szHarvest, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
@@ -616,7 +618,7 @@ void FarmingScene::showInfo(MainScene::field * p) {
 		gui::inst()->addLabelAutoDimension(1, idx++, szRemain, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
 
 	//close
-	gui::inst()->addTextButtonAutoDimension(2, 0, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
+	gui::inst()->addTextButtonAutoDimension(1, 6, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
 	
 }

@@ -479,11 +479,14 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 		//property
 		addQuest_property(uniqueId++, n);
-		//farm
+		//farm seed
 		addQuest_farm_seed(uniqueId++, n);
 		//race item
 		addQuest_race_foremost(uniqueId++, n);
 		addQuest_race_front(uniqueId++, n);
+        //farm harvest
+        addQuest_farm_harvest(uniqueId++, n);
+        
 		addQuest_race_speedup(uniqueId++, n);
 		addQuest_race_shield(uniqueId++, n);
 		//action accumulation
@@ -1461,7 +1464,7 @@ void logics::invokeRaceItemAI() {
 				return;
 			}
 		}
-		int quantity = level + getRandValue(3);
+		int quantity = level + getRandValue(2);
 		switch (mRaceParticipants->at(i).currentRank) {
 		case 1: // 1등이면 50%이상 왔을때 스피드 업
 			if (mRaceParticipants->at(i).ratioLength > raceSpurt)
@@ -1622,6 +1625,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 		 case race_mode_friend_1:
 			 ac = achievement_category_race_friend_1;
 			 break;
+        default:
+                 break;
 		 }
 		 mQuest.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
 		 
@@ -1856,20 +1861,7 @@ void logics::saveActor() {
 	}
 
 	hIsSync = true;
-	/*
-	if (mActorStringFromJSON.size() == 0) {
-#if defined(_WIN32) && !defined(COCOS2D_DEBUG)
-		mActorStringFromJSON = loadJsonString(CONFIG_ACTOR);
-#else
-		mActorStringFromJSON = FileUtils::getInstance()->getStringFromFile(FileUtils::getInstance()->getWritablePath() + CONFIG_ACTOR);
-#endif
-	}
-	*/
-
 	int rc = 0;
-
-    //rapidjson::Document d;
-	//d.Parse(mActorStringFromJSON.c_str());
 
 	string szQuery = "";
 	char bufActor[1024] = { 0 };
@@ -1894,40 +1886,6 @@ void logics::saveActor() {
 	
 	szQuery += bufActor;
 		
-	/*
-	string userName = wstring_to_utf8(mActor->userName);
-	d["userName"] = rapidjson::StringRef(userName.c_str());
-	d["userId"] = rapidjson::StringRef(mActor->userId.c_str());
-	d["id"] = rapidjson::StringRef(mActor->id.c_str());
-	string name = wstring_to_utf8(mActor->name);
-	d["name"] = rapidjson::StringRef(name.c_str());
-	d["lastLoginLoginTime"].SetInt64(mActor->lastLoginLoginTime);
-	d["lastLoginLogoutTime"].SetInt64(mActor->lastLoginLogoutTime);
-	d["lastHPUpdateTime"].SetInt64(mActor->lastHPUpdateTime);
-
-	string jobTitle = wstring_to_utf8(mActor->jobTitle);
-	d["jobTitle"] = rapidjson::StringRef(jobTitle.c_str());
-	d["point"].SetInt(mActor->point);
-	d["hp"].SetInt(mActor->hp);
-	d["exp"].SetInt(mActor->exp);
-	d["level"].SetInt(mActor->level);
-	d["property"]["strength"].SetInt(mActor->property.strength);
-	d["property"]["intelligence"].SetInt(mActor->property.intelligence);
-	d["property"]["appeal"].SetInt(mActor->property.appeal);
-	*/
-	/*
-	d["inventory"]["growth"].Clear();
-	saveActorInventory(d, d["inventory"]["growth"], inventoryType_growth);
-	d["inventory"]["race"].Clear();
-	saveActorInventory(d, d["inventory"]["race"], inventoryType_race);
-	d["inventory"]["adorn"].Clear();
-	saveActorInventory(d, d["inventory"]["adorn"], inventoryType_adorn);
-	d["inventory"]["HP"].Clear();
-	saveActorInventory(d, d["inventory"]["HP"], inventoryType_HP);
-	d["inventory"]["farming"].Clear();
-	saveActorInventory(d, d["inventory"]["farming"], inventoryType_farming);
-	*/
-
 	//collection
 	//d["collection"].Clear();		
 	if (mActor->collection.size() > 0) {

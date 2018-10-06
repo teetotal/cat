@@ -701,6 +701,15 @@ private:
 			, achievement_farming_id_plant
 			, val, getQuestRewardItem(level), level);
 	};
+    
+    void addQuest_farm_harvest(int uniqueId, int level) {
+        //action
+        int val = 1 << level;
+        mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_FARM_HARVEST", val)
+                        , achievement_category_farming
+                        , achievement_farming_id_harvest
+                        , val, getQuestRewardItem(level), level);
+    };
 
 
 
