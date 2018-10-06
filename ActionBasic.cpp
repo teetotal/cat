@@ -10,6 +10,13 @@ int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
 float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 
+#define TIMING_Y    5
+#define TIMING_X_START 0
+#define TIMING_X_END 9
+#define TIMING_X_BUTTON 7
+#define TIMING_RADIUS 30
+#define TIMING_MAX_TIME 20
+
 Scene* ActionBasic::createScene()
 {
 	return ActionBasic::create();
@@ -18,18 +25,19 @@ Scene* ActionBasic::createScene()
 
 bool ActionBasic::init()
 {	
-	auto visibleSize = Director::getInstance()->getVisibleSize();
+//    auto visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
 	auto bg = Sprite::create("bg_temp.png");
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	gui::inst()->addToCenter(bg, this);
 
-	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 10);
+	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
 	mTitle = gui::inst()->addLabel(4, 0, " ", this);
 	mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
 	mRewardInfo = gui::inst()->addLabel(4, 1, " ", this);
 	mTouchInfo = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
+    
 	return true;
 }
 
@@ -86,6 +94,89 @@ Sprite * ActionBasic::createAnimate(_training &t) {
 	return pMan;
 }
 
+Sprite * ActionBasic::createRunner(){
+    auto p = gui::inst()->addSprite(TIMING_X_START, TIMING_Y, "race/small/0.png", this);
+    p->runAction(getRunningAnimation());
+    gui::inst()->setScale(p, TIMING_RADIUS * 2);
+    
+    return p;
+}
+
+RepeatForever * ActionBasic::getRunningAnimation() {
+    auto animation = Animation::create();
+    animation->setDelayPerUnit(0.015);
+    
+    string path;
+    for (int n = 0; n <= 8; n++) {
+        path = "race/small/" + to_string(n) + ".png";
+        animation->addSpriteFrameWithFile(path);
+    }
+    
+    return RepeatForever::create(Animate::create(animation));
+}
+void ActionBasic::callbackTiming(Ref* pSender){
+    Vec2 center = gui::inst()->getPointVec2(TIMING_X_BUTTON, TIMING_Y);
+    float radius = TIMING_RADIUS;
+    
+    /*
+     auto draw = DrawNode::create();
+     draw->drawCircle(mTimingRunner->getPosition(), radius, 0, 100, true, Color4F::BLACK);
+     this->addChild(draw);
+    */
+    
+    string sz = "Bad";
+    Color3B fontColor = Color3B::RED;
+    if(mTimingRunner && mTimingRunner->getBoundingBox().intersectsCircle(center, radius)){
+        sz = "Cool";
+        fontColor = Color3B::BLUE;
+        addTouchCnt();
+    }else{
+        addTouchCnt(true);
+    }
+    
+    gui::inst()->addLabel(TIMING_X_BUTTON, TIMING_Y - 1, sz, this, 0, ALIGNMENT_CENTER, fontColor)
+    ->runAction(
+                Sequence::create(
+                                 ScaleTo::create(0.2, 3)
+                                 , RemoveSelf::create()
+                                 , NULL
+                                 )
+                );
+}
+void ActionBasic::runAction_timing(_training &t) {
+    
+    Sprite * pMan = createAnimate(t);
+    gui::inst()->setScale(pMan, 80);
+    gui::inst()->addToCenter(pMan, this);
+    mActionCnt = 0;
+    mTimingRunner = NULL;
+    
+    auto btn = gui::inst()->addSpriteButton(TIMING_X_BUTTON, TIMING_Y, "cat-hand1.png", "cat-hand2.png", this, CC_CALLBACK_1(ActionBasic::callbackTiming, this));
+    gui::inst()->setScale(btn, TIMING_RADIUS * 2);
+    
+    this->schedule([=](float delta) {
+        if(mTimingRunner == NULL){
+            mTimingRunner = this->createRunner();
+            mTimingRunner->runAction(Sequence::create(
+                                          EaseOut::create(
+                                                          MoveTo::create(animationDelay * max(5, getRandValueOverZero(TIMING_MAX_TIME)), Vec2(gui::inst()->getPointVec2(TIMING_X_END, TIMING_Y)))
+                                            , 0.4)
+                                          , RemoveSelf::create()
+                                          , CallFunc::create([=]() { mTimingRunner = NULL; })
+                                          , NULL));
+        }
+
+        float percent = mLoadingBar->getPercent();
+        percent += step;
+        mLoadingBar->setPercent(percent);
+        
+        if (percent >= 100.0f) {
+            this->unschedule("updateLoadingBar");
+            pMan->stopAllActions();
+            callbackActionAnimation(t.id, mMaxTouchCnt);
+        }
+    }, animationDelay, "updateLoadingBar");
+}
 
 void ActionBasic::runAction_tap(_training &t) {
 
@@ -101,8 +192,8 @@ void ActionBasic::runAction_tap(_training &t) {
 	gui::inst()->addToCenter(pMan, this);
 	
 	//tap
-	const int duration = 5;
-	const int times = 4;
+	const int duration = animationDelay * 100 / step;
+    const int times = 4; // 1: 4 = duration : x 
 	gui::inst()->addLabel(1, 5, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
 	gui::inst()->addLabel(6, 3, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
 
@@ -124,12 +215,7 @@ void ActionBasic::runAction_touch(_training &t) {
 	auto size = Size(400, 150);
 	Layout * l = gui::inst()->createLayout(size);
 	gui::inst()->addToCenter(l, this);
-	/*
-	Sprite * pMan = createAnimate(t);
-	pMan->setPosition(Point(l->getContentSize().width / 2, l->getContentSize().height / 3));
-
-	l->addChild(pMan);
-	*/
+	
 	//touch
 	Menu * pTouchButton = NULL;
 	auto item = gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
@@ -226,10 +312,15 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 
 }
 
-void ActionBasic::addTouchCnt() {
+void ActionBasic::addTouchCnt(bool isFail) {
 	if (!mIsStop) {
-		mActionTouchCnt++;
-		string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
+        if(isFail){
+            if(mActionTouchCnt > 0)
+                mActionTouchCnt--;
+        }
+		else
+            mActionTouchCnt++;
+        string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
 		mTouchInfo->setString(sz);
 	}
 }
@@ -255,49 +346,64 @@ void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 
 void ActionBasic::run() {
 	mIsStop = false;
-	float nMax = (100.f / step);
 	switch (mAction.type) {
-	case trainingType_party:
-		runAction_tap(mAction);
-		mMaxTouchCnt = nMax * 3;
-		break;
-	default:
-		runAction_touch(mAction);
-		mMaxTouchCnt = nMax / 2;
-		break;
+        case trainingType_play:
+        case trainingType_party:
+        case trainingType_training:
+            runAction_timing(mAction);
+            break;
+        case trainingType_study:
+        case trainingType_fishing:
+            runAction_tap(mAction);
+            break;
+        default:
+            runAction_touch(mAction);
+            break;
 	}
 }
 
 void ActionBasic::onEnter() {
 	Scene::onEnter();
-	/*
-	auto layer = gui::inst()->createLayout(Size(300, 200), "", true);
-	layer->setAnchorPoint(Vec2(0.5, 0.5));
-	layer->setPosition(gui::inst()->getCenter());
-	this->addChild(layer);
-	layer->runAction(FadeOut::create(3));
-	*/
 	mIsStop = true;
 	string sz;
+    float nMax = (100.f / step);
+    
+    /*
+     trainingType_play = 0,    //놀이
+     trainingType_study,        //공부
+     trainingType_party,        //파티
+     trainingType_training,    //수련
+     trainingType_work,        //알바
+     trainingType_fishing,    //낚시
+     trainingType_hunting,        //사냥
+     */
 	switch (mAction.type) {
-	case trainingType_party:
-		sz = logics::hInst->getL10N("ACTION_TAP");
-		break;
-	default:
-		sz = logics::hInst->getL10N("ACTION_TOUCH");
-		break;
+        case trainingType_play:
+        case trainingType_party:
+        case trainingType_training:
+            mMaxTouchCnt = nMax / TIMING_MAX_TIME;
+            sz = logics::hInst->getL10N("ACTION_TIMING");
+            break;
+        case trainingType_study:
+        case trainingType_fishing:
+            mMaxTouchCnt = nMax * 2;
+            sz = logics::hInst->getL10N("ACTION_TAP");
+            break;
+        default:
+            mMaxTouchCnt = nMax / 3;
+            sz = logics::hInst->getL10N("ACTION_TOUCH");
+            break;
 	}
+    
+    addTouchCnt(false);
 	
 	gui::inst()->addLabel(4, 3, sz, this)
 		->runAction(
 			Sequence::create(
 				FadeOut::create(2)
-				, CallFunc::create([this]() { run();	})
+				, CallFunc::create([this]() { run(); })
 				, NULL)
 		);
-
-
-	//this->scheduleOnce(schedule_selector(ActionBasic::run), 3.0f);
 }
 void ActionBasic::onEnterTransitionDidFinish() {
 	Scene::onEnterTransitionDidFinish();

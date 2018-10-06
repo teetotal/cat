@@ -1,4 +1,4 @@
-﻿
+
 #ifndef PROJ_ANDROID_ACTIONBASIC_H
 #define PROJ_ANDROID_ACTIONBASIC_H
 
@@ -31,22 +31,26 @@ private:
 	void run();
 	void runAction_touch(_training &t);
 	void runAction_tap(_training &t);
+    void runAction_timing(_training &t);
 
 	Sprite * createAnimate(_training &t);
+    RepeatForever * getRunningAnimation();
+    Sprite * createRunner();
 
 	void callbackTouch(Ref* pSender);
 	void callbackActionAnimation(int id, int maxTimes);
 
 	void callback(Ref* pSender, SCENECODE type);
+    void callbackTiming(Ref* pSender);
 	void closeScene() {
 		Director::getInstance()->popScene();
 	};
 
-	void addTouchCnt();
+	void addTouchCnt(bool isFail = false);
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
 	LoadingBar * mLoadingBar;
 	Layout * mLayer;
-
+    Sprite * mTimingRunner;
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
 	_training mAction;
 
