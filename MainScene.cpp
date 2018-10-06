@@ -21,7 +21,7 @@ using namespace cocos2d::ui;
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 90); auto gridSize = Size(3, 6);
 #define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 70); auto gridSize = Size(3, 4);
 
-#define nodeMargin 4
+#define nodeMargin 8
 
 MainScene * MainScene::hInst = NULL;
 Scene* MainScene::createScene()
@@ -1310,7 +1310,7 @@ void MainScene::updateQuests() {
 		//if (p->accumulation >= p->value) sz = L"COMPLETE";
 		Menu * pMenu = NULL;
 		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
-			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 10, ALIGNMENT_NONE);
+			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 12, ALIGNMENT_NONE);
 		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
 		q->setLocalZOrder(ZORDER_QUEST);
 		mQuestButtons.push_back(pMenu);

@@ -334,7 +334,6 @@ bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
 void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 	//int cnt = 0;
 	bool isRemove = false;
-	int nFileds = 0;
 	int productId = 0;
 	int earning = 0;
 	errorCode err;
@@ -354,7 +353,7 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 				switch (pField->status) {
 				case farming::farming_status_decay:
 				case farming::farming_status_harvest:
-					isRemove = true;					
+					isRemove = true;
 				case farming::farming_status_grown:											
 					err = logics::hInst->farmingHarvest(n-1, productId, earning);
 					if (err != error_success) {

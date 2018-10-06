@@ -1688,11 +1688,13 @@ errorCode logics::farmingHarvest(int idx, int &productId, int &earning) {
 	if(!mFarming.harvest(idx, productId, earning))	
 		return error_invalid_id;
 	
-	mActor->inven.pushItem(getInventoryType(productId), productId, earning);
-	//increaseExp();
-
-	mQuest.push(achievement_category_farming, achievement_farming_id_harvest, 1);
-	mQuest.push(achievement_category_farming, achievement_farming_id_output, earning);
+    if(productId > 0){
+        mActor->inven.pushItem(getInventoryType(productId), productId, earning);
+        //increaseExp();
+        
+        mQuest.push(achievement_category_farming, achievement_farming_id_harvest, 1);
+        mQuest.push(achievement_category_farming, achievement_farming_id_output, earning);
+    }
 	return error_success;
 };
 
