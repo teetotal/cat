@@ -63,14 +63,14 @@ bool MainScene::init()
 
 	Color3B fontColor = Color3B::BLACK;
 	//BG
-	
+	/*
 	auto bg = Sprite::create(BG_HOME);
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	bg->setAnchorPoint(Vec2(0, 0));
 	//bg->setOpacity(50);
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
-	
+	*/
     mGrid.init("fonts/Goyang.ttf", 14);
 
 	//farming init
@@ -80,8 +80,37 @@ bool MainScene::init()
 	}
 
     //Cat Main UI
-    //gui::inst()->drawGrid(this);
-
+    const float _div = 12.f;
+    float eleSize = visibleSize.height / _div;
+    Size homeGrid = Size(visibleSize.width / eleSize, _div);
+    gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
+    /*
+    Vec2 pointHome = gui::inst()->getPointVec2(4, 4, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+    auto h = Sprite::create("gem.jpg");
+    h->setAnchorPoint(Vec2(0,0));
+    h->setPosition(pointHome);
+    this->addChild(h);
+    */
+    
+    for(int n=1; n<=9; n++ ){
+        Vec2 pointHome = gui::inst()->getPointVec2(4 + n, 4 + n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+        auto h2 = Sprite::create("home/0"+to_string(n)+".png");
+        h2->setFlippedX(true);
+        h2->setAnchorPoint(Vec2(0,0));
+        h2->setPosition(pointHome);
+        this->addChild(h2);
+        //gui::inst()->setScale(h2, _div);
+    }
+    
+    for(int n=1; n<=9; n++ ){
+        Vec2 pointHome = gui::inst()->getPointVec2(9 + n, 4 + n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+        auto h2 = Sprite::create("home/0"+to_string(n)+".png");
+        h2->setAnchorPoint(Vec2(0,0));
+        h2->setPosition(pointHome);
+        this->addChild(h2);
+        //gui::inst()->setScale(h2, _div);
+    }
+    
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 150, 10);
     
 	//Character
@@ -107,8 +136,7 @@ bool MainScene::init()
 	gui::inst()->addTextButton(0, 6, "Action", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
 	gui::inst()->addTextButton(1, 6, "Race", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
     mFarming = gui::inst()->addTextButton(2,6, "Farm", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
-	//gui::inst()->addTextButton(3, 6, wstring_to_utf8(L"임시"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 32, ALIGNMENT_CENTER, fontColor);
-
+	
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	    
     mHP = gui::inst()->addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
@@ -119,10 +147,10 @@ bool MainScene::init()
 	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
 
 	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
-
-    mSell = gui::inst()->addTextButton(6, 6, wstring_to_utf8(L"벼룩시장"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
-    mBuy = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"상점"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
-	mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
+    mBuy = gui::inst()->addTextButton(8, 5, wstring_to_utf8(L"상점"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
+    
+    mSell = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"벼룩시장"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
+    mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
 
 	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
 	//EaseBackOut::create

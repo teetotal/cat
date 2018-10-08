@@ -43,7 +43,7 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 	Size __nodeSize = _NODE_SIZE; \
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(_START_VEC2, _END_VEC2, _PARENT_NODE->getContentSize(), Size(-1,-1), Size::ZERO, _MARGIN); \
 	if(_NEWLINE > 0) { \
-		__nodeSize.width = (sizeOfScrollView.width / (float)_NEWLINE) - _NODE_MARGIN; \
+		__nodeSize.width = (sizeOfScrollView.width  - (float)((_NEWLINE + 1) * _NODE_MARGIN)) / (float)_NEWLINE; \
 	} else { \
 		__nodeSize.height = sizeOfScrollView.height; \
 	} \
@@ -100,9 +100,13 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
     );
 
-	Vec2 getPointVec2(int x, int y, ALIGNMENT align = ALIGNMENT_CENTER) {
+    Vec2 getPointVec2(int x, int y, ALIGNMENT align = ALIGNMENT_CENTER
+                      , Size dimension = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+                      , Size grid = Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE)
+                      , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
+                      , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)) {
 		Vec2 p;
-		gui::inst()->getPoint(x, y, p, align);
+		gui::inst()->getPoint(x, y, p, align, dimension, grid, origin, margin);
 		return p;
 	};
 

@@ -492,13 +492,14 @@ void gui::addLayoutToScrollView(ScrollView * p, Layout * e, float margin, int ne
     float x, y;
 
     if(newlineInterval == 0) {
-        x = nCount * (e->getContentSize().width + margin)  + (margin / 2);
-		y = p->getInnerContainerSize().height - e->getContentSize().height; // +margin;
+        x = nCount * (e->getContentSize().width + margin) + (margin);
+		y = (p->getInnerContainerSize().height / 2) + (e->getContentSize().height / 2);
     } else {
-        x = (nCount % newlineInterval) * (e->getContentSize().width + margin) + (margin / 2);
-        y = (p->getInnerContainerSize().height) - ((nCount / newlineInterval) + 1) * (e->getContentSize().height + margin);
+        x = (nCount % newlineInterval) * (e->getContentSize().width + margin) + (margin);
+        y = (p->getInnerContainerSize().height) - (nCount / newlineInterval) * (e->getContentSize().height + margin);
 
     }
+    e->setAnchorPoint(Vec2(0, 1));
     e->setPosition(Vec2(x, y));
     p->addChild(e);
 }
@@ -542,16 +543,7 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size grid, Size ori
         d = ScrollView::Direction::HORIZONTAL;
     else if(sv->getContentSize().height < sv->getInnerContainerSize().height)
         d = ScrollView::Direction::VERTICAL;
-    /*
-    float gapX = std::max(svX1, svX2) - std::min(svX1, svX2);
-    float gapY = std::max(svY1, svY2) - std::min(svY1, svY2);
-
-    if(gapX < gapY)
-        d = ScrollView::Direction::VERTICAL;
-    else if(gapX > gapY)
-        d = ScrollView::Direction::HORIZONTAL;
-
-     */
+  
     sv->setDirection(d);
 	if (parent != NULL)
 		parent->addChild(sv);
