@@ -1,4 +1,4 @@
-//
+﻿//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -80,11 +80,28 @@ bool MainScene::init()
 	}
 
     //Cat Main UI
-    const float _div = 12.f;
+    const float _div = 15.f;
     float eleSize = visibleSize.height / _div;
     Size homeGrid = Size(visibleSize.width / eleSize, _div);
     gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
-    /*
+	const float h = 80;
+	//const float h = visibleSize.height;
+
+	for (int n = 0; n < h; n++) {
+		auto draw = DrawNode::create();
+		Vec2 centerPoint = Vec2(visibleSize.width / 2, visibleSize.height - n);
+		Vec2 center = Vec2(centerPoint.x + origin.x, centerPoint.y + origin.y);
+		float degrees = 27.f;
+		float xLen = centerPoint.y / std::tan(degrees * 3.14159 / 180);
+		Vec2 left = Vec2(center.x - xLen, origin.y);
+		Vec2 right = Vec2(center.x + xLen, origin.y);
+		draw->drawLine(Vec2(center.x, visibleSize.height + origin.y), center, Color4F::GRAY);
+		draw->drawLine(center, left, Color4F::GRAY);
+		draw->drawLine(center, right, Color4F::GRAY);
+		this->addChild(draw);
+
+	}
+	/*
     Vec2 pointHome = gui::inst()->getPointVec2(4, 4, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
     auto h = Sprite::create("gem.jpg");
     h->setAnchorPoint(Vec2(0,0));
@@ -93,24 +110,30 @@ bool MainScene::init()
     */
     
     for(int n=1; n<=9; n++ ){
-        Vec2 pointHome = gui::inst()->getPointVec2(4 + n, 4 + n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+		int x = ((n - 1) % 3) * 4;
+		int y = ((n - 1) / 3) * 2;
+        Vec2 pointHome = gui::inst()->getPointVec2(10 + x, 9 + y, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
         auto h2 = Sprite::create("home/0"+to_string(n)+".png");
-        h2->setFlippedX(true);
-        h2->setAnchorPoint(Vec2(0,0));
+        //h2->setFlippedX(true);
+        h2->setAnchorPoint(Vec2(1,0));
         h2->setPosition(pointHome);
         this->addChild(h2);
         //gui::inst()->setScale(h2, _div);
     }
-    
+    /*
     for(int n=1; n<=9; n++ ){
-        Vec2 pointHome = gui::inst()->getPointVec2(9 + n, 4 + n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+        Vec2 pointHome = gui::inst()->getPointVec2(9 + n, 4+n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
         auto h2 = Sprite::create("home/0"+to_string(n)+".png");
-        h2->setAnchorPoint(Vec2(0,0));
+		Size s = h2->getContentSize();
+		float width = (int)(s.width / _width) * _width;
+		float height = (int)(s.height / _height) * _height;
+		h2->setContentSize(Size(width, height));
+		h2->setAnchorPoint(Vec2(1,0));
         h2->setPosition(pointHome);
         this->addChild(h2);
         //gui::inst()->setScale(h2, _div);
     }
-    
+    */
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 150, 10);
     
 	//Character
