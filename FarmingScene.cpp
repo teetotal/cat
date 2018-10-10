@@ -34,7 +34,7 @@ bool FarmingScene::init()
 	listener->onTouchEnded = CC_CALLBACK_2(FarmingScene::onTouchEnded, this);	
 	listener->onTouchMoved = CC_CALLBACK_2(FarmingScene::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-
+    
 	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
 	Vec2 a2 = gui::inst()->getPointVec2(1, 1, ALIGNMENT_NONE);
 	mGridSize.width = a2.x - a1.x;

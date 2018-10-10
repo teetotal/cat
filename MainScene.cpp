@@ -50,7 +50,6 @@ bool MainScene::init()
 		return false;
 	}
 		
-
     //////////////////////////////
     // 1. super init first
     if ( !Scene::init() )
@@ -61,6 +60,17 @@ bool MainScene::init()
     auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
+    //touch
+    auto listener = EventListenerTouchAllAtOnce::create();
+    listener->onTouchesBegan = CC_CALLBACK_2(MainScene::onTouchesBegan, this);
+    listener->onTouchesCancelled = CC_CALLBACK_2(MainScene::onTouchesCancelled, this);
+    listener->onTouchesEnded = CC_CALLBACK_2(MainScene::onTouchesEnded, this);
+    listener->onTouchesMoved = CC_CALLBACK_2(MainScene::onTouchesMoved, this);
+//    _eventDispatcher->addEventListenerWithFixedPriority(listener, 1);
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    
+    
+    
 	Color3B fontColor = Color3B::BLACK;
 	//BG
 	/*
@@ -1461,4 +1471,52 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 		break;
 	}
 	return code;
+}
+
+void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
+{
+    mTouchGap = -1;
+}
+void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *event)
+{
+    Touch* touch;
+    Vec2 touchPoint;
+    for (int index = 0; index < touches.size(); index++)
+    {
+        touch = touches[index];
+        touchPoint = touch->getLocation();
+        int touchIndex = touch->getID();
+    }
+}
+void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
+{
+    Touch* touch;
+    Vec2 touchPoint;
+    for (int index = 0; index < touches.size(); index++)
+    {
+        touch = touches[index];
+        touchPoint = touch->getLocation();
+        int touchIndex = touch->getID();
+    }
+}
+void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
+{
+    if(touches.size() == 2){
+        float gap = abs(touches[0]->getLocation().y - touches[1]->getLocation().y);
+        
+        if(mTouchGap == -1){
+            mTouchGap = gap;
+        }
+        //mTouchGap : scale = gap :x = gap / mTouchGap
+        
+        float ratio = this->getScale() * gap / mTouchGap;
+        CCLOG("%f", ratio);
+        float max = 2.f;
+        float min = 0.3f;
+        if(ratio > max)
+            ratio = max;
+        if(ratio < min)
+            ratio = min;
+        this->setScale(ratio);
+    }
 }
