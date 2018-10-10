@@ -690,9 +690,9 @@ void gui::addQuantityLayer(Node * p, Size size, Size margin
 	sprite->setContentSize(Size(20, 20));
 
 	label = gui::inst()->addLabelAutoDimension(1, 2, " ", layerQunatity, 10, ALIGNMENT_NONE, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(1, 3, "-", layerQunatity, callbackDec, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(0, 3, "-", layerQunatity, callbackDec, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	labelQuantity = gui::inst()->addLabelAutoDimension(2, 3, "  ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(3, 3, "+", layerQunatity, callbackInc, 20, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(4, 3, "+", layerQunatity, callbackInc, 24, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	labelPrice = gui::inst()->addLabelAutoDimension(2, 4, "           ", layerQunatity, 14, ALIGNMENT_CENTER, Color3B::BLACK, gridQuantity, Size::ZERO, Size::ZERO);
 	gui::inst()->addTextButtonAutoDimension(2, 5, szSubmit, layerQunatity, callbackSubmit, 14, ALIGNMENT_CENTER, Color3B::BLUE, gridQuantity, Size::ZERO, Size::ZERO);
 

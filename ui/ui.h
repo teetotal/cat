@@ -35,6 +35,11 @@ struct IMG_LEVEL {
 typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 
 #define POPUP_LIST(_PARENT_NODE, _GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4) \
+    Color3B fontColor1 = Color3B::BLACK; \
+    Color3B fontColor2 = Color3B::BLACK; \
+    Color3B fontColor3 = Color3B::BLACK; \
+    Color3B fontColor4 = Color3B::BLACK; \
+    bool isEnable = true; \
 	int nCnt = 0; \
 	for _FOR { \
 		_CONTINUE \
@@ -61,14 +66,20 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 			gui::inst()->setScale(pMenuSprite, 20); \
 		} \
 		heightIdx = 1;\
-        gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ3, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-		gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+        auto btn1 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor1, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		auto btn2 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor2, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		auto btn3 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ3, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor3, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+		auto btn4 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ4, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor4, _GRID_SIZE, Size::ZERO, Size::ZERO); \
+        if(!isEnable) { \
+            btn1->setEnabled(isEnable); \
+            btn2->setEnabled(isEnable); \
+            btn3->setEnabled(isEnable); \
+            btn4->setEnabled(isEnable); \
+        } \
 		gui::inst()->addLayoutToScrollView(sv, l, _NODE_MARGIN, _NEWLINE); \
 	} \
     _PARENT_NODE->removeChildByTag(99, true); \
-_PARENT_NODE->addChild(sv, 1, 99); 
+    _PARENT_NODE->addChild(sv, 1, 99); 
 
 class gui {
 public:

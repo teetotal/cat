@@ -584,7 +584,7 @@ private:
 	};
 	jobTitle mJobTitle;
 
-	//경묘
+	//------------------------------------------------------------------ 경묘
 	raceParticipants* mRaceParticipants;	
 	raceMeta mRace;		
 	_raceCurrent mRaceCurrent;	

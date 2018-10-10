@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -18,7 +18,7 @@ using namespace cocos2d::ui;
 #define INVENTORY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(120, 65); auto gridSize = Size(3, 4);
 #define BUY_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(120, 60); auto gridSize = Size(3, 4);
 #define ACHIEVEMENT_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 70); auto gridSize = Size(3, 5);
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 90); auto gridSize = Size(3, 6);
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 90); auto gridSize = Size(3, 5);
 #define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 70); auto gridSize = Size(3, 4);
 
 #define nodeMargin 8
@@ -83,7 +83,7 @@ bool MainScene::init()
     const float _div = 15.f;
     float eleSize = visibleSize.height / _div;
     Size homeGrid = Size(visibleSize.width / eleSize, _div);
-    gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
+//    gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
 	const float h = 80;
 	//const float h = visibleSize.height;
 
@@ -1169,9 +1169,60 @@ void MainScene::scheduleRecharge(float f) {
 
 void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 	RACE_SIZE;
-
 	int newLine = 1;
-
+    string reward_1st = gui::inst()->EmptyString;
+    string reward_2nd = gui::inst()->EmptyString;
+    string szNotEnoughProperty = gui::inst()->EmptyString;
+    string img = "cat-hand1.png";
+    
+    POPUP_LIST(layer
+               , gridSize
+               , newLine
+               , Vec2(0, 7)
+               , Vec2(9, 1)
+               , margin
+               , nodeMargin
+               , nodeSize
+               , (raceMeta::iterator it = logics::hInst->getRace()->begin(); it != logics::hInst->getRace()->end(); ++it)
+               ,
+               if (it->second.mode != mode) continue;
+               if (it->second.max < logics::hInst->getActor()->property.total()) continue;
+               for (int m = 0; m < (int)it->second.rewards.size(); m++) {
+                   switch (m) {
+                       case 0:
+                           reward_1st = "1st: ";
+                           reward_1st += COIN + to_string(logics::hInst->getRaceReward(it->first, m));
+                           break;
+                       case 1:
+                           reward_2nd = "2nd: ";
+                           reward_2nd += COIN + to_string(logics::hInst->getRaceReward(it->first, m));
+                           break;
+                       default:
+                           break;
+                   }
+               }
+               
+               if (it->second.min * 0.8 > logics::hInst->getActor()->property.total()) {
+                   isEnable = false;
+                   fontColor4 = Color3B::RED;
+                   szNotEnoughProperty = wstring_to_utf8(logics::hInst->getErrorMessage(error_not_enough_property));
+               } else{
+                   isEnable = true;
+                   szNotEnoughProperty = gui::inst()->EmptyString;
+               }
+               
+               , img
+               , CC_CALLBACK_1(MainScene::runRace, this, it->first)
+               , "Lv." + to_string(it->second.level)
+               , wstring_to_utf8(it->second.title)
+               , reward_1st
+               , reward_2nd
+               , szNotEnoughProperty
+            )
+    
+    
+    return;
+/*
 	int cnt = logics::hInst->getRaceModeCnt(mode);
 
     Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), layer->getContentSize(), Size(-1, -1), Size::ZERO, margin);
@@ -1240,14 +1291,6 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 			btn4->setEnabled(false);
 
 		for (int m = 0; m < (int)it->second.rewards.size(); m++) {
-			/*
-			printf("%d등 상금: %d (%ls 외 %d)\n"
-			, m + 1
-			, race.rewards[m].prize
-			, mItems[it->second.rewards[m].items[0].itemId].name.c_str()
-			, (int)it->second.rewards[m].items.size() - 1
-			);
-			*/
 			string rewardPrefix;
 			switch (m) {
 			case 0:
@@ -1283,6 +1326,7 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
 
 	layer->removeChildByTag(CHILD_ID_RACE, true);
 	layer->addChild(sv, 1, CHILD_ID_RACE);
+ */
 }
 
 void MainScene::showRace() {
@@ -1302,7 +1346,7 @@ void MainScene::showRace() {
 		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
 
-	gui::inst()->addTextButtonAutoDimension(2, 0, "1 vs 1", layer
+	gui::inst()->addTextButtonAutoDimension(2, 0, "1 on 1", layer
 		, CC_CALLBACK_1(MainScene::showRaceCategory, this, race_mode_1vs1)
 		, 12, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
