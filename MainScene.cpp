@@ -90,13 +90,15 @@ bool MainScene::init()
 	}
 
     //Cat Main UI
+    //-------------------------------------------------
+    mTouchSpriteLast.t = 0;
+    mTouchSpriteLast.lastSpriteIdx = -1;
+    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.width*2, visibleSize.height*2), "", true, Color3B::GRAY);
+    const float _div = 20.f;
+    mTouchGridNodeLength = mMainLayoput->getContentSize().height / _div;
+    mTouchGrid = Size(mMainLayoput->getContentSize().width / mTouchGridNodeLength, _div);
     
-    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.height, visibleSize.height), "", true, Color3B::GRAY);
-     const float _div = 5.f;
-    //float eleSize = mMainLayoput->getContentSize().height / _div;
-    Size homeGrid = Size(_div, _div);
-//    gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
-	const float h = mMainLayoput->getContentSize().height * 0.7;
+	const float h = mMainLayoput->getContentSize().height * 0.8;
 	
     auto draw = DrawNode::create();
     Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
@@ -109,52 +111,35 @@ bool MainScene::init()
     draw->drawLine(Vec2(center.x, h), right, Color4F::BLACK);
     mMainLayoput->addChild(draw);
 
-	
-	/*
-    Vec2 pointHome = gui::inst()->getPointVec2(4, 4, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
-    auto h = Sprite::create("gem.jpg");
-    h->setAnchorPoint(Vec2(0,0));
-    h->setPosition(pointHome);
-    this->addChild(h);
-    */
-    
+    mTouchSpriteIdx = -1;
     for(int n=1; n<=9; n++ ){
 		int x = ((n - 1) % 3) * 2;
 		int y = ((n - 1) / 3);
-        Vec2 pointHome = gui::inst()->getPointVec2(1+x, 3 + y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), homeGrid, Size::ZERO, Size::ZERO);
-        auto h2 = Sprite::create("home/0"+to_string(n)+".png");
+        Vec2 pointHome = gui::inst()->getPointVec2(mTouchGrid.width / 2 + x, mTouchGrid.height / 2 + y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
         //h2->setFlippedX(true);
-        h2->setAnchorPoint(Vec2(1,0));
-        h2->setPosition(pointHome);
-        mMainLayoput->addChild(h2);
+        sprite->setAnchorPoint(Vec2(1,0));
+        sprite->setPosition(pointHome);
+        mMainLayoput->addChild(sprite);
+        mTouchSpriteVec.push_back(sprite);
         //gui::inst()->setScale(h2, _div);
     }
+    
+    //Character
+    auto pCharacter = getIdle();
+    pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
+    gui::inst()->setScale(pCharacter, 50);
+    mMainLayoput->addChild(pCharacter);
+    mTouchSpriteVec.push_back(pCharacter);
+    
+//    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+    
     mMainLayoput->setPosition(gui::inst()->getCenter());
     mMainLayoput->setAnchorPoint(Vec2(0.5, 0.5));
     this->addChild(mMainLayoput);
-    /*
-    for(int n=1; n<=9; n++ ){
-        Vec2 pointHome = gui::inst()->getPointVec2(9 + n, 4+n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
-        auto h2 = Sprite::create("home/0"+to_string(n)+".png");
-		Size s = h2->getContentSize();
-		float width = (int)(s.width / _width) * _width;
-		float height = (int)(s.height / _height) * _height;
-		h2->setContentSize(Size(width, height));
-		h2->setAnchorPoint(Vec2(1,0));
-        h2->setPosition(pointHome);
-        this->addChild(h2);
-        //gui::inst()->setScale(h2, _div);
-    }
-    */
+    //---------------------------------------------------------------------------
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 150, 10);
     
-	//Character
-	auto pCharacter = getIdle();
-	pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
-    gui::inst()->setScale(pCharacter, 50);
-	this->addChild(pCharacter);
-
-
     //string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
 	string name = logics::hInst->getActor()->name;
     name += " lv.";
@@ -1492,7 +1477,22 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 
     if(getValidTouchCnt() == 1 && mTouchVec[0]){
         mTouchStart = mTouchVec[0]->getLocation();
-        CCLOG("Touch Single x = %f, y = %f", mTouchStart.x, mTouchStart.y);
+        
+        //sprite
+        for(int n=0; n < mTouchSpriteVec.size(); n++){
+//            CCLOG("Touch Single x = %f, y = %f | rect x1=%f, y1=%f, x2=%f, y=%f"
+//                  , mTouchVec[0]->getLocation().x, mTouchVec[0]->getLocation().y
+//                  , mTouchSpriteVec[n]->getBoundingBox().getMinX()
+//                  , mTouchSpriteVec[n]->getBoundingBox().getMinY()
+//                  , mTouchSpriteVec[n]->getBoundingBox().getMaxX()
+//                  , mTouchSpriteVec[n]->getBoundingBox().getMaxY()
+//                  );
+            Vec2 nodePosition = mMainLayoput->convertToNodeSpace(mTouchVec[0]->getLocation());
+            if(mTouchSpriteVec[n]->getBoundingBox().containsPoint(nodePosition)){
+                mTouchSpriteIdx = n;
+                break;
+            }
+        }
     }
 //    else if(mTouchCnt == 2){
 //        float gap = abs(touches[0]->getLocation().y - touches[1]->getLocation().y);
@@ -1507,6 +1507,7 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 }
 void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *event)
 {
+    mTouchSpriteIdx = -1;
     Touch* touch;
     Vec2 touchPoint;
     for (int index = 0; index < touches.size(); index++)
@@ -1521,7 +1522,37 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
 }
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
-
+    if(mTouchSpriteIdx != -1){
+        if(mTouchSpriteLast.lastSpriteIdx == mTouchSpriteIdx && (getNow() - mTouchSpriteLast.t) < 1){
+            bool currentFlipped = mTouchSpriteVec[mTouchSpriteIdx]->isFlippedX();
+            mTouchSpriteVec[mTouchSpriteIdx]->setFlippedX(currentFlipped ? false : true);
+        }else{
+            int zOrder = 0;
+            bool isChecked = false;
+            for(int y=0; y< mTouchGrid.height; y++){
+                for(int x=0; x < mTouchGrid.width; x++){
+                    Vec2 pos = gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+                    Vec2 pos2 = gui::inst()->getPointVec2(x+1, y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+                    Size size = Size(pos2.x - pos.x, mTouchGridNodeLength);
+                    Rect rect = Rect(pos, size);
+                    if(rect.containsPoint(mTouchSpriteVec[mTouchSpriteIdx]->getPosition())){
+                        CCLOG("zOrder = %d, X, Y = (%d, %d), Sprite (%f, %f), Pos (%f, %f)", zOrder, x, y, mTouchSpriteVec[mTouchSpriteIdx]->getPosition().x, mTouchSpriteVec[mTouchSpriteIdx]->getPosition().y, pos.x, pos.y);
+                        mTouchSpriteVec[mTouchSpriteIdx]->setPosition(pos2);
+                        mTouchSpriteVec[mTouchSpriteIdx]->setLocalZOrder(zOrder);
+                        isChecked = true;
+                    }
+                    zOrder++;
+                    if(isChecked)
+                        break;
+                }
+                if(isChecked)
+                    break;
+            }
+        }
+        mTouchSpriteLast.lastSpriteIdx = mTouchSpriteIdx;
+        mTouchSpriteLast.t = getNow();
+    }
+    
     Touch* touch;
     Vec2 touchPoint;
     for (int index = 0; index < touches.size(); index++)
@@ -1533,6 +1564,8 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
         if(mTouchVec.size() > touchIndex)
             mTouchVec[touchIndex] = NULL;
     }
+    
+    mTouchSpriteIdx = -1;
 }
 void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
 {
@@ -1550,17 +1583,25 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
     }
     
     if(getValidTouchCnt() == 1 && mTouchVec[0]){
-        CCLOG("SINGLE Move x = %f, y = %f", mTouchVec[0]->getLocation().x, mTouchVec[0]->getLocation().y);
-        Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
-        Vec2 current = mMainLayoput->getPosition();
+//        CCLOG("SINGLE Move x = %f, y = %f", mTouchVec[0]->getLocation().x, mTouchVec[0]->getLocation().y);
+        
         if(mTouchStart.x == mTouchVec[0]->getLocation().x && mTouchStart.y == mTouchVec[0]->getLocation().y)
             return;
-        Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
-        mTouchLast = mTouchVec[0]->getLocation();
-        mTouchStart = mTouchLast;
-        mMainLayoput->setPosition(movedPoint);
         
+        Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
         
+        if(mTouchSpriteIdx != -1){
+            Vec2 current = mTouchSpriteVec[mTouchSpriteIdx]->getPosition();
+            Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
+            
+            mTouchSpriteVec[mTouchSpriteIdx]->setPosition(movedPoint);
+        }else{
+            Vec2 current = mMainLayoput->getPosition();
+            Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
+            
+            mMainLayoput->setPosition(movedPoint);
+        }
+        mTouchStart = mTouchVec[0]->getLocation();
     }
     else if(getValidTouchCnt() == 2 && mTouchVec[0] && mTouchVec[1]){
         float gap = abs(mTouchVec[0]->getLocation().y - mTouchVec[1]->getLocation().y);
@@ -1573,20 +1614,19 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
         }
         //mTouchGap : scale = gap :x
         //x = scale * gap / mTouchGap
-        float bias = 0.5;
+//        float bias = 0.5;
         float currentScale = mMainLayoput->getScale();
         float ratio = (currentScale * gap / mTouchGap);
-        CCLOG("DOUBLE ratio = %f, current = %f", ratio, currentScale);
+//        CCLOG("DOUBLE ratio = %f, current = %f", ratio, currentScale);
         float max = 1.5f;
-        float min = 0.5f;
+        float min = 0.7f;
         if(ratio > max)
             ratio = max;
         else if(ratio < min)
             ratio = min;
-        /*
-        else if(ratio < 1.2f && ratio > 0.8f)
+        else if(ratio < 1.1f && ratio > 0.9f)
             ratio = 1;
-        */
+       
         mMainLayoput->setScale(ratio);
     }
 }

@@ -242,7 +242,16 @@ private:
     //멀티 터치시 두 포인트 간의 거리
     float mTouchGap;
     Layout * mMainLayoput;
-    Vec2 mTouchStart, mTouchLast;
+    Vec2 mTouchStart;
+    vector<Sprite*> mTouchSpriteVec;
+    int mTouchSpriteIdx;
+    Size mTouchGrid;
+    float mTouchGridNodeLength;
+    struct TOUCH_LAST{
+        time_t t;
+        int lastSpriteIdx;
+    };
+    TOUCH_LAST mTouchSpriteLast;
     
     vector<Touch*> mTouchVec;
     int getValidTouchCnt(){

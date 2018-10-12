@@ -10,12 +10,12 @@ int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
 float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 
-#define TIMING_Y    5
+#define TIMING_Y    3
 #define TIMING_X_START 0
 #define TIMING_X_END 9
 #define TIMING_X_BUTTON 7
-#define TIMING_RADIUS 30
-#define TIMING_MAX_TIME 20
+#define TIMING_RADIUS 50
+#define TIMING_MAX_TIME 15
 
 Scene* ActionBasic::createScene()
 {
@@ -145,9 +145,9 @@ void ActionBasic::callbackTiming(Ref* pSender){
 }
 void ActionBasic::runAction_timing(_training &t) {
     
-    Sprite * pMan = createAnimate(t);
-    gui::inst()->setScale(pMan, 80);
-    gui::inst()->addToCenter(pMan, this);
+//    Sprite * pMan = createAnimate(t);
+//    gui::inst()->setScale(pMan, 80);
+//    gui::inst()->addToCenter(pMan, this);
     mActionCnt = 0;
     mTimingRunner = NULL;
     
@@ -172,7 +172,7 @@ void ActionBasic::runAction_timing(_training &t) {
         
         if (percent >= 100.0f) {
             this->unschedule("updateLoadingBar");
-            pMan->stopAllActions();
+//            pMan->stopAllActions();
             callbackActionAnimation(t.id, mMaxTouchCnt);
         }
     }, animationDelay, "updateLoadingBar");
