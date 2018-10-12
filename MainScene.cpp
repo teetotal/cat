@@ -90,27 +90,26 @@ bool MainScene::init()
 	}
 
     //Cat Main UI
-    const float _div = 15.f;
-    float eleSize = visibleSize.height / _div;
-    Size homeGrid = Size(visibleSize.width / eleSize, _div);
+    
+    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.height, visibleSize.height), "", true, Color3B::GRAY);
+     const float _div = 5.f;
+    //float eleSize = mMainLayoput->getContentSize().height / _div;
+    Size homeGrid = Size(_div, _div);
 //    gui::inst()->drawGrid(this, Size(-1, -1), homeGrid);
-	const float h = 80;
-	//const float h = visibleSize.height;
+	const float h = mMainLayoput->getContentSize().height * 0.7;
+	
+    auto draw = DrawNode::create();
+    Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
+    float degrees = 27.f;
+    float xLen = h / std::tan(degrees * 3.14159 / 180);
+    Vec2 left = Vec2(center.x - xLen, 0);
+    Vec2 right = Vec2(center.x + xLen, 0);
+    draw->drawLine(Vec2(center.x, mMainLayoput->getContentSize().height), Vec2(center.x, h), Color4F::BLACK);
+    draw->drawLine(Vec2(center.x, h), left, Color4F::BLACK);
+    draw->drawLine(Vec2(center.x, h), right, Color4F::BLACK);
+    mMainLayoput->addChild(draw);
 
-	for (int n = 0; n < h; n++) {
-		auto draw = DrawNode::create();
-		Vec2 centerPoint = Vec2(visibleSize.width / 2, visibleSize.height - n);
-		Vec2 center = Vec2(centerPoint.x + origin.x, centerPoint.y + origin.y);
-		float degrees = 27.f;
-		float xLen = centerPoint.y / std::tan(degrees * 3.14159 / 180);
-		Vec2 left = Vec2(center.x - xLen, origin.y);
-		Vec2 right = Vec2(center.x + xLen, origin.y);
-		draw->drawLine(Vec2(center.x, visibleSize.height + origin.y), center, Color4F::GRAY);
-		draw->drawLine(center, left, Color4F::GRAY);
-		draw->drawLine(center, right, Color4F::GRAY);
-		this->addChild(draw);
-
-	}
+	
 	/*
     Vec2 pointHome = gui::inst()->getPointVec2(4, 4, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
     auto h = Sprite::create("gem.jpg");
@@ -120,16 +119,19 @@ bool MainScene::init()
     */
     
     for(int n=1; n<=9; n++ ){
-		int x = ((n - 1) % 3) * 4;
-		int y = ((n - 1) / 3) * 2;
-        Vec2 pointHome = gui::inst()->getPointVec2(10 + x, 9 + y, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
+		int x = ((n - 1) % 3) * 2;
+		int y = ((n - 1) / 3);
+        Vec2 pointHome = gui::inst()->getPointVec2(1+x, 3 + y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), homeGrid, Size::ZERO, Size::ZERO);
         auto h2 = Sprite::create("home/0"+to_string(n)+".png");
         //h2->setFlippedX(true);
         h2->setAnchorPoint(Vec2(1,0));
         h2->setPosition(pointHome);
-        this->addChild(h2);
+        mMainLayoput->addChild(h2);
         //gui::inst()->setScale(h2, _div);
     }
+    mMainLayoput->setPosition(gui::inst()->getCenter());
+    mMainLayoput->setAnchorPoint(Vec2(0.5, 0.5));
+    this->addChild(mMainLayoput);
     /*
     for(int n=1; n<=9; n++ ){
         Vec2 pointHome = gui::inst()->getPointVec2(9 + n, 4+n, ALIGNMENT_NONE, Size(-1, -1), homeGrid);
@@ -1475,7 +1477,33 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 
 void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 {
+    Touch* touch;
+    Vec2 touchPoint;
+    for (int index = 0; index < touches.size(); index++)
+    {
+        touch = touches[index];
+        touchPoint = touch->getLocation();
+        int touchIndex = touch->getID();
+        if(mTouchVec.size() < touchIndex + 1){
+            mTouchVec.resize(touchIndex + 1);
+        }
+        mTouchVec[touchIndex] = touch;
+    }
+
+    if(getValidTouchCnt() == 1 && mTouchVec[0]){
+        mTouchStart = mTouchVec[0]->getLocation();
+        CCLOG("Touch Single x = %f, y = %f", mTouchStart.x, mTouchStart.y);
+    }
+//    else if(mTouchCnt == 2){
+//        float gap = abs(touches[0]->getLocation().y - touches[1]->getLocation().y);
+//        mTouchStart = Vec2::ZERO;
+//        if(mTouchGap == -1){
+//            mTouchGap = gap;
+//            return;
+//        }
+//    }
     mTouchGap = -1;
+    return;
 }
 void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *event)
 {
@@ -1486,9 +1514,27 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
         touch = touches[index];
         touchPoint = touch->getLocation();
         int touchIndex = touch->getID();
+        
+        if(mTouchVec.size() > touchIndex)
+            mTouchVec[touchIndex] = NULL;
     }
 }
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
+{
+
+    Touch* touch;
+    Vec2 touchPoint;
+    for (int index = 0; index < touches.size(); index++)
+    {
+        touch = touches[index];
+        touchPoint = touch->getLocation();
+        int touchIndex = touch->getID();
+        
+        if(mTouchVec.size() > touchIndex)
+            mTouchVec[touchIndex] = NULL;
+    }
+}
+void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
 {
     Touch* touch;
     Vec2 touchPoint;
@@ -1497,26 +1543,50 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
         touch = touches[index];
         touchPoint = touch->getLocation();
         int touchIndex = touch->getID();
+        if(mTouchVec.size() < touchIndex + 1){
+            mTouchVec.resize(touchIndex + 1);
+        }
+        mTouchVec[touchIndex] = touch;
     }
-}
-void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
-{
-    if(touches.size() == 2){
-        float gap = abs(touches[0]->getLocation().y - touches[1]->getLocation().y);
+    
+    if(getValidTouchCnt() == 1 && mTouchVec[0]){
+        CCLOG("SINGLE Move x = %f, y = %f", mTouchVec[0]->getLocation().x, mTouchVec[0]->getLocation().y);
+        Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
+        Vec2 current = mMainLayoput->getPosition();
+        if(mTouchStart.x == mTouchVec[0]->getLocation().x && mTouchStart.y == mTouchVec[0]->getLocation().y)
+            return;
+        Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
+        mTouchLast = mTouchVec[0]->getLocation();
+        mTouchStart = mTouchLast;
+        mMainLayoput->setPosition(movedPoint);
+        
+        
+    }
+    else if(getValidTouchCnt() == 2 && mTouchVec[0] && mTouchVec[1]){
+        float gap = abs(mTouchVec[0]->getLocation().y - mTouchVec[1]->getLocation().y);
         
         if(mTouchGap == -1){
             mTouchGap = gap;
+            return;
+        } else if(mTouchGap == gap){
+            return;
         }
-        //mTouchGap : scale = gap :x = gap / mTouchGap
-        
-        float ratio = this->getScale() * gap / mTouchGap;
-        CCLOG("%f", ratio);
-        float max = 2.f;
-        float min = 0.3f;
+        //mTouchGap : scale = gap :x
+        //x = scale * gap / mTouchGap
+        float bias = 0.5;
+        float currentScale = mMainLayoput->getScale();
+        float ratio = (currentScale * gap / mTouchGap);
+        CCLOG("DOUBLE ratio = %f, current = %f", ratio, currentScale);
+        float max = 1.5f;
+        float min = 0.5f;
         if(ratio > max)
             ratio = max;
-        if(ratio < min)
+        else if(ratio < min)
             ratio = min;
-        this->setScale(ratio);
+        /*
+        else if(ratio < 1.2f && ratio > 0.8f)
+            ratio = 1;
+        */
+        mMainLayoput->setScale(ratio);
     }
 }

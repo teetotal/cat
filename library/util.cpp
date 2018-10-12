@@ -117,7 +117,7 @@ wstring utf8_to_utf16(const string& str){
 }
 
 float getTouchRatio(float sec, int cnt){
-	const float max = 55.0f; //초당 최대
+	const float max = 35.0f; //초당 최대
 	/*
 	1:max = sec: X
 	X = max * sec

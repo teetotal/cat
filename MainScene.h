@@ -241,6 +241,18 @@ private:
     virtual void onTouchesMoved(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
     //멀티 터치시 두 포인트 간의 거리
     float mTouchGap;
+    Layout * mMainLayoput;
+    Vec2 mTouchStart, mTouchLast;
+    
+    vector<Touch*> mTouchVec;
+    int getValidTouchCnt(){
+        int ret = 0;
+        for(int n =0; n< mTouchVec.size(); n++){
+            if(mTouchVec[n])
+                ret++;
+        }
+        return ret;
+    };
 };
 
 
