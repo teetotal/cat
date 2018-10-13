@@ -424,17 +424,29 @@ public:
 
 	void addToCenter(Node * p, Node * pParent) {
 		p->setAnchorPoint(Vec2(0.5, 0.5));
-		//bg->setOpacity(200);
-		/*
-		Size size = Director::getInstance()->getVisibleSize();
-		Vec2 point = Vec2(size.width / 2, size.height / 2);
-		point.x += Director::getInstance()->getVisibleOrigin().x;
-		point.y += Director::getInstance()->getVisibleOrigin().y;
-		*/
 		p->setPosition(getCenter());
 		pParent->addChild(p);
 	};
-
+    DrawNode * drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color);
+    DrawNode * drawRect(Node * p, Vec2 pos, Size size, Color4F color);
+    DrawNode * drawDiamond(Node * p, Vec2 pos, Size size, Color4F color);
+    float drawDiamond(Node * p, Vec2 center, float h, float degrees, Color4F color);
+    float getTanLen(float h, float degrees) {
+        return h / std::tan(degrees * 3.14159 / 180);
+    }
+    void addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
+                  , bool isBGColor = false
+                  , Color4F color1 = Color4F::BLACK
+                  , Color4F color2 = Color4F::GRAY
+                  , bool isLeft = true
+                  , bool isRight = true
+                  , Vec2 debugPos = Vec2::ZERO
+                  , Vec2 debugPos2 = Vec2::ZERO
+                  );
+    
+    //벡터 외적. 음수 = false
+    bool vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x);
+    
 	int mModalTouchCnt;
 	string EmptyString;
 
@@ -462,6 +474,8 @@ private:
             , Size grid
             , Size origin
             , Size margin);
+    
+    bool isExistVec2(vector<Vec2> vec, Vec2 point);
 };
 
 

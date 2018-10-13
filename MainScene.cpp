@@ -94,11 +94,8 @@ bool MainScene::init()
     mTouchSpriteLast.t = 0;
     mTouchSpriteLast.lastSpriteIdx = -1;
     mMainLayoput = gui::inst()->createLayout(Size(visibleSize.width*1, visibleSize.height*1), "", false, Color3B::GRAY);
-    const float _div = 10.f;
-    mTouchGridNodeLength = mMainLayoput->getContentSize().height / _div;
-    mTouchGrid = Size(mMainLayoput->getContentSize().width / mTouchGridNodeLength, _div);
     
-	const float h = mMainLayoput->getContentSize().height * 0.8;
+	const float h = mMainLayoput->getContentSize().height * 0.5;
     const float h2 = mMainLayoput->getContentSize().height * 1;
     
     auto bottom = Sprite::create("home/bottom3.png");
@@ -108,21 +105,19 @@ bool MainScene::init()
     
     
     auto wall = Sprite::create("home/wall3.png");
-    wall->setAnchorPoint(Vec2(0.5, 1));
-//    gui::inst()->setScale(wall, mMainLayoput->getContentSize().width);
-    wall->setContentSize(Size(mMainLayoput->getContentSize().width, (mMainLayoput->getContentSize().height - h) + (bottom->getContentSize().height * bottom->getScale() / 2)));
-    wall->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height));
+    wall->setAnchorPoint(Vec2(0.5, 0.5));
+    gui::inst()->setScale(wall, mMainLayoput->getContentSize().width);
+//    wall->setContentSize(Size(mMainLayoput->getContentSize().width, (mMainLayoput->getContentSize().height - h) + (bottom->getContentSize().height * bottom->getScale() / 2)));
+    wall->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, h));
     
     
     mMainLayoput->addChild(wall);
     mMainLayoput->addChild(bottom);
     
-	//guide line
-    
-    auto draw = DrawNode::create();
-    draw->setLineWidth(2);
     Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
     float degrees = 27.f;
+    /*
+     //guide line
     float xLen = h / std::tan(degrees * 3.14159 / 180);
     Vec2 left = Vec2(center.x - xLen, 0);
     Vec2 right = Vec2(center.x + xLen, 0);
@@ -130,26 +125,47 @@ bool MainScene::init()
     float xLen2 = h2 / std::tan(degrees * 3.14159 / 180);
     Vec2 left2 = Vec2(center.x - xLen2, 0);
     Vec2 right2 = Vec2(center.x + xLen2, 0);
-    
+     
+    auto draw = DrawNode::create();
+    draw->setLineWidth(2);
     draw->drawLine(Vec2(center.x, mMainLayoput->getContentSize().height), Vec2(center.x, h), Color4F::BLACK);
     draw->drawLine(Vec2(center.x, h), left, Color4F::BLACK);
     draw->drawLine(Vec2(center.x, h), right, Color4F::BLACK);
     
-    //draw->drawLine(Vec2(center.x, h2), left2, Color4F::BLACK);
-    //draw->drawLine(Vec2(center.x, h2), right2, Color4F::BLACK);
+    draw->drawLine(Vec2(center.x, h2), left2, Color4F::BLACK);
+    draw->drawLine(Vec2(center.x, h2), right2, Color4F::BLACK);
     
     mMainLayoput->addChild(draw);
+    */
+    //tile
+    const float _div = 40;
+//    mTouchGridNodeLength = mMainLayoput->getContentSize().height / _div;
     
+    float fH = bottom->getContentSize().height * bottom->getScale() / _div;
+    Color4F color1 = Color4F(Color3B(95, 75, 139));
+    Color4F color2 = Color4F(Color3B(118, 123, 165));
+    auto dimension = bottom->getBoundingBox();
+    gui::inst()->addTiles(mMainLayoput, dimension, mTouchPosVec, Vec2(center.x, center.y - fH), fH, degrees, true, color1, color2);
+    std::sort (mTouchPosVec.begin(), mTouchPosVec.end(), MainScene::sortTouchVec);
+
+    mTouchGrid = Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
+    
+    /*
+    gui::inst()->drawTriangle(mMainLayoput
+                              , Vec2(dimension.getMidX(), dimension.getMinY())
+                              , Vec2(dimension.getMaxX(), dimension.getMidY())
+                              , Vec2(dimension.getMaxX(), dimension.getMinY())
+                              , Color4F::RED);
+    */
     mTouchSpriteIdx = -1;
     
     float scale;
     for(int n=0; n<9; n++ ){
-		int x = ((n - 1) % 3) * 2;
-		int y = ((n - 1) / 3);
-        Vec2 pointHome = gui::inst()->getPointVec2(mTouchGrid.width / 2 + x, mTouchGrid.height / 2 + y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+        int idx = n * 28;
+        Vec2 pointHome = Vec2(mTouchPosVec[idx].x + mTouchGrid.width / 2, mTouchPosVec[idx].y - + mTouchGrid.height / 2);
         Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
         if(n==0){
-            scale = mTouchGridNodeLength / sprite->getContentSize().width;
+            scale = mTouchGrid.width / sprite->getContentSize().width;
         }
         sprite->setScale(scale);
         sprite->setAnchorPoint(Vec2(1,0));
@@ -162,14 +178,16 @@ bool MainScene::init()
     //Character
     auto pCharacter = getIdle();
     pCharacter->setAnchorPoint(Vec2(1,0));
-    pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
-    gui::inst()->setScale(pCharacter, mTouchGridNodeLength * 2);
+    pCharacter->setPosition(mTouchPosVec[0]);
+    gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
     mMainLayoput->addChild(pCharacter);
     mTouchSpriteVec.push_back(pCharacter);
     
 //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
-    mMainLayoput->setPosition(gui::inst()->getCenter());
+    Vec2 posMainLayer = gui::inst()->getCenter();
+    posMainLayer.y  += mMainLayoput->getContentSize().height /3;
+    mMainLayoput->setPosition(posMainLayer);
     mMainLayoput->setAnchorPoint(Vec2(0.5, 0.5));
     this->addChild(mMainLayoput);
     //---------------------------------------------------------------------------
@@ -1525,6 +1543,10 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
             Vec2 nodePosition = mMainLayoput->convertToNodeSpace(mTouchVec[0]->getLocation());
             if(mTouchSpriteVec[n]->getBoundingBox().containsPoint(nodePosition)){
                 mTouchSpriteIdx = n;
+                mTouchPoint = Label::create();
+                mTouchPoint->setString("x");
+                mTouchPoint->setPosition(mTouchSpriteVec[n]->getPosition());
+                mMainLayoput->addChild(mTouchPoint);
                 break;
             }
         }
@@ -1558,12 +1580,29 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
     if(mTouchSpriteIdx != -1){
+        mMainLayoput->removeChild(mTouchPoint);
         if(mTouchSpriteLast.lastSpriteIdx == mTouchSpriteIdx && (getNow() - mTouchSpriteLast.t) < 1){
             bool currentFlipped = mTouchSpriteVec[mTouchSpriteIdx]->isFlippedX();
             mTouchSpriteVec[mTouchSpriteIdx]->setFlippedX(currentFlipped ? false : true);
         }else{
             int zOrder = 0;
             bool isChecked = false;
+            
+            for(int n=0; n< mTouchPosVec.size(); n++){
+                Rect rect = Rect(mTouchPosVec[n], mTouchGrid);
+                
+                if(rect.containsPoint(mTouchSpriteVec[mTouchSpriteIdx]->getPosition())){
+                    CCLOG("zOrder = %d", zOrder);
+                    mTouchSpriteVec[mTouchSpriteIdx]->setPosition(Vec2(mTouchPosVec[n].x + mTouchGrid.width / 2, mTouchPosVec[n].y - mTouchGrid.height / 2));
+                    mTouchSpriteVec[mTouchSpriteIdx]->setLocalZOrder(zOrder);
+                    isChecked = true;
+                }
+                zOrder++;
+                if(isChecked)
+                    break;
+            }
+            
+            /*
             for(int y=0; y< mTouchGrid.height; y++){
                 for(int x=0; x < mTouchGrid.width; x++){
                     Vec2 pos = gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
@@ -1583,6 +1622,7 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
                 if(isChecked)
                     break;
             }
+             */
         }
         mTouchSpriteLast.lastSpriteIdx = mTouchSpriteIdx;
         mTouchSpriteLast.t = getNow();
@@ -1630,6 +1670,20 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
             Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
             
             mTouchSpriteVec[mTouchSpriteIdx]->setPosition(movedPoint);
+            
+            bool isFind=false;
+            for(int n=0; n< mTouchPosVec.size(); n++){
+                Rect rect = Rect(mTouchPosVec[n], mTouchGrid);
+                
+                if(rect.containsPoint(mTouchSpriteVec[mTouchSpriteIdx]->getPosition())){
+                    mTouchPoint->setPosition(Vec2(mTouchPosVec[n].x, mTouchPosVec[n].y));
+                    isFind = true;
+                    break;
+                }
+            }
+            if(!isFind){
+                mTouchSpriteVec[mTouchSpriteIdx]->setPosition(current);
+            }
         }else{
             Vec2 current = mMainLayoput->getPosition();
             Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);

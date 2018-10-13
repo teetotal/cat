@@ -747,3 +747,133 @@ MenuItemImage * gui::addSpriteButtonRaw(
 	
 	return pItem;
 }
+
+DrawNode * gui::drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color){
+    auto draw = DrawNode::create();
+    draw->drawTriangle(a, b, c, color);
+    
+    p->addChild(draw);
+    return draw;
+}
+
+DrawNode * gui::drawRect(Node * p, Vec2 pos, Size size, Color4F color){
+    auto draw = DrawNode::create();
+    
+    Vec2 origin = Vec2(pos.x - size.width / 2, pos.y - size.height / 2);
+    Vec2 dest = Vec2(pos.x + size.width / 2, pos.y + size.height / 2);
+    draw->drawSolidRect(origin, dest, color);
+
+    p->addChild(draw);
+    
+    return draw;
+}
+
+DrawNode * gui::drawDiamond(Node * p, Vec2 pos, Size size, Color4F color){
+    auto draw = DrawNode::create();
+    
+    Vec2 vLeft = Vec2(pos.x - size.width / 2, pos.y);
+    Vec2 vRight = Vec2(pos.x + size.width / 2, pos.y);
+    Vec2 vTop = Vec2(pos.x, pos.y + size.height / 2);
+    Vec2 vBottom = Vec2(pos.x, pos.y - size.height / 2);
+    
+    draw->drawTriangle(vLeft, vRight, vTop, color);
+    draw->drawTriangle(vLeft, vRight, vBottom, color);
+    
+    p->addChild(draw);
+    
+    return draw;
+}
+
+float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, cocos2d::Color4F color) {
+    float xLen = getTanLen(h, degrees);
+    Vec2 vLeft = Vec2(center.x - xLen, center.y);
+    Vec2 vRight = Vec2(center.x + xLen, center.y);
+
+    Vec2 vTop = Vec2(center.x, center.y + h);
+    Vec2 vBottom = Vec2(center.x, center.y - h);
+    
+    auto draw = DrawNode::create();
+    
+    draw->drawTriangle(vLeft, vRight, vTop, color);
+    draw->drawTriangle(vLeft, vRight, vBottom, color);
+    
+    p->addChild(draw);
+    
+    return xLen;
+}
+
+
+
+void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
+                   , bool isBGColor, Color4F color1, Color4F color2, bool isLeft, bool isRight, Vec2 debugPos, Vec2 debugPos2){
+    //top
+    float len = getTanLen(h, degrees);
+    
+//    if((debugPos2.x == -3 && debugPos2.y == -5)){
+//        CCLOG("Parent x= (%f, %f)", debugPos.x, debugPos.y);
+//    }
+
+    if(!isExistVec2(vec, start)){
+        if(isBGColor){
+            drawDiamond(p, start, h, degrees, color1);
+//            auto label = Label::create();
+//            label->setString(to_string((int)debugPos2.x) + ", " + to_string((int)debugPos2.y));
+//            label->setPosition(start);
+//            p->addChild(label);
+        }
+        vec.push_back(start);
+//        CCLOG("Vec(%f, %f) - %d", debugPos2.x, debugPos2.y, (int)vec.size());
+    }else{
+        return;
+    }
+    
+    Vec2 left = Vec2(start.x - len, start.y - h);
+    Vec2 right = Vec2(start.x + len, start.y - h);
+    
+    if(start.x - len < dimension.getMinX() || isExistVec2(vec, left))
+        isLeft = false;
+    
+    if(start.x + len > dimension.getMaxX() || isExistVec2(vec, right) ||
+       vectorCross(
+                    Vec2(dimension.getMidX(), dimension.getMinY())
+                    , Vec2(dimension.getMaxX(), dimension.getMidY())
+                    , Vec2(dimension.getMaxX(), dimension.getMinY())
+                    , right
+                    )
+       )
+        isRight = false;
+    
+    if(start.y - (h * 2) < dimension.getMinY())
+        return;
+
+   //left
+    if(isLeft)
+        addTiles(p, dimension, vec, left, h, degrees, isBGColor, color2, color1, isLeft, isRight, debugPos2, Vec2(debugPos2.x-1, debugPos2.y-1));
+    //right
+    if(isRight)
+        addTiles(p, dimension, vec, right, h, degrees, isBGColor, color2, color1, isLeft, isRight, debugPos2, Vec2(debugPos2.x+1, debugPos2.y-1));
+    
+    
+}
+
+bool gui::isExistVec2(vector<Vec2> vec, Vec2 point){
+    for (int n=0; n<vec.size(); n++) {
+        if(abs(vec[n].x - point.x) < 1 && abs(vec[n].y - point.y) < 1)
+            return true;
+    }
+    return false;
+}
+
+bool gui::vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x){
+    Vec2 ab = Vec2(b.x - a.x, b.y - a.y);
+    Vec2 ac = Vec2(c.x - a.x, c.y - a.y);
+    Vec2 ax = Vec2(x.x - a.x, x.y - a.y);
+    
+    float cross1 = (ab.x * ac.y) - (ab.y * ac.x);
+    float cross2 = (ab.x * ax.y) - (ab.y * ax.x);
+    
+    if(cross1 * cross2 < 0)
+        return false;
+    
+    return true;
+}
