@@ -81,7 +81,7 @@ bool MainScene::init()
 	bg->setPosition(Director::getInstance()->getVisibleOrigin());
 	this->addChild(bg);
 	*/
-    mGrid.init("fonts/Goyang.ttf", 14);
+    mGrid.init("fonts/Goyang.ttf", 14, Color4F::GRAY);
 
 	//farming init
 	if (!initFarm()) {
@@ -93,42 +93,77 @@ bool MainScene::init()
     //-------------------------------------------------
     mTouchSpriteLast.t = 0;
     mTouchSpriteLast.lastSpriteIdx = -1;
-    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.width*2, visibleSize.height*2), "", true, Color3B::GRAY);
-    const float _div = 20.f;
+    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.width*1, visibleSize.height*1), "", false, Color3B::GRAY);
+    const float _div = 10.f;
     mTouchGridNodeLength = mMainLayoput->getContentSize().height / _div;
     mTouchGrid = Size(mMainLayoput->getContentSize().width / mTouchGridNodeLength, _div);
     
 	const float h = mMainLayoput->getContentSize().height * 0.8;
-	
+    const float h2 = mMainLayoput->getContentSize().height * 1;
+    
+    auto bottom = Sprite::create("home/bottom3.png");
+    bottom->setAnchorPoint(Vec2(0.5, 1));
+    gui::inst()->setScale(bottom, mMainLayoput->getContentSize().width);
+    bottom->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, h));
+    
+    
+    auto wall = Sprite::create("home/wall3.png");
+    wall->setAnchorPoint(Vec2(0.5, 1));
+//    gui::inst()->setScale(wall, mMainLayoput->getContentSize().width);
+    wall->setContentSize(Size(mMainLayoput->getContentSize().width, (mMainLayoput->getContentSize().height - h) + (bottom->getContentSize().height * bottom->getScale() / 2)));
+    wall->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height));
+    
+    
+    mMainLayoput->addChild(wall);
+    mMainLayoput->addChild(bottom);
+    
+	//guide line
+    
     auto draw = DrawNode::create();
+    draw->setLineWidth(2);
     Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
     float degrees = 27.f;
     float xLen = h / std::tan(degrees * 3.14159 / 180);
     Vec2 left = Vec2(center.x - xLen, 0);
     Vec2 right = Vec2(center.x + xLen, 0);
+    
+    float xLen2 = h2 / std::tan(degrees * 3.14159 / 180);
+    Vec2 left2 = Vec2(center.x - xLen2, 0);
+    Vec2 right2 = Vec2(center.x + xLen2, 0);
+    
     draw->drawLine(Vec2(center.x, mMainLayoput->getContentSize().height), Vec2(center.x, h), Color4F::BLACK);
     draw->drawLine(Vec2(center.x, h), left, Color4F::BLACK);
     draw->drawLine(Vec2(center.x, h), right, Color4F::BLACK);
+    
+    //draw->drawLine(Vec2(center.x, h2), left2, Color4F::BLACK);
+    //draw->drawLine(Vec2(center.x, h2), right2, Color4F::BLACK);
+    
     mMainLayoput->addChild(draw);
-
+    
     mTouchSpriteIdx = -1;
-    for(int n=1; n<=9; n++ ){
+    
+    float scale;
+    for(int n=0; n<9; n++ ){
 		int x = ((n - 1) % 3) * 2;
 		int y = ((n - 1) / 3);
         Vec2 pointHome = gui::inst()->getPointVec2(mTouchGrid.width / 2 + x, mTouchGrid.height / 2 + y, ALIGNMENT_NONE, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
         Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
-        //h2->setFlippedX(true);
+        if(n==0){
+            scale = mTouchGridNodeLength / sprite->getContentSize().width;
+        }
+        sprite->setScale(scale);
         sprite->setAnchorPoint(Vec2(1,0));
         sprite->setPosition(pointHome);
         mMainLayoput->addChild(sprite);
         mTouchSpriteVec.push_back(sprite);
-        //gui::inst()->setScale(h2, _div);
+        
     }
     
     //Character
     auto pCharacter = getIdle();
+    pCharacter->setAnchorPoint(Vec2(1,0));
     pCharacter->setPosition(gui::inst()->getPointVec2(7, 4));
-    gui::inst()->setScale(pCharacter, 50);
+    gui::inst()->setScale(pCharacter, mTouchGridNodeLength * 2);
     mMainLayoput->addChild(pCharacter);
     mTouchSpriteVec.push_back(pCharacter);
     
