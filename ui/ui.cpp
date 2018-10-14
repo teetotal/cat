@@ -756,6 +756,15 @@ DrawNode * gui::drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color){
     return draw;
 }
 
+DrawNode * gui::drawRect(Node * p, Vec2 pos1, Vec2 pos2, Vec2 pos3, Vec2 pos4, Color4F color){
+    auto draw = DrawNode::create();
+   
+    draw->drawRect(pos1, pos2, pos3, pos4, color);
+    
+    p->addChild(draw);
+    return draw;
+}
+
 DrawNode * gui::drawRect(Node * p, Vec2 pos, Size size, Color4F color){
     auto draw = DrawNode::create();
     
@@ -763,8 +772,7 @@ DrawNode * gui::drawRect(Node * p, Vec2 pos, Size size, Color4F color){
     Vec2 dest = Vec2(pos.x + size.width / 2, pos.y + size.height / 2);
     draw->drawSolidRect(origin, dest, color);
 
-    p->addChild(draw);
-    
+    p->addChild(draw);    
     return draw;
 }
 

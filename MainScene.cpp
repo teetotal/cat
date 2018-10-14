@@ -114,8 +114,8 @@ bool MainScene::init()
 //    mMainLayoput->addChild(wall);
 //    mMainLayoput->addChild(bottom);
     
-    Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
-    float degrees = 27.f;
+    const Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
+    const float degrees = 27.f;
     /*
      //guide line
     float xLen = h / std::tan(degrees * 3.14159 / 180);
@@ -139,9 +139,7 @@ bool MainScene::init()
     */
     //tile
     const float _div = 40;
-//    mTouchGridNodeLength = mMainLayoput->getContentSize().height / _div;
-    
-    float fH = bottom->getContentSize().height * bottom->getScale() / _div;
+    const float fH = bottom->getContentSize().height * bottom->getScale() / _div;
     Color4F color1 = Color4F(Color3B(95, 75, 139));
     Color4F color2 = Color4F(Color3B(118, 123, 165));
     
@@ -162,10 +160,30 @@ bool MainScene::init()
     gui::inst()->drawTriangle(mMainLayoput, _rightBottom, _bottom, _right, color4);
     
     auto dimension = bottom->getBoundingBox();
+    //Add tiles
     gui::inst()->addTiles(mMainLayoput, dimension, mTouchPosVec, Vec2(center.x, center.y - fH), fH, degrees, true, color1, color2);
     std::sort (mTouchPosVec.begin(), mTouchPosVec.end(), MainScene::sortTouchVec);
 
     mTouchGrid = Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
+    
+    
+    //wall
+    const float _wallDiv = 4;
+    const float hW = (_top.y - center.y) / _wallDiv;
+    const float lenW = gui::inst()->getTanLen(hW/2, degrees);
+    for(int n=0; n < _wallDiv; n ++){
+        Vec2 pos = Vec2(center.x + lenW, h2 - (n * hW));
+//        float len = gui::inst()->drawDiamond(mMainLayoput, pos, hW/2, degrees, Color4F::ORANGE);
+        //left
+//        gui::inst()->drawDiamond(mMainLayoput, Vec2(pos.x - lenW, pos.y - hW / 2), hW/2, degrees, Color4F::RED);
+        Vec2 center = Vec2(pos.x - lenW, pos.y - hW / 2);
+        Vec2 rTop = Vec2(pos.x - lenW, pos.y);
+        Vec2 rBottom = Vec2(rTop.x, rTop.y - hW);
+        Vec2 lTop = Vec2(center.x - lenW, center.y);
+        Vec2 lBottom = Vec2(lTop.x, lTop.y - hW);
+        
+        gui::inst()->drawRect(mMainLayoput, rTop, rBottom, lBottom, lTop, Color4F::ORANGE);
+    }
     
     /*
     gui::inst()->drawTriangle(mMainLayoput
@@ -191,7 +209,7 @@ bool MainScene::init()
         mTouchSpriteVec.push_back(sprite);
         
     }
-    
+   
     //Character
     auto pCharacter = getIdle();
     pCharacter->setAnchorPoint(Vec2(1,0));
