@@ -111,8 +111,8 @@ bool MainScene::init()
     wall->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, h));
     
     
-    mMainLayoput->addChild(wall);
-    mMainLayoput->addChild(bottom);
+//    mMainLayoput->addChild(wall);
+//    mMainLayoput->addChild(bottom);
     
     Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
     float degrees = 27.f;
@@ -144,6 +144,23 @@ bool MainScene::init()
     float fH = bottom->getContentSize().height * bottom->getScale() / _div;
     Color4F color1 = Color4F(Color3B(95, 75, 139));
     Color4F color2 = Color4F(Color3B(118, 123, 165));
+    
+    Color4F color3 = Color4F(Color3B(156, 126, 65));
+//    Color4F color3 = Color4F(Color3B(158, 182, 184));
+    Color4F color4 = Color4F(Color3B(179, 177, 123));
+    Vec2 _top = Vec2(center.x, h2);
+    Vec2 _bottom = Vec2(center.x, h);
+    Vec2 _left = Vec2(center.x - bottom->getContentSize().width * bottom->getScale() / 2, h);
+    Vec2 _leftBottom = Vec2(center.x - bottom->getContentSize().width * bottom->getScale() / 2, h - bottom->getContentSize().height * bottom->getScale() / 2);
+    Vec2 _right = Vec2(center.x + bottom->getContentSize().width * bottom->getScale() / 2, h);
+    Vec2 _rightBottom = Vec2(center.x + bottom->getContentSize().width * bottom->getScale() / 2, h - bottom->getContentSize().height * bottom->getScale() / 2);
+    
+    gui::inst()->drawTriangle(mMainLayoput, _top, _bottom, _left, color3);
+    gui::inst()->drawTriangle(mMainLayoput, _leftBottom, _bottom, _left, color3);
+    
+    gui::inst()->drawTriangle(mMainLayoput, _top, _bottom, _right, color4);
+    gui::inst()->drawTriangle(mMainLayoput, _rightBottom, _bottom, _right, color4);
+    
     auto dimension = bottom->getBoundingBox();
     gui::inst()->addTiles(mMainLayoput, dimension, mTouchPosVec, Vec2(center.x, center.y - fH), fH, degrees, true, color1, color2);
     std::sort (mTouchPosVec.begin(), mTouchPosVec.end(), MainScene::sortTouchVec);
