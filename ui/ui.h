@@ -434,9 +434,16 @@ public:
     DrawNode * drawDiamond(Node * p, Vec2 pos, Size size, Color4F color);
     float drawDiamond(Node * p, Vec2 center, float h, float degrees, Color4F color);
     float getTanLen(float h, float degrees) {
-        return h / std::tan(degrees * 3.14159 / 180);
+//        const double pi = std::acos(-1);
+        //180 X = degree
+        //return h / std::tan(degrees * pi / 180);
+        
+        return h/ tan(CC_DEGREES_TO_RADIANS(degrees));
     }
-    void addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
+    void addTiles(Node * p, Rect dimension, vector<Vec2> &vec
+                  , Vec2 start
+                  , float h
+                  , float degrees
                   , bool isBGColor = false
                   , Color4F color1 = Color4F::BLACK
                   , Color4F color2 = Color4F::GRAY

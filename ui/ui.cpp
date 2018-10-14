@@ -793,7 +793,7 @@ DrawNode * gui::drawDiamond(Node * p, Vec2 pos, Size size, Color4F color){
 }
 
 float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, cocos2d::Color4F color) {
-    float xLen = getTanLen(h, degrees);
+    double xLen = getTanLen(h, degrees);
     Vec2 vLeft = Vec2(center.x - xLen, center.y);
     Vec2 vRight = Vec2(center.x + xLen, center.y);
 
@@ -814,18 +814,20 @@ float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, co
 
 void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
                    , bool isBGColor, Color4F color1, Color4F color2, bool isLeft, bool isRight, Vec2 debugPos, Vec2 debugPos2){
-    //top
-    float len = getTanLen(h, degrees);
     
-//    if((debugPos2.x == -3 && debugPos2.y == -5)){
+    double len = getTanLen(h, degrees);
+    
+//    if((debugPos2.x == -1 && debugPos2.y == -37)){
 //        CCLOG("Parent x= (%f, %f)", debugPos.x, debugPos.y);
 //    }
 
     if(!isExistVec2(vec, start)){
         if(isBGColor){
-            drawDiamond(p, start, h, degrees, color1);
+            drawDiamond(p, start, Size(len * 2, h * 2 ), color1);
+            //len = drawDiamond(p, start, h, degrees, color1);
 //            auto label = Label::create();
 //            label->setString(to_string((int)debugPos2.x) + ", " + to_string((int)debugPos2.y));
+//            label->setSystemFontSize(8);
 //            label->setPosition(start);
 //            p->addChild(label);
         }
@@ -838,10 +840,10 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
     Vec2 left = Vec2(start.x - len, start.y - h);
     Vec2 right = Vec2(start.x + len, start.y - h);
     
-    if(start.x - len < dimension.getMinX() || isExistVec2(vec, left))
+    if(abs((start.x - len) - dimension.getMinX()) < 0.01 || isExistVec2(vec, left))
         isLeft = false;
     
-    if(start.x + len > dimension.getMaxX() || isExistVec2(vec, right) ||
+    if(abs(start.x + len - dimension.getMaxX()) < 0.01 || isExistVec2(vec, right) ||
        vectorCross(
                     Vec2(dimension.getMidX(), dimension.getMinY())
                     , Vec2(dimension.getMaxX(), dimension.getMidY())
@@ -851,8 +853,7 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
        )
         isRight = false;
     
-    if(start.y - (h * 2) < dimension.getMinY())
-        return;
+//    if(start.y - (h * 2) < dimension.getMinY()) return;
 
    //left
     if(isLeft)
