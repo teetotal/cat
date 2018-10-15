@@ -452,6 +452,10 @@ public:
                   , Vec2 debugPos = Vec2::ZERO
                   , Vec2 debugPos2 = Vec2::ZERO
                   );
+    void addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec2 pos, float h, float len
+                  , bool isBGColor = false
+                  , Color4F color1 = Color4F::BLACK
+                  , Color4F color2 = Color4F::GRAY );
     
     //벡터 외적. 음수 = false
     bool vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x);

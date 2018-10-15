@@ -861,8 +861,48 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
     //right
     if(isRight)
         addTiles(p, dimension, vec, right, h, degrees, isBGColor, color2, color1, isLeft, isRight, debugPos2, Vec2(debugPos2.x+1, debugPos2.y-1));
+}
+
+void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec2 pos, float h, float len
+              , bool isBGColor
+              , Color4F color1
+              , Color4F color2){
     
+//    Vec2 center = Vec2(pos.x - len, pos.y - h / 2);
+    Vec2 rTop, rBottom, lTop, lBottom;
+    if(isLeft){
+        rTop = pos;
+        rBottom = Vec2(rTop.x, rTop.y - h);
+        lTop = Vec2(rTop.x - len * 2, rBottom.y);
+        lBottom = Vec2(lTop.x, lTop.y - h);
+    }else{
+        lTop = pos;
+        lBottom = Vec2(lTop.x, lTop.y - h);
+        rTop = Vec2(lTop.x + len * 2, lBottom.y);
+        rBottom = Vec2(rTop.x, rTop.y - h);
+    }
     
+//    drawRect(p, rTop, rBottom, lBottom, lTop, color1);
+    
+    if(isLeft){
+        if(isBGColor){
+            drawTriangle(p, rTop, lTop, Vec2(rTop.x, lTop.y), color1);
+            drawTriangle(p, rBottom, lBottom, Vec2(lBottom.x, rBottom.y), color1);
+        }
+        vec.push_back(Vec2(rBottom.x, lBottom.y));
+        if(lTop.x <= dimension.getMinX())
+            return;
+        addWalls(isLeft, p, dimension, vec, lTop, h, len, isBGColor, color2, color1);
+    } else{
+        if(isBGColor){
+            drawTriangle(p, lTop, rTop, Vec2(lTop.x, rTop.y), color1);
+            drawTriangle(p, lBottom, rBottom, Vec2(rBottom.x, lBottom.y), color1);
+        }
+        vec.push_back(rBottom);
+        if(rTop.x >= dimension.getMaxX())
+            return;
+        addWalls(isLeft, p, dimension, vec, rTop, h, len, isBGColor, color2, color1);
+    } 
 }
 
 bool gui::isExistVec2(vector<Vec2> vec, Vec2 point){

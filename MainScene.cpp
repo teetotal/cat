@@ -148,9 +148,14 @@ bool MainScene::init()
     Color4F color2 = Color4F(Color3B(118, 123, 165));
     
     Color4F color3 = Color4F(Color3B(156, 126, 65));
-//    Color4F color3 = Color4F(Color3B(158, 182, 184));
     Color4F color4 = Color4F(Color3B(179, 177, 123));
     
+    const int dark = 50;
+    Color4F colord3 = Color4F(Color3B(156-dark, 126-dark, 65-dark));
+    Color4F colord4 = Color4F(Color3B(179-dark, 177-dark, 123-dark));
+    
+    
+//    Color4F color3 = Color4F(Color3B(158, 182, 184));
     //wall
     Vec2 _top = Vec2(center.x, h2);
     Vec2 _bottom = Vec2(center.x, h);
@@ -178,9 +183,11 @@ bool MainScene::init()
     
     
     //wall
-    const float _wallDiv = 4;
+    const float _wallDiv = 8;
     const float hW = (_top.y - center.y) / _wallDiv;
     const float lenW = gui::inst()->getTanLen(hW/2, degrees);
+    
+    vector<Vec2> leftWallVec;
     for(int n=0; n < _wallDiv; n ++){
         Vec2 pos = Vec2(center.x + lenW, h2 - (n * hW));
         Vec2 center = Vec2(pos.x - lenW, pos.y - hW / 2);
@@ -189,7 +196,24 @@ bool MainScene::init()
         Vec2 lTop = Vec2(center.x - lenW, center.y);
         Vec2 lBottom = Vec2(lTop.x, lTop.y - hW);
         
-        gui::inst()->drawRect(mMainLayoput, rTop, rBottom, lBottom, lTop, Color4F::ORANGE);
+        //gui::inst()->drawRect(mMainLayoput, rTop, rBottom, lBottom, lTop, Color4F::ORANGE);
+        gui::inst()->addWalls(true, mMainLayoput, Rect(Vec2(_left, _leftBottom), Size(center.x - _left.x, _top.y)), leftWallVec
+                              , Vec2(center.x, h2 - (n * hW))
+                              , hW, lenW
+                              , true
+//                              , colord3
+//                              , colord4
+                              , (n % 2 == 0) ? colord3 : colord4
+                              , (n % 2 == 0) ? colord4 : colord3
+                              );
+        
+        gui::inst()->addWalls(false, mMainLayoput, Rect(Vec2(center.x, 0), Size(_right.x - center.x, _top.y)), leftWallVec
+                              , Vec2(center.x, h2 - (n * hW))
+                              , hW, lenW
+                              , true
+                              , (n % 2 == 0) ? color3 : color4
+                              , (n % 2 == 0) ? color4 : color3
+                              );
     }
     
     /*
