@@ -890,7 +890,7 @@ void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec
             drawTriangle(p, rBottom, lBottom, Vec2(lBottom.x, rBottom.y), color1);
         }
         vec.push_back(Vec2(rBottom.x, lBottom.y));
-        if(lTop.x <= dimension.getMinX())
+        if(lTop.x - len <= dimension.getMinX())
             return;
         addWalls(isLeft, p, dimension, vec, lTop, h, len, isBGColor, color2, color1);
     } else{
@@ -899,7 +899,7 @@ void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec
             drawTriangle(p, lBottom, rBottom, Vec2(rBottom.x, lBottom.y), color1);
         }
         vec.push_back(rBottom);
-        if(rTop.x >= dimension.getMaxX())
+        if(rTop.x + len >= dimension.getMaxX())
             return;
         addWalls(isLeft, p, dimension, vec, rTop, h, len, isBGColor, color2, color1);
     }
