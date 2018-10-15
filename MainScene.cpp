@@ -164,7 +164,7 @@ bool MainScene::init()
     
     
     //wall
-    const float _wallDiv = _div / 4;
+    const float _wallDiv = _div / 8;
     const float hW = (_top.y - center.y) / _wallDiv;
     const float lenW = gui::inst()->getTanLen(hW/2, degrees);
     
@@ -265,12 +265,12 @@ bool MainScene::init()
     
     //window & door
     Sprite * window = Sprite::create("home/window.png");
-    window->setPosition(leftWallVec[73]);
+    window->setPosition(leftWallVec[17]);
     window->setAnchorPoint(Vec2(1,0));
     mMainLayoput->addChild(window);
     
     Sprite * door = Sprite::create("home/door.png");
-    door->setPosition(leftWallVec[82]);
+    door->setPosition(leftWallVec[19]);
     door->setAnchorPoint(Vec2(1,0));
     mMainLayoput->addChild(door);
     
