@@ -902,8 +902,14 @@ void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec
         if(rTop.x >= dimension.getMaxX())
             return;
         addWalls(isLeft, p, dimension, vec, rTop, h, len, isBGColor, color2, color1);
-    } 
+    }
 }
+
+void gui::drawParallelogram(Node * p, Vec2 top1, Vec2 top2, Vec2 bottom1, Vec2 bottom2, Color4F color){
+    drawTriangle(p, top1, bottom1, top2, color);
+    drawTriangle(p, top2, bottom1, bottom2, color);
+}
+
 
 bool gui::isExistVec2(vector<Vec2> vec, Vec2 point){
     for (int n=0; n<vec.size(); n++) {

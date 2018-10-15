@@ -256,7 +256,6 @@ private:
     Label * mTouchPoint;
     
     static bool sortTouchVec(Vec2 a, Vec2 b){
-        CCLOG("%f, %f - %f, %f", a.x, a.y, b.x, b.y);
         if(b.y < a.y)
             return true;
         else if(b.y == a.y && b.x > a.x)
@@ -264,6 +263,17 @@ private:
         
         return false;
     };
+    
+    static bool sortTouchVecLeft(Vec2 a, Vec2 b){
+        CCLOG("%f, %f - %f, %f", a.x, a.y, b.x, b.y);
+        if(b.y < a.y)
+            return true;
+        else if(b.y == a.y && b.x < a.x)
+            return true;
+        
+        return false;
+    };
+    
     vector<Touch*> mTouchVec;
     int getValidTouchCnt(){
         int ret = 0;

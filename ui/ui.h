@@ -456,6 +456,7 @@ public:
                   , bool isBGColor = false
                   , Color4F color1 = Color4F::BLACK
                   , Color4F color2 = Color4F::GRAY );
+    void drawParallelogram(Node * p, Vec2 top1, Vec2 top2, Vec2 bottom1, Vec2 bottom2, Color4F color);
     
     //벡터 외적. 음수 = false
     bool vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x);
