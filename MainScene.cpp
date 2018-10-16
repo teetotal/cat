@@ -95,34 +95,9 @@ bool MainScene::init()
     mTouchSpriteLast.lastSpriteIdx = -1;
     
     const float degrees = 27.f;
-    
-//    mMainLayoput = gui::inst()->createLayout(Size(visibleSize.width*1, visibleSize.height*1), "", true, Color3B::GRAY);
     const float layerWidth = gui::inst()->getTanLen(visibleSize.height / 2, degrees) * 2;
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, visibleSize.height), "", false, Color3B::GRAY);
-    
-	const float h = mMainLayoput->getContentSize().height * 0.5;
-    const float h2 = mMainLayoput->getContentSize().height * 1;
-    /*
-    auto bottom = Sprite::create("home/bottom3.png");
-    bottom->setAnchorPoint(Vec2(0.5, 1));
-    gui::inst()->setScale(bottom, mMainLayoput->getContentSize().width);
-    bottom->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, h));
-    
-    
-    auto wall = Sprite::create("home/wall3.png");
-    wall->setAnchorPoint(Vec2(0.5, 0.5));
-    gui::inst()->setScale(wall, mMainLayoput->getContentSize().width);
-//    wall->setContentSize(Size(mMainLayoput->getContentSize().width, (mMainLayoput->getContentSize().height - h) + (bottom->getContentSize().height * bottom->getScale() / 2)));
-    wall->setPosition(Vec2(mMainLayoput->getContentSize().width / 2, h));
-    
-    
-//    mMainLayoput->addChild(wall);
-//    mMainLayoput->addChild(bottom);
-    */
-    const Vec2 center = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
-    
-    /**/
-    //tile
+
     const float _div = 40;
     const float fH = mMainLayoput->getContentSize().height / _div;
     Color4F color1 = Color4F(Color3B(95, 75, 139));
@@ -135,108 +110,22 @@ bool MainScene::init()
     Color4F colord3 = Color4F(Color3B(156-dark, 126-dark, 65-dark));
     Color4F colord4 = Color4F(Color3B(179-dark, 177-dark, 123-dark));
     
-    
-//    Color4F color3 = Color4F(Color3B(158, 182, 184));
-    //wall
-    Vec2 _top = Vec2(center.x, h2);
-    Vec2 _bottom = Vec2(center.x, h);
-    //Vec2 _left = Vec2(center.x - mMainLayoput->getContentSize().width / 2, h);
-    Vec2 _left = Vec2(0, h);
-    //Vec2 _leftBottom = Vec2(center.x - mMainLayoput->getContentSize().width / 2, 0); //h - bottom->getContentSize().height * bottom->getScale() / 2
-    Vec2 _leftBottom = Vec2(0, 0);
-    Vec2 _right = Vec2(mMainLayoput->getContentSize().width, h);
-    Vec2 _rightBottom = Vec2(mMainLayoput->getContentSize().width, 0);
-    
-    gui::inst()->drawTriangle(mMainLayoput, _top, _bottom, _left, color3);
-    gui::inst()->drawTriangle(mMainLayoput, _leftBottom, _bottom, _left, color3);
-    
-    gui::inst()->drawTriangle(mMainLayoput, _top, _bottom, _right, color4);
-    gui::inst()->drawTriangle(mMainLayoput, _rightBottom, _bottom, _right, color4);
-    
-    //auto dimension2 = bottom->getBoundingBox();
-    Rect dimension = Rect(0, -1 * h, mMainLayoput->getContentSize().width, mMainLayoput->getContentSize().height);
-    
-    //Add tiles
-    gui::inst()->addTiles(mMainLayoput, dimension, mTouchPosVec, Vec2(center.x, center.y - fH), fH, degrees, true, color1, color2);
+    ui_deco uiDeco;
+    uiDeco.init(mMainLayoput, degrees);
+    uiDeco.drawBottom(_div, &mTouchPosVec, color1, color2);
     std::sort (mTouchPosVec.begin(), mTouchPosVec.end(), MainScene::sortTouchVec);
 
     mTouchGrid = Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
     
-    
-    //wall
-    const float _wallDiv = _div / 8;
-    const float hW = (_top.y - center.y) / _wallDiv;
-    const float lenW = gui::inst()->getTanLen(hW/2, degrees);
-    
     vector<Vec2> leftWallVec;
     vector<Vec2> rightWallVec;
     
-    for(int n=0; n < _wallDiv; n ++){
-        Vec2 pos = Vec2(center.x + lenW, h2 - (n * hW));
-        Vec2 center = Vec2(pos.x - lenW, pos.y - hW / 2);
-        Vec2 rTop = Vec2(pos.x - lenW, pos.y);
-        Vec2 rBottom = Vec2(rTop.x, rTop.y - hW);
-        Vec2 lTop = Vec2(center.x - lenW, center.y);
-        Vec2 lBottom = Vec2(lTop.x, lTop.y - hW);
-        
-        //gui::inst()->drawRect(mMainLayoput, rTop, rBottom, lBottom, lTop, Color4F::ORANGE);
-        gui::inst()->addWalls(true, mMainLayoput, Rect(Vec2(_left, _leftBottom), Size(center.x - _left.x, _top.y)), leftWallVec
-                              , Vec2(center.x, h2 - (n * hW))
-                              , hW, lenW
-                              , true
-//                              , colord3
-//                              , colord4
-                              , (n % 2 == 0) ? colord3 : colord3
-                              , (n % 2 == 0) ? colord3 : colord3
-                              );
-        
-        gui::inst()->addWalls(false, mMainLayoput, Rect(Vec2(center.x, 0), Size(_right.x - center.x, _top.y)), rightWallVec
-                              , Vec2(center.x, h2 - (n * hW))
-                              , hW, lenW
-                              , true
-                              , (n % 2 == 0) ? color3 : color3
-                              , (n % 2 == 0) ? color3 : color3
-                              );
-    }
+    uiDeco.drawWall(_div / 8, &leftWallVec, &rightWallVec, colord3, colord4, color3, color4);
+    
     std::sort (rightWallVec.begin(), rightWallVec.end(), MainScene::sortTouchVec);
     std::sort (leftWallVec.begin(), leftWallVec.end(), MainScene::sortTouchVecLeft);
 
-    
-    //margin
-    float margin = 5;
-    gui::inst()->drawParallelogram(mMainLayoput
-                                   , _rightBottom
-                                   , Vec2(center.x, -1 * h)
-                                   , Vec2(_rightBottom.x, _rightBottom.y - margin)
-                                   , Vec2(center.x, -1 * h - margin)
-                                   , Color4F::GRAY);
-    
-    gui::inst()->drawParallelogram(mMainLayoput
-                                   , _leftBottom
-                                   , Vec2(center.x, -1 * h)
-                                   , Vec2(_leftBottom.x, _leftBottom.y - margin)
-                                   , Vec2(center.x, -1 * h - margin)
-                                   , Color4F::GRAY);
-    
-    //guide line
-    float xLen = gui::inst()->getTanLen(h, degrees);
-    Vec2 left = Vec2(center.x - xLen, 0);
-    Vec2 right = Vec2(center.x + xLen, 0);
-    
-//    float xLen2 = gui::inst()->getTanLen(h2, degrees);
-    Vec2 left2 = Vec2(center.x - xLen, h);
-    Vec2 right2 = Vec2(center.x + xLen, h);
-    
-    auto draw = DrawNode::create();
-    draw->setLineWidth(2);
-    draw->drawLine(Vec2(center.x, mMainLayoput->getContentSize().height), Vec2(center.x, h), Color4F::BLACK);
-    draw->drawLine(Vec2(center.x, h), left, Color4F::BLACK);
-    draw->drawLine(Vec2(center.x, h), right, Color4F::BLACK);
-    
-    draw->drawLine(Vec2(center.x, h2), left2, Color4F::BLACK);
-    draw->drawLine(Vec2(center.x, h2), right2, Color4F::BLACK);
-    
-    mMainLayoput->addChild(draw);
+    uiDeco.drawGuidLine();
     
     /*
     gui::inst()->drawTriangle(mMainLayoput

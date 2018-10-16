@@ -812,7 +812,7 @@ float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, co
 
 
 
-void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
+void gui::addTiles(Node * p, Rect dimension, vector<Vec2> *vec, Vec2 start, float h, float degrees
                    , bool isBGColor, Color4F color1, Color4F color2, bool isLeft, bool isRight, Vec2 debugPos, Vec2 debugPos2){
     
     double len = getTanLen(h, degrees);
@@ -831,7 +831,8 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
 //            label->setPosition(start);
 //            p->addChild(label);
         }
-        vec.push_back(start);
+        if(vec)
+            vec->push_back(start);
 //        CCLOG("Vec(%f, %f) - %d", debugPos2.x, debugPos2.y, (int)vec.size());
     }else{
         return;
@@ -863,7 +864,7 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
         addTiles(p, dimension, vec, right, h, degrees, isBGColor, color2, color1, isLeft, isRight, debugPos2, Vec2(debugPos2.x+1, debugPos2.y-1));
 }
 
-void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec2 pos, float h, float len
+void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> *vec, Vec2 pos, float h, float len
               , bool isBGColor
               , Color4F color1
               , Color4F color2){
@@ -889,7 +890,8 @@ void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec
             drawTriangle(p, rTop, lTop, Vec2(rTop.x, lTop.y), color1);
             drawTriangle(p, rBottom, lBottom, Vec2(lBottom.x, rBottom.y), color1);
         }
-        vec.push_back(Vec2(rBottom.x, lBottom.y));
+        if(vec)
+            vec->push_back(Vec2(rBottom.x, lBottom.y));
         if(lTop.x - len <= dimension.getMinX())
             return;
         addWalls(isLeft, p, dimension, vec, lTop, h, len, isBGColor, color2, color1);
@@ -898,7 +900,8 @@ void gui::addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec
             drawTriangle(p, lTop, rTop, Vec2(lTop.x, rTop.y), color1);
             drawTriangle(p, lBottom, rBottom, Vec2(rBottom.x, lBottom.y), color1);
         }
-        vec.push_back(rBottom);
+        if(vec)
+            vec->push_back(rBottom);
         if(rTop.x + len >= dimension.getMaxX())
             return;
         addWalls(isLeft, p, dimension, vec, rTop, h, len, isBGColor, color2, color1);
@@ -911,9 +914,12 @@ void gui::drawParallelogram(Node * p, Vec2 top1, Vec2 top2, Vec2 bottom1, Vec2 b
 }
 
 
-bool gui::isExistVec2(vector<Vec2> vec, Vec2 point){
-    for (int n=0; n<vec.size(); n++) {
-        if(abs(vec[n].x - point.x) < 1 && abs(vec[n].y - point.y) < 1)
+bool gui::isExistVec2(vector<Vec2> *vec, Vec2 point){
+    if(vec == NULL)
+        return false;
+    
+    for (int n=0; n<vec->size(); n++) {
+        if(abs(vec->at(n).x - point.x) < 1 && abs(vec->at(n).y - point.y) < 1)
             return true;
     }
     return false;

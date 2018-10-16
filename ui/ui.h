@@ -440,7 +440,7 @@ public:
         
         return h/ tan(CC_DEGREES_TO_RADIANS(degrees));
     }
-    void addTiles(Node * p, Rect dimension, vector<Vec2> &vec
+    void addTiles(Node * p, Rect dimension, vector<Vec2> *vec
                   , Vec2 start
                   , float h
                   , float degrees
@@ -452,7 +452,7 @@ public:
                   , Vec2 debugPos = Vec2::ZERO
                   , Vec2 debugPos2 = Vec2::ZERO
                   );
-    void addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> &vec, Vec2 pos, float h, float len
+    void addWalls(bool isLeft, Node * p, Rect dimension, vector<Vec2> *vec, Vec2 pos, float h, float len
                   , bool isBGColor = false
                   , Color4F color1 = Color4F::BLACK
                   , Color4F color2 = Color4F::GRAY );
@@ -489,7 +489,7 @@ private:
             , Size origin
             , Size margin);
     
-    bool isExistVec2(vector<Vec2> vec, Vec2 point);
+    bool isExistVec2(vector<Vec2> *vec, Vec2 point);
 };
 
 

@@ -9,6 +9,8 @@
 #include "ui/ui.h"
 #include "ui/ui_gacha.h"
 #include "ui/ui_cultivation.h"
+#include "ui/ui_deco.h"
+
 #include "logics.h"
 
 USING_NS_CC;
