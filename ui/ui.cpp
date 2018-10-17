@@ -812,7 +812,7 @@ float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, co
 
 
 
-void gui::addTiles(Node * p, Rect dimension, vector<Vec2> *vec, Vec2 start, float h, float degrees
+void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
                    , bool isBGColor, Color4F color1, Color4F color2, bool isLeft, bool isRight, Vec2 debugPos, Vec2 debugPos2){
     
     double len = getTanLen(h, degrees);
@@ -831,8 +831,7 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> *vec, Vec2 start, floa
 //            label->setPosition(start);
 //            p->addChild(label);
         }
-        if(vec)
-            vec->push_back(start);
+        vec.push_back(start);
 //        CCLOG("Vec(%f, %f) - %d", debugPos2.x, debugPos2.y, (int)vec.size());
     }else{
         return;
@@ -914,12 +913,9 @@ void gui::drawParallelogram(Node * p, Vec2 top1, Vec2 top2, Vec2 bottom1, Vec2 b
 }
 
 
-bool gui::isExistVec2(vector<Vec2> *vec, Vec2 point){
-    if(vec == NULL)
-        return false;
-    
-    for (int n=0; n<vec->size(); n++) {
-        if(abs(vec->at(n).x - point.x) < 1 && abs(vec->at(n).y - point.y) < 1)
+bool gui::isExistVec2(vector<Vec2> &vec, Vec2 point){
+    for (int n=0; n<vec.size(); n++) {
+        if(abs(vec.at(n).x - point.x) < 1 && abs(vec.at(n).y - point.y) < 1)
             return true;
     }
     return false;

@@ -440,7 +440,7 @@ public:
         
         return h/ tan(CC_DEGREES_TO_RADIANS(degrees));
     }
-    void addTiles(Node * p, Rect dimension, vector<Vec2> *vec
+    void addTiles(Node * p, Rect dimension, vector<Vec2> &vec
                   , Vec2 start
                   , float h
                   , float degrees
@@ -489,7 +489,7 @@ private:
             , Size origin
             , Size margin);
     
-    bool isExistVec2(vector<Vec2> *vec, Vec2 point);
+    bool isExistVec2(vector<Vec2> &vec, Vec2 point);
 };
 
 

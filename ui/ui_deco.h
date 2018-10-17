@@ -20,15 +20,17 @@ public:
     typedef vector<Vec2> POSITION_VECTOR;
     
     void init(Node * p, float degrees);
-    void drawBottom(int div, POSITION_VECTOR * vec, Color4F color1, Color4F color2);
+    void addBottom(bool isDraw, int div, POSITION_VECTOR &vec, Color4F color1 = Color4F::BLACK, Color4F color2 = Color4F::GRAY);
     
-    void drawWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F left1, Color4F left2, Color4F right1, Color4F right2);
-    void drawWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color1, Color4F color2){
-        drawWall(div, vecLeft, vecRight, getDarkColor(color1), getDarkColor(color2), color1, color2);
+    void addWall(bool isDraw, int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F left1 = Color4F::BLACK, Color4F left2 = Color4F::BLACK, Color4F right1 = Color4F::GRAY, Color4F right2 = Color4F::GRAY);
+    void addWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color1, Color4F color2){
+        addWall(true, div, vecLeft, vecRight, getDarkColor(color1), getDarkColor(color2), color1, color2);
     };
     void drawGuidLine();
     
 private:
+#define DARK_RATION 0.837
+
     Node * mMainLayoput;
     float mDegrees;
     float mH;
@@ -42,7 +44,14 @@ private:
         Vec2 rightBottom;
     } mWallPostions;
     
-    Color4F getDarkColor(Color4F color);
+    Color4F getDarkColor(Color4F color){
+        Color4F c;
+        c.r = DARK_RATION * color.r;
+        c.g = DARK_RATION * color.g;
+        c.b = DARK_RATION * color.b;
+        c.a = color.a;
+        return c;
+    };
 };
 
 #endif //PROJ_ANDROID_UI_DECO_H

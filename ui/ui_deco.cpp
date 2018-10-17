@@ -18,13 +18,14 @@ void ui_deco::init(Node * p, float degrees){
     mWallPostions.rightBottom = Vec2(mMainLayoput->getContentSize().width, 0);
     
 }
-void ui_deco::drawBottom(int div, POSITION_VECTOR * vec, Color4F color1, Color4F color2) {
+void ui_deco::addBottom(bool isDraw, int div, POSITION_VECTOR &vec, Color4F color1, Color4F color2) {
     const float fH = mMainLayoput->getContentSize().height / (float)div;
     Rect dimension = Rect(0, -1 * mH, mMainLayoput->getContentSize().width, mMainLayoput->getContentSize().height);
-    gui::inst()->addTiles(mMainLayoput, dimension, vec, Vec2(mCenter.x, mCenter.y - fH), fH, mDegrees, true, color1, color2);
+    gui::inst()->addTiles(mMainLayoput, dimension, vec, Vec2(mCenter.x, mCenter.y - fH), fH, mDegrees, isDraw, color1, color2);
 }
 
-void ui_deco::drawWall( int div
+void ui_deco::addWall( bool isDraw
+                       , int div
                        , POSITION_VECTOR * vecLeft
                        , POSITION_VECTOR * vecRight
                        , Color4F left1
@@ -51,7 +52,7 @@ void ui_deco::drawWall( int div
                               , vecLeft
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
                               , hW, lenW
-                              , true
+                              , isDraw
                               , (n % 2 == 0) ? left1 : left2
                               , (n % 2 == 0) ? left2 : left1
                               );
@@ -62,7 +63,7 @@ void ui_deco::drawWall( int div
                               , vecRight
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
                               , hW, lenW
-                              , true
+                              , isDraw
                               , (n % 2 == 0) ? right1 : right2
                               , (n % 2 == 0) ? right2 : right1
                               );

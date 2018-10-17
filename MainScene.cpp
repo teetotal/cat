@@ -106,13 +106,11 @@ bool MainScene::init()
     Color4F color3 = Color4F(Color3B(156, 126, 65));
     Color4F color4 = Color4F(Color3B(179, 177, 123));
     
-    const int dark = 50;
-    Color4F colord3 = Color4F(Color3B(156-dark, 126-dark, 65-dark));
-    Color4F colord4 = Color4F(Color3B(179-dark, 177-dark, 123-dark));
-    
     ui_deco uiDeco;
     uiDeco.init(mMainLayoput, degrees);
-    uiDeco.drawBottom(_div, &mTouchPosVec, color1, color2);
+    uiDeco.addBottom(false, _div, mTouchPosVec);
+    vector<Vec2> temp;
+    uiDeco.addBottom(true, 8, temp, color1, color2);
     std::sort (mTouchPosVec.begin(), mTouchPosVec.end(), MainScene::sortTouchVec);
 
     mTouchGrid = Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
@@ -120,7 +118,9 @@ bool MainScene::init()
     vector<Vec2> leftWallVec;
     vector<Vec2> rightWallVec;
     
-    uiDeco.drawWall(_div / 8, &leftWallVec, &rightWallVec, colord3, colord4, color3, color4);
+//    uiDeco.addWall(true, _div / 8, &leftWallVec, &rightWallVec, colord3, colord4, color3, color4);
+    uiDeco.addWall(_div / 8, &leftWallVec, &rightWallVec, color3, color4);
+    
     
     std::sort (rightWallVec.begin(), rightWallVec.end(), MainScene::sortTouchVec);
     std::sort (leftWallVec.begin(), leftWallVec.end(), MainScene::sortTouchVecLeft);
