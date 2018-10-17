@@ -285,6 +285,8 @@ private:
         }
         return ret;
     };
+    
+    ui_deco mDeco;
 };
 
 
