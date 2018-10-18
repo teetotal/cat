@@ -23,10 +23,10 @@ public:
     //바닥 좌표, 타일
     void addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2);
     //벽
-    void addWall(int div, Color4F color1, Color4F color2, Color4F color3, Color4F color4);
+    void addWall(int div, Color4F color1, Color4F color2);
     //벽
-    void addWall(int div, Color4F color1, Color4F color2){
-        addWall(div, getDarkColor(color1), getDarkColor(color2), color1, color2);
+    void addWall(int div, Color4F color){
+        addWall(div, color, getDarkColor(color));
     }
     
     //raw func
@@ -38,10 +38,10 @@ public:
     };
     
     //raw func
-    void createWall(bool isDraw, int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F left1 = Color4F::BLACK, Color4F left2 = Color4F::BLACK, Color4F right1 = Color4F::GRAY, Color4F right2 = Color4F::GRAY);
+    void createWall(bool isDraw, int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color1 = Color4F::GRAY, Color4F color2 = Color4F::BLACK);
     //auto dark
-    void createWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color1, Color4F color2){
-        createWall(true, div, vecLeft, vecRight, getDarkColor(color1), getDarkColor(color2), color1, color2);
+    void createWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color){
+        createWall(true, div, vecLeft, vecRight, color, getDarkColor(color));
     };
     void drawGuidLine();
     

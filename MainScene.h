@@ -245,36 +245,9 @@ private:
     float mTouchGap;
     Layout * mMainLayoput;
     Vec2 mTouchStart;
-    vector<Sprite*> mTouchSpriteVec;
-    int mTouchSpriteIdx;
     Size mTouchGrid;
-//    float mTouchGridNodeLength;
-    struct TOUCH_LAST{
-        time_t t;
-        int lastSpriteIdx;
-    };
-    TOUCH_LAST mTouchSpriteLast;
+
     vector<Vec2> mTouchPosVec;
-    Label * mTouchPoint;
-    
-    static bool sortTouchVec(Vec2 a, Vec2 b){
-        if(b.y < a.y)
-            return true;
-        else if(b.y == a.y && b.x > a.x)
-            return true;
-        
-        return false;
-    };
-    
-    static bool sortTouchVecLeft(Vec2 a, Vec2 b){
-        CCLOG("%f, %f - %f, %f", a.x, a.y, b.x, b.y);
-        if(b.y < a.y)
-            return true;
-        else if(b.y == a.y && b.x < a.x)
-            return true;
-        
-        return false;
-    };
     
     vector<Touch*> mTouchVec;
     int getValidTouchCnt(){

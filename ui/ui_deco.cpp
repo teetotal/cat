@@ -45,32 +45,33 @@ void ui_deco::addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2)
     }
 }
 //벽
-void ui_deco::addWall(int div, Color4F color1, Color4F color2, Color4F color3, Color4F color4){
-    createWall(true, div, &mLeftVec, &mRightVec, color1, color2, color3, color4);
+void ui_deco::addWall(int div, Color4F color1, Color4F color2){
+    createWall(true, div, &mLeftVec, &mRightVec, color1, color2);
     std::sort (mRightVec.begin(), mRightVec.end(), ui_deco::sortTouchVec);
     std::sort (mLeftVec.begin(), mLeftVec.end(), ui_deco::sortTouchVecLeft);
     mWallDivCnt = div;
     mWallGridSize = getWallGridSize();
-//
-//    for(int n=0; n< mRightVec.size(); n++){
-//        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::ORANGE);
-//        p->setRotation(mDegrees);
-//        TOUCHED_INFO info;
-//        info.side = TOUCHED_SIDE_RIGHT;
-//        Size size = getGridSize(info);
-//        p->setPosition(Vec2(mRightVec[n].x - size.width / 4, mRightVec[n].y + size.height * 0.5));
-//        
-//    }
-//
-//    for(int n=0; n< mLeftVec.size(); n++){
-//        auto p = gui::inst()->addLabelAutoDimension(0, 0, "T", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::ORANGE);
-//        p->setRotation(-1 * mDegrees);
-//        TOUCHED_INFO info;
-//        info.side = TOUCHED_SIDE_LEFT;
-//        Size size = getGridSize(info);
-//        p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
-//
-//    }
+
+    for(int n=0; n< mRightVec.size(); n++){
+        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::GRAY);
+        //p->setRotationSkewX(45);
+        p->setRotationSkewY(mDegrees);
+        TOUCHED_INFO info;
+        info.side = TOUCHED_SIDE_RIGHT;
+        Size size = getGridSize(info);
+        p->setPosition(Vec2(mRightVec[n].x - size.width / 4, mRightVec[n].y + size.height * 0.5));
+        
+    }
+
+    for(int n=0; n< mLeftVec.size(); n++){
+        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::GRAY);
+        p->setRotationSkewY(-1 * mDegrees);
+        TOUCHED_INFO info;
+        info.side = TOUCHED_SIDE_LEFT;
+        Size size = getGridSize(info);
+        p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
+
+    }
     
     if(mDebugModeWall){
         for(int n=0; n< mLeftVec.size(); n++){
@@ -102,10 +103,9 @@ void ui_deco::createWall( bool isDraw
                        , int div
                        , POSITION_VECTOR * vecLeft
                        , POSITION_VECTOR * vecRight
-                       , Color4F left1
-                       , Color4F left2
-                       , Color4F right1
-                       , Color4F right2){
+                       , Color4F color1
+                       , Color4F color2
+                       ){
     
     const float hW = (mWallPostions.top.y - mCenter.y) / div;
     const float lenW = gui::inst()->getTanLen(hW/2, mDegrees);
@@ -127,8 +127,8 @@ void ui_deco::createWall( bool isDraw
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
                               , hW, lenW
                               , isDraw
-                              , (n % 2 == 0) ? left1 : left2
-                              , (n % 2 == 0) ? left2 : left1
+                              , color1
+                              , color1
                               );
         
         gui::inst()->addWalls(false
@@ -138,8 +138,8 @@ void ui_deco::createWall( bool isDraw
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
                               , hW, lenW
                               , isDraw
-                              , (n % 2 == 0) ? right1 : right2
-                              , (n % 2 == 0) ? right2 : right1
+                              , color2
+                              , color2
                               );
     }
 }
@@ -177,6 +177,23 @@ void ui_deco::drawGuidLine(){
                                    , Vec2(mWallPostions.leftBottom.x, mWallPostions.leftBottom.y - margin)
                                    , Vec2(mCenter.x, -1 * mH - margin)
                                    , Color4F::GRAY);
+    
+    /*
+     gui::inst()->drawTriangle(mMainLayoput
+     , Vec2(dimension.getMidX(), dimension.getMinY())
+     , Vec2(dimension.getMaxX(), dimension.getMidY())
+     , Vec2(dimension.getMaxX(), dimension.getMinY())
+     , Color4F::RED);
+     
+     
+     double _len_ = gui::inst()->getTanLen(h, degrees);
+     
+     gui::inst()->drawTriangle(mMainLayoput
+     , Vec2(dimension.getMidX(), h)
+     , Vec2(dimension.getMidX(), 0)
+     , Vec2(dimension.getMidX() + _len_, 0)
+     , Color4F::RED);
+     */
 }
 
 Color4F ui_deco::getDarkColor(Color4F color){
