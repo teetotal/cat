@@ -669,7 +669,7 @@ void gui::addBGScrolling(const string img, Node * p, float duration){
     p->addChild(sprite3);
 }
 
-void gui::addQuantityLayer(Node * p, Size size, Size margin
+Layout * gui::addQuantityLayer(Node * p, Size size, Size margin
 	, Sprite* &sprite, Label * &label, Label * &labelQuantity, Label* &labelPrice
 	, const string szSubmit
 	, const ccMenuCallback& callbackDec
@@ -682,7 +682,7 @@ void gui::addQuantityLayer(Node * p, Size size, Size margin
 	gui::inst()->getPoint(9, 1, e, ALIGNMENT_NONE, size, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
 	Size sizeQunatity = Size(e.x - s.x, e.y - s.y);
-	auto layerQunatity = gui::inst()->createLayout(sizeQunatity, "", true);
+	Layout * layerQunatity = gui::inst()->createLayout(sizeQunatity, "", true);
 	layerQunatity->setOpacity(192);
 
 	Size gridQuantity = Size(5, 6);
@@ -700,6 +700,8 @@ void gui::addQuantityLayer(Node * p, Size size, Size margin
 	layerQunatity->setPosition(s);
 
 	p->addChild(layerQunatity);
+    
+    return layerQunatity;
 }
 
 MenuItemImage * gui::addSpriteButtonRaw(

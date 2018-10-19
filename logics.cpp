@@ -1,4 +1,5 @@
 #include "logics.h"
+#include "ui/ui_color.h"
 
 #if !defined(_WIN32) || defined(COCOS2D_DEBUG)
     #include "cocos2d.h"
@@ -50,6 +51,9 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 
 	if(!initErrorMessage(d["errors"]))
 		return false;
+    
+    initColor(d["colors"]);
+    
 	if (!initItems(d["items"], d["raceItems"]))
 		return false;
 	if (!initSeed(d["farming"], d["seed"]))
@@ -223,6 +227,20 @@ bool logics::initErrorMessage(rapidjson::Value & p)
 	}
 	return true;
 }
+
+void logics::initColor(rapidjson::Value &p){
+    for (rapidjson::SizeType i = 0; i < p.Size(); i++)
+    {
+        ui_color::COLOR_RGB color;
+        
+        color.R = p[rapidjson::SizeType(i)]["R"].GetInt();
+        color.G = p[rapidjson::SizeType(i)]["G"].GetInt();
+        color.B = p[rapidjson::SizeType(i)]["B"].GetInt();
+        color.name = p[rapidjson::SizeType(i)]["name"].GetString();
+        ui_color::inst()->add(color);
+    }
+}
+
 bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 {
 	for (rapidjson::SizeType i = 0; i < p.Size(); i++)
@@ -237,8 +255,33 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 		insertItem(item);
 	}
 	//race item
-	
-	int id = 2000;
+    int id;
+    //wall
+    id = 10000;
+    for(int n=0; n < ui_color::inst()->get()->size(); n ++){
+        _item item;
+        item.id = id++;
+        item.type = itemType_wall;
+        item.value = 1;
+        item.grade = 1;
+        string sz = ui_color::inst()->getColor(n).name;
+        
+        item.name = mL10NMap["ITEM_COLOR_WALL"] + utf8_to_utf16(sz);
+        insertItem(item);
+    }
+    id = 20000;
+    for(int n=0; n < ui_color::inst()->get()->size(); n ++){
+        _item item;
+        item.id = id++;
+        item.type = itemType_bottom;
+        item.value = 1;
+        item.grade = 1;
+        string sz = ui_color::inst()->getColor(n).name;
+        item.name = mL10NMap["ITEM_COLOR_BOTTOM"] + utf8_to_utf16(sz);
+        insertItem(item);
+    }
+    
+    id = 30000;
 	for (int n = 1; n <= LEVEL_MAX + 2; n++) {
 		for (rapidjson::SizeType i = 0; i < pRace.Size(); i++) {
 			_item item;
@@ -251,6 +294,7 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 			insertItem(item);
 		}
 	}
+    
 	return true;
 }
 bool logics::initSeed(rapidjson::Value & farming, rapidjson::Value & p)
@@ -1819,7 +1863,8 @@ inventoryType logics::getInventoryType(int itemId) {
 
 	_item item = mItems[itemId];
 	inventoryType t;
-	if (item.type >= itemType_training && item.type < itemType_hp) {
+    
+    if (item.type >= itemType_training && item.type < itemType_hp) {
 		t = inventoryType_growth;
 	}
 	else if (item.type >= itemType_hp && item.type < itemType_race) {
@@ -1831,9 +1876,14 @@ inventoryType logics::getInventoryType(int itemId) {
 	else if (item.type >= itemType_adorn && item.type < itemType_farming) {
 		t = inventoryType_adorn;
 	}
-	else if (item.type >= itemType_farming && item.type < itemType_max) {
+	else if (item.type >= itemType_farming && item.type < itemType_wall) {
 		t = inventoryType_farming;
-	}
+    }else if (item.type == itemType_wall) {
+        t = inventoryType_wall;
+    }
+    else if (item.type == itemType_bottom) {
+        t = inventoryType_bottom;
+    }
 	else {
 		t = inventoryType_collection;
 	}

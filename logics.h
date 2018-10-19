@@ -102,8 +102,10 @@ enum inventoryType {
 	inventoryType_race,
 	inventoryType_adorn,
 	inventoryType_farming,
-	inventoryType_collection,
-	inventoryType_max
+    inventoryType_wall,
+    inventoryType_bottom,
+	inventoryType_max,
+    inventoryType_collection
 };
 //아이템 종류
 enum itemType {
@@ -120,8 +122,10 @@ enum itemType {
 	itemType_adorn = 300, //치장
 	itemType_adorn_head,
     itemType_farming = 400, //농사
+    itemType_wall = 500, //벽지
+    itemType_bottom, //바닥지
 	itemType_max,
-	itemType_collection = 1000,	//도감용
+	itemType_collection,	//도감용
 };
 //training type
 enum trainingType {
@@ -624,7 +628,8 @@ private:
 	
 	//set jobTitle
 	void setJobTitle();
-		
+    
+    void initColor(rapidjson::Value &p);
 	bool initActor(bool isFarmingDataLoad);
 	bool initErrorMessage(rapidjson::Value &p);
 	bool initItems(rapidjson::Value &p, rapidjson::Value &pRace);

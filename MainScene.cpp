@@ -9,6 +9,7 @@
 #include "AlertScene.h"
 #include "FarmingScene.h"
 #include "ActionBasic.h"
+#include "ui/ui_color.h"
 
 using namespace cocos2d::ui;
 
@@ -96,16 +97,10 @@ bool MainScene::init()
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, visibleSize.height), "", false, Color3B::GRAY);
 
     const float _div = 40;
-    
-    Color4F color1 = Color4F(Color3B(95, 75, 139));
-    Color4F color2 = Color4F(Color3B(118, 123, 165));
-    
-    Color4F color3 = Color4F(Color3B(156, 126, 65));
-    Color4F color4 = Color4F(Color3B(179, 177, 123));
-    
+
     mDeco.init(mMainLayoput, degrees, false, false);
-    mDeco.addBottom(_div, 8, color1, color2);
-    mDeco.addWall(5, color4);
+    mDeco.addBottom(_div, 8, ui_color::inst()->getColor4F(0), ui_color::inst()->getColor4F(1));
+    mDeco.addWall(5, ui_color::inst()->getColor4F(3));
     mDeco.drawGuidLine();
     
     mTouchGrid = mDeco.getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
@@ -730,6 +725,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, "x " + to_string(vec[n].val)
 			, COIN + to_string(logics::hInst->getTrade()->getPriceSell(vec[n].key))
 			, gui::inst()->EmptyString
+            , NULL
 		)
 	}
 	else {
@@ -751,6 +747,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, "x " + to_string(vec[n].val)
 			, gui::inst()->EmptyString
 			, gui::inst()->EmptyString
+            , NULL
 		)
 	}
 
@@ -853,19 +850,32 @@ void MainScene::selectCallback(Ref* pSender, int id) {
 	return;
 	*/
 	mQuantity = 1;
-	mQuantityItemId = id;
-	string szImg = getItemImg(id);/*"items/";
-	szImg += to_string(id % 20) + ".png";
-	*/
-	_item item = logics::hInst->getItem(mQuantityItemId);
-	mQuantityImg->setTexture(szImg);
-	mQuantityImg->setContentSize(Size(20, 20));
+    mQuantityItemId = id;
+    _item item = logics::hInst->getItem(mQuantityItemId);
+    
+    mQuantityLayout->removeChildByTag(CHILD_ID_QUANTITY_COLOR);
+    
+    LayerColor * colorLayer = getItemColor(id);
+    if(colorLayer){
+        colorLayer->setContentSize(Size(20, 20));
+        Vec2 pos = mQuantityImg->getPosition();
+        pos.x -= colorLayer->getContentSize().width / 2;
+        pos.y -= colorLayer->getContentSize().height / 2;
+        colorLayer->setPosition(pos);
+        colorLayer->setTag(CHILD_ID_QUANTITY_COLOR);
+        
+        mQuantityLayout->addChild(colorLayer);
+        
+    }else{
+        mQuantityImg->setTexture(getItemImg(id));
+        mQuantityImg->setContentSize(Size(20, 20));
+    }
 	
 	mQuantityTitle->setString(wstring_to_utf8(item.name));
-	if (item.name.size() > 14) {
+	if (mQuantityTitle->getStringLength() > 14) {
 		mQuantityTitle->setScale(0.6);
 	}
-	else if (item.name.size() > 10) {
+	else if (mQuantityTitle->getStringLength() > 10) {
 		mQuantityTitle->setScale(0.8);
 	}
 	else {
@@ -881,7 +891,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 	int newLine = 2;
 	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
-	
+    
 	POPUP_LIST(layer
 		, gridSize
 		, newLine
@@ -899,6 +909,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
 		, gui::inst()->EmptyString
 		, gui::inst()->EmptyString
+        , getItemColor(logics::hInst->getItem(it->first).id)
 	)
 
 	return;
@@ -921,13 +932,14 @@ void MainScene::showBuy(inventoryType type) {
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
-
+    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
+    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Bottom", inventoryType_bottom));
 	
-	gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
+	mQuantityLayout = gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
 		, wstring_to_utf8(L"구매")
 		, CC_CALLBACK_1(MainScene::quantityCallback, this, -1)
 		, CC_CALLBACK_1(MainScene::quantityCallback, this, 1)
@@ -1108,6 +1120,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		, COIN + to_string(it->second.cost.point)
 		, gui::inst()->EmptyString
 		, gui::inst()->EmptyString
+        , NULL
 		)
 }
 
@@ -1218,6 +1231,7 @@ void MainScene::showRaceCategory(Ref* pSender, race_mode mode) {
                , reward_1st
                , reward_2nd
                , szNotEnoughProperty
+               , NULL
             )
     
     
@@ -1427,6 +1441,25 @@ string MainScene::getItemImg(int id) {
 	}
 
 	return "items/" + to_string(id % 20) + ".png";
+}
+
+LayerColor * MainScene::getItemColor(int id){
+    _item item = logics::hInst->getItem(id);
+    int minId = -1;
+    if(item.type == itemType_wall){
+        minId = 10000;
+    } else if(item.type == itemType_bottom){
+        minId = 20000;
+    }
+    
+    if(minId != -1){
+        Color3B color = ui_color::inst()->getColor3B(id - minId);
+        LayerColor * layer = LayerColor::create(Color4B(color));
+        layer->setContentSize(Size(20, 20));
+        return layer;
+    }
+    
+    return NULL;
 }
 
 SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {

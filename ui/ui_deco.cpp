@@ -152,14 +152,18 @@ void ui_deco::drawGuidLine(){
     Vec2 left2 = Vec2(mCenter.x - xLen, mH);
     Vec2 right2 = Vec2(mCenter.x + xLen, mH);
     
+    Color4F color = Color4F::BLACK;
     auto draw = DrawNode::create();
-    draw->setLineWidth(2);
-    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), Vec2(mCenter.x, mH), Color4F::BLACK);
-    draw->drawLine(Vec2(mCenter.x, mH), left, Color4F::BLACK);
-    draw->drawLine(Vec2(mCenter.x, mH), right, Color4F::BLACK);
+    draw->setLineWidth(3);
+//    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), Vec2(mCenter.x, mH), color);
+    draw->drawLine(Vec2(mCenter.x, mH), left, color);
+    draw->drawLine(Vec2(mCenter.x, mH), right, color);
     
-    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), left2, Color4F::BLACK);
-    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), right2, Color4F::BLACK);
+    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), left2, color);
+    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), right2, color);
+    
+    draw->drawLine(Vec2(0, 0), Vec2(0, mH), color);
+    draw->drawLine(Vec2(right.x, 0), Vec2(right.x, mH), color);
     
     mMainLayoput->addChild(draw);
     

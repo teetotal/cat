@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -675,6 +675,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
 		, gui::inst()->EmptyString
 		, gui::inst()->EmptyString
+        , NULL
 	)
     
 	updatePoint();

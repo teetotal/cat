@@ -39,7 +39,8 @@ enum CHILD_ID {
 	CHILD_ID_BUY,
 	CHILD_ID_ACHIEVEMENT,
 	CHILD_ID_COLLECTION,
-	CHILD_ID_RACE
+	CHILD_ID_RACE,
+    CHILD_ID_QUANTITY_COLOR
 };
 
 enum SCENECODE {
@@ -89,7 +90,7 @@ public:
 
 	static LayerColor * createMessagePopup(LayerColor* &layerBG, Node * parent, const string title, const string msg, bool enableParticle);
 	static string getItemImg(int id);
-
+    static LayerColor * getItemColor(int id);
 
 	struct field : farming::field {
 		Layout * l;
@@ -122,6 +123,7 @@ private:
     Layout * mAlertLayer;
 
 	//Quantity
+    Layout * mQuantityLayout;
 	Sprite * mQuantityImg;
 	Label * mQuantityTitle, * mQuantityLabel, *mQuantityPrice;
 	int mQuantity, mQuantityItemId;

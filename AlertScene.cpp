@@ -92,6 +92,7 @@ bool AlertScene::init(errorCode err)
 				, "x " + to_string(vec[n].val)
 				, "+HP " + to_string(logics::hInst->getItem(vec[n].key).value)
 				, gui::inst()->EmptyString
+                , NULL
 			)
 		}
 		

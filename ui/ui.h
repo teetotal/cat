@@ -34,7 +34,7 @@ struct IMG_LEVEL {
 
 typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 
-#define POPUP_LIST(_PARENT_NODE, _GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4) \
+#define POPUP_LIST(_PARENT_NODE, _GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4, _IMG_POINTER) \
     Color3B fontColor1 = Color3B::BLACK; \
     Color3B fontColor2 = Color3B::BLACK; \
     Color3B fontColor3 = Color3B::BLACK; \
@@ -60,11 +60,21 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 		l->setOpacity(192); \
 		int heightIdx = 1; \
 		gui::inst()->addTextButtonAutoDimension(0, heightIdx++, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-		if(_IMG.compare(gui::inst()->EmptyString) != 0) { \
-			Menu * pSpriteMenu; \
-			auto pMenuSprite = gui::inst()->addSpriteButtonRaw(pSpriteMenu, 0, heightIdx++, _IMG, _IMG, l, _CALLBACK, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO); \
-			gui::inst()->setScale(pMenuSprite, 20); \
-		} \
+        LayerColor * colorLayer = _IMG_POINTER; \
+        if(colorLayer != NULL){ \
+            Vec2 pos = gui::inst()->getPointVec2(0, heightIdx++, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO);\
+            pos.x -= 10;\
+            pos.y -= 10;\
+            colorLayer->setPosition(pos); \
+            l->addChild(colorLayer);\
+        } else{ \
+            if(_IMG.compare(gui::inst()->EmptyString) != 0) { \
+                Menu * pSpriteMenu; \
+                auto pMenuSprite = gui::inst()->addSpriteButtonRaw(pSpriteMenu, 0, heightIdx++, _IMG, _IMG, l, _CALLBACK, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO); \
+                gui::inst()->setScale(pMenuSprite, 20); \
+            } \
+        } \
+        \
 		heightIdx = 1;\
         auto btn1 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor1, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		auto btn2 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor2, _GRID_SIZE, Size::ZERO, Size::ZERO); \
@@ -380,7 +390,7 @@ public:
 
 
 	//수량 UI Layer
-	void addQuantityLayer(Node * p, Size size, Size margin
+	Layout * addQuantityLayer(Node * p, Size size, Size margin
 		, Sprite* &sprite, Label * &label, Label * &labelQuantity, Label* &labelPrice
 		, const string szSubmit
 		, const ccMenuCallback& callbackDec
