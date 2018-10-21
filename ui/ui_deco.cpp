@@ -5,11 +5,17 @@
 #include "ui_deco.h"
 #include "../library/util.h"
 
+ui_deco * ui_deco::hInst = NULL;
+
 void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebugModeWall){
     mDebugModeBottom = isDebugModeBottom;
     mDebugModeWall = isDebugModeWall;
     
-    mMainLayoput = p;
+    mParentLayoput = p;
+    mMainLayoput = gui::inst()->createLayout(p->getContentSize());
+    
+    mParentLayoput->addChild(mMainLayoput);
+    
     mLayout[LAYER_WALL] = gui::inst()->createLayout(mMainLayoput->getContentSize());
     mMainLayoput->addChild(mLayout[LAYER_WALL]);
     mLayout[LAYER_WALL_TEMP] = gui::inst()->createLayout(mMainLayoput->getContentSize());
@@ -36,15 +42,19 @@ void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebug
     mWallPostions.rightBottom = Vec2(mMainLayoput->getContentSize().width, 0);
     
     mTouchedInfo.side = TOUCHED_SIDE_MAX;
-    
 }
+
 //바닥 좌표, 타일
 void ui_deco::addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2){
     mBottomDivCnt = posDiv;
-    createBottom(false, posDiv, mBottomVec);
+    mDrawBottomDivCnt = drawDiv;
+    mBottomColor1 = color1;
+    mBottomColor2 = color2;
+    
+    createBottom(false, mBottomDivCnt, mBottomVec);
     std::sort (mBottomVec.begin(), mBottomVec.end(), ui_deco::sortTouchVec);
 
-    drawBottom(drawDiv, color1, color2);
+    drawBottom(mDrawBottomDivCnt, mBottomColor1, mBottomColor2);
     mBottomGridSize = getBottomGridSize();
 
     if(mDebugModeBottom){
@@ -58,12 +68,29 @@ void ui_deco::addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2)
         }
     }
 }
+
+void ui_deco::changeColorBottom(Color4F color1, Color4F color2){
+    mLayout[LAYER_BOTTOM]->removeAllChildren();
+    mBottomVec.clear();
+    addBottom(mBottomDivCnt, mDrawBottomDivCnt, color1, color2);
+}
+
+void ui_deco::changeColorWall(Color4F color1, Color4F color2){
+    mLayout[LAYER_WALL]->removeAllChildren();
+    mRightVec.clear();
+    mLeftVec.clear();
+    addWall(mWallDivCnt, color1, color2);
+}
 //벽
 void ui_deco::addWall(int div, Color4F color1, Color4F color2){
-    createWall(true, div, &mLeftVec, &mRightVec, color1, color2);
+    mWallDivCnt = div;
+    mWallColor1 = color1;
+    mWallColor2 = color2;
+    
+    createWall(true, mWallDivCnt, &mLeftVec, &mRightVec, mWallColor1, mWallColor2);
     std::sort (mRightVec.begin(), mRightVec.end(), ui_deco::sortTouchVec);
     std::sort (mLeftVec.begin(), mLeftVec.end(), ui_deco::sortTouchVecLeft);
-    mWallDivCnt = div;
+    
     mWallGridSize = getWallGridSize();
 
     for(int n=0; n< mRightVec.size(); n++){

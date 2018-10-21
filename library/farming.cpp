@@ -1,4 +1,4 @@
-﻿#include "farming.h"
+#include "farming.h"
 
 bool farming::init(farmingFinshedNotiCallback fn, int cntHarvest, bool isThreadRun) {
 	mCntHarvest = cntHarvest;
@@ -64,7 +64,7 @@ void farming::setStatus(int fieldIdx) {
 	seed * s = mSeed[seedId];
 
 	int maxGrown = 1 << (mFields[fieldIdx]->level - 1);
-	int currentGrown = (now - mFields[fieldIdx]->timePlant) / s->timeGrow;
+	int currentGrown = (int)((now - mFields[fieldIdx]->timePlant) / s->timeGrow);
 
 	int nGrown = min(maxGrown, currentGrown);
 	mFields[fieldIdx]->finishTime = mFields[fieldIdx]->timePlant + (s->timeGrow * maxGrown);
@@ -110,7 +110,7 @@ bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	seed * s = mSeed[f->seedId];
 
 	int maxGrown = 1 << (f->level - 1);
-	int currentGrown = ((getNow() - f->timePlant) / s->timeGrow);
+	int currentGrown = (int)((getNow() - f->timePlant) / s->timeGrow);
 	int nGrown = min(currentGrown, maxGrown);
 
 	output = 0;
@@ -172,7 +172,7 @@ bool farming::care(int fieldIdx, int boost) {
 }
 
 void farming::makeQuest(int cnt) {
-	int nMax = cnt - mQuestVector.size();
+	int nMax = (int)(cnt - mQuestVector.size());
 	//level 
 	int threshold = 0;
 	int i = 1;

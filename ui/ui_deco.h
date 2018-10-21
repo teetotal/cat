@@ -15,11 +15,24 @@ public:
     virtual ~ui_deco(){
         CCLOG("~ui_deco released");
     };
-    
+    static ui_deco * inst(){
+        if(hInst == NULL){
+            hInst = new ui_deco;
+        }
+        
+        return hInst;
+    };
     
     typedef vector<Vec2> POSITION_VECTOR;
     
     void init(Node * p, float degrees, bool isDebugModeBottom = false, bool isDebugModeWall = false);
+    //복사
+    void clone(Node * pParentNode, ui_deco * p){
+        init(pParentNode, p->mDegrees);
+        addBottom(p->mBottomDivCnt, p->mDrawBottomDivCnt, p->mBottomColor1, p->mBottomColor2);
+        addWall(p->mWallDivCnt, p->mWallColor1, p->mWallColor2);
+        drawGuidLine();
+    };
     //바닥 좌표, 타일
     void addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2);
     //벽
@@ -28,6 +41,16 @@ public:
     void addWall(int div, Color4F color){
         addWall(div, color, getDarkColor(color));
     }
+    
+    void changeColorBottom(Color4F color1, Color4F color2);
+    void changeColorBottom(Color4F color){
+        changeColorBottom(color, color);
+    };
+    
+    void changeColorWall(Color4F color1, Color4F color2);
+    void changeColorWall(Color4F color){
+        changeColorWall(color, getDarkColor(color));
+    };
     
     //raw func
     void createBottom(bool isDraw, int div, POSITION_VECTOR &vec, Color4F color1 = Color4F::BLACK, Color4F color2 = Color4F::GRAY);
@@ -90,6 +113,10 @@ public:
         return Size(gui::inst()->getTanLen(fH, mDegrees), fH);
     };
     
+    float mDegrees;
+    int mBottomDivCnt, mDrawBottomDivCnt, mWallDivCnt;
+    Color4F mBottomColor1, mBottomColor2, mWallColor1, mWallColor2;
+    
 private:
 #define DARK_RATION 0.837
     
@@ -104,13 +131,12 @@ private:
     };
 
     bool mDebugModeBottom, mDebugModeWall;
-    Node * mMainLayoput;
+    Node * mParentLayoput, * mMainLayoput;
     Layout * mLayout[LAYER_MAX];
-    float mDegrees;
+    
     float mH;
     Vec2 mCenter;
     POSITION_VECTOR mTempVec, mBottomVec, mLeftVec, mRightVec;
-    int mBottomDivCnt, mWallDivCnt;
     vector<Sprite*> mBottomSpriteVec, mLeftSpriteVec, mRightSpriteVec;
     Size mBottomGridSize, mWallGridSize;
     
@@ -199,6 +225,8 @@ private:
                 return mWallGridSize;
         }
     };
+    
+    static ui_deco * hInst;
     
 };
 

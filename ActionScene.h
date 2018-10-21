@@ -1,4 +1,4 @@
-﻿//
+//
 // Created by Jung, DaeCheon on 27/07/2018.
 //
 
@@ -19,7 +19,7 @@ class ActionScene : public Scene {
 public:
 	static Scene* createScene(int id);
 
-	virtual bool init();
+	virtual bool init() override;
 
 	static ActionScene* create(int id)
 	{

@@ -55,6 +55,7 @@ enum SCENECODE {
 	SCENECODE_PURCHASE,
 	SCENECODE_COLLECTION,
 	SCENECODE_ACHIEVEMENT,
+    SCENECODE_DECORATION,
 	SCENECODE_CLOSEPOPUP,
 	SCENECODE_CLOSESCENE,
 	SCENECODE_RACE_RUN, //Action 에서 사용됨
@@ -252,6 +253,8 @@ private:
     vector<Vec2> mTouchPosVec;
     
     vector<Touch*> mTouchVec;
+    //아이템 적용
+    void applyInventory(Ref* pSender, int itemId);
     int getValidTouchCnt(){
         int ret = 0;
         for(int n =0; n< mTouchVec.size(); n++){
@@ -260,8 +263,6 @@ private:
         }
         return ret;
     };
-    
-    ui_deco mDeco;
 };
 
 

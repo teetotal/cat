@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "pch.h"
 
 class farming
@@ -89,7 +89,7 @@ public:
 
 		int getGrownCnt(int timeGrow) { //현재 수확 가능한 작물. seed정보를 가져올 수 없어 파라미터로 받는다
 			int maxGrown = 1 << (this->level - 1);;
-			int currentGrown = (getNow() - this->timePlant) / timeGrow;
+			int currentGrown = (int)((getNow() - this->timePlant) / timeGrow);
 			int nGrown = min(maxGrown, currentGrown);
 			if(nGrown < maxGrown)
 				return nGrown - accumulation;

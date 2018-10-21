@@ -8,6 +8,7 @@
 #include "ActionScene.h"
 #include "AlertScene.h"
 #include "FarmingScene.h"
+#include "DecoScene.h"
 #include "ActionBasic.h"
 #include "ui/ui_color.h"
 
@@ -98,20 +99,20 @@ bool MainScene::init()
 
     const float _div = 40;
 
-    mDeco.init(mMainLayoput, degrees, false, false);
-    mDeco.addBottom(_div, 8, ui_color::inst()->getColor4F(0), ui_color::inst()->getColor4F(1));
-    mDeco.addWall(5, ui_color::inst()->getColor4F(3));
-    mDeco.drawGuidLine();
+    ui_deco::inst()->init(mMainLayoput, degrees, false, false);
+    ui_deco::inst()->addBottom(_div, 8, ui_color::inst()->getColor4F(0), ui_color::inst()->getColor4F(1));
+    ui_deco::inst()->addWall(5, ui_color::inst()->getColor4F(3));
+    ui_deco::inst()->drawGuidLine();
     
-    mTouchGrid = mDeco.getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
+    mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
     
     //window & door
     
     Sprite * window = Sprite::create("home/window.png");
-    mDeco.addObjectLeft(window, 4);
+    ui_deco::inst()->addObjectLeft(window, 4);
     
     Sprite * door = Sprite::create("home/door.png");
-    mDeco.addObjectLeft(door, 19);
+    ui_deco::inst()->addObjectLeft(door, 19);
     
     float scale;
     for(int n=0; n<9; n++ ){
@@ -120,14 +121,14 @@ bool MainScene::init()
             scale = mTouchGrid.width / sprite->getContentSize().width;
         }
         sprite->setScale(scale);
-        mDeco.addObjectBottom(sprite, getRandValue(400));
+        ui_deco::inst()->addObjectBottom(sprite, getRandValue(400));
     }
    
     //Character
     auto pCharacter = getIdle();
     gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
     
-    mDeco.addObjectBottom(pCharacter, 50);
+    ui_deco::inst()->addObjectBottom(pCharacter, 50);
 //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
     Vec2 posMainLayer = gui::inst()->getCenter();
@@ -151,6 +152,7 @@ bool MainScene::init()
 
 	mJobTitle->setPosition(Vec2(mJobTitle->getPosition().x, mJobTitle->getPosition().y + 15));
 
+    gui::inst()->addTextButton(0, 5, "꾸미기", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_DECORATION), 0, ALIGNMENT_CENTER, fontColor);
 	gui::inst()->addTextButton(0, 6, "Action", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
 	gui::inst()->addTextButton(1, 6, "Race", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
     mFarming = gui::inst()->addTextButton(2,6, "Farm", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
@@ -566,6 +568,9 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		//dailyReward();
 		showCollection();
 		break;
+    case SCENECODE_DECORATION:
+        Director::getInstance()->pushScene(DecoScene::createScene());
+        break;
 	default:
 		break;
 	}
@@ -725,7 +730,7 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, "x " + to_string(vec[n].val)
 			, COIN + to_string(logics::hInst->getTrade()->getPriceSell(vec[n].key))
 			, gui::inst()->EmptyString
-            , NULL
+            , getItemColor(logics::hInst->getItem(vec[n].key).id)
 		)
 	}
 	else {
@@ -741,13 +746,13 @@ void MainScene::showInventoryCategory(Ref* pSender, inventoryType code, bool isS
 			, (int n = 0; n < (int)vec.size(); n++)
 			, 
 			, getItemImg(vec[n].key)
-			, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_NONE)
+			, CC_CALLBACK_1(MainScene::applyInventory, this, vec[n].key)
 			, "Lv." + to_string(logics::hInst->getItem(vec[n].key).grade)
-			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name)
-			, "x " + to_string(vec[n].val)
+			, wstring_to_utf8(logics::hInst->getItem(vec[n].key).name) + " x " + to_string(vec[n].val)
+			, "Apply"
 			, gui::inst()->EmptyString
 			, gui::inst()->EmptyString
-            , NULL
+            , getItemColor(logics::hInst->getItem(vec[n].key).id)
 		)
 	}
 
@@ -841,14 +846,6 @@ void MainScene::buyCallback(Ref* pSender) {
 }
 
 void MainScene::selectCallback(Ref* pSender, int id) {
-	/*
-	//quantity modal
-	LayerColor * bg, *l2;
-	l2 = gui::inst()->createModalLayer(bg, Size(100, 100));
-	gui::inst()->addLabelAutoDimension(0, 0, "modal", l2, 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(1, 1), Size::ZERO, Size::ZERO);
-	this->addChild(bg);
-	return;
-	*/
 	mQuantity = 1;
     mQuantityItemId = id;
     _item item = logics::hInst->getItem(mQuantityItemId);
@@ -1496,6 +1493,20 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 	return code;
 }
 
+void MainScene::applyInventory(Ref* pSender, int itemId){
+    _item item = logics::hInst->getItem(itemId);
+    int minId = -1;
+    if(item.type == itemType_wall){
+        minId = 10000;
+        Color4F color = ui_color::inst()->getColor4F(itemId - minId);
+        ui_deco::inst()->changeColorWall(color);
+    } else if(item.type == itemType_bottom){
+        minId = 20000;
+        Color4F color = ui_color::inst()->getColor4F(itemId - minId);
+        ui_deco::inst()->changeColorBottom(color);
+    }
+}
+
 void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 {
     Touch* touch;
@@ -1514,7 +1525,7 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
     if(getValidTouchCnt() == 1 && mTouchVec[0]){
         
         mTouchStart = mTouchVec[0]->getLocation();
-        mDeco.touchBegan(mTouchVec[0]->getLocation());
+        ui_deco::inst()->touchBegan(mTouchVec[0]->getLocation());
     }
 
     mTouchGap = -1;
@@ -1536,8 +1547,8 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
 }
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
-    if(mDeco.mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
-        mDeco.touchEnded(mTouchVec[0]->getLocation());
+    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+        ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation());
     }
     
     Touch* touch;
@@ -1574,8 +1585,8 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
         
         Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
         
-        if(mDeco.mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
-            mDeco.touchMoved(mTouchVec[0]->getLocation());
+        if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+            ui_deco::inst()->touchMoved(mTouchVec[0]->getLocation());
         }else{
             Vec2 current = mMainLayoput->getPosition();
             Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
