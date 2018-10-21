@@ -100,8 +100,8 @@ bool MainScene::init()
     const float _div = 40;
 
     ui_deco::inst()->init(mMainLayoput, degrees, false, false);
-    ui_deco::inst()->addBottom(_div, 8, ui_color::inst()->getColor4F(0), ui_color::inst()->getColor4F(1));
-    ui_deco::inst()->addWall(5, ui_color::inst()->getColor4F(3));
+    ui_deco::inst()->addBottom(_div, 8, ui_color::inst()->getColor4F(0,0), ui_color::inst()->getColor4F(1,0));
+    ui_deco::inst()->addWall(5, ui_color::inst()->getColor4F(3,0));
     ui_deco::inst()->drawGuidLine();
     
     mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
@@ -781,6 +781,9 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
+    gui::inst()->addTextButtonAutoDimension(__PARAMS("Wall", inventoryType_wall));
+    gui::inst()->addTextButtonAutoDimension(__PARAMS("Bottom", inventoryType_bottom));
+    
 	
 	if (isSell) {
 		mIsSell = true;
@@ -964,7 +967,7 @@ void MainScene::showAchievementCategory(Ref* pSender) {
 	ACHIEVEMENT_SIZE;
 	int newLine = 2;
 
-	int cnt = logics::hInst->getQuests()->getQuests()->size();
+	int cnt = (int)logics::hInst->getQuests()->getQuests()->size();
 
 	Size sizeOfScrollView = gui::inst()->getScrollViewSize(Vec2(0, 7), Vec2(9, 1), layer->getContentSize(), Size(-1, -1), Size::ZERO, margin);
 	nodeSize.width = (sizeOfScrollView.width / (float)newLine) - nodeMargin;	
@@ -1450,9 +1453,26 @@ LayerColor * MainScene::getItemColor(int id){
     }
     
     if(minId != -1){
-        Color3B color = ui_color::inst()->getColor3B(id - minId);
-        LayerColor * layer = LayerColor::create(Color4B(color));
+        LayerColor * layer = LayerColor::create();
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(id - minId);
         layer->setContentSize(Size(20, 20));
+        if(color.R[1] == -1){
+            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 0)));
+            l1->setContentSize(Size(layer->getContentSize().width, layer->getContentSize().height));
+            
+            layer->addChild(l1);
+        }else{
+            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 0)));
+            l1->setContentSize(Size(layer->getContentSize().width / 2, layer->getContentSize().height));
+            
+            layer->addChild(l1);
+            
+            auto l2 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 1)));
+            l2->setContentSize(Size(layer->getContentSize().width / 2, layer->getContentSize().height));
+            l2->setPosition(Vec2(layer->getContentSize().width / 2, 0));
+            layer->addChild(l2);
+        }
+        
         return layer;
     }
     
@@ -1494,16 +1514,25 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 }
 
 void MainScene::applyInventory(Ref* pSender, int itemId){
+    closePopup();
     _item item = logics::hInst->getItem(itemId);
     int minId = -1;
     if(item.type == itemType_wall){
         minId = 10000;
-        Color4F color = ui_color::inst()->getColor4F(itemId - minId);
-        ui_deco::inst()->changeColorWall(color);
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - minId);
+        if(color.R[1] == -1){
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - minId, 0));
+        }else{
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - minId, 0), ui_color::inst()->getColor4F(itemId - minId, 1));
+        }
     } else if(item.type == itemType_bottom){
         minId = 20000;
-        Color4F color = ui_color::inst()->getColor4F(itemId - minId);
-        ui_deco::inst()->changeColorBottom(color);
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - minId);
+        if(color.R[1] == -1){
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - minId, 0));
+        }else{
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - minId, 0), ui_color::inst()->getColor4F(itemId - minId, 1));
+        }
     }
 }
 

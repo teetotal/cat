@@ -23,10 +23,21 @@ public:
     };
     
     struct COLOR_RGB{
-        int R;
-        int G;
-        int B;
+        int R[2];
+        int G[2];
+        int B[2];
         string name;
+        
+        COLOR_RGB(){
+            R[0] = -1;
+            G[0] = -1;
+            B[0] = -1;
+            
+            R[1] = -1;
+            G[1] = -1;
+            B[1] = -1;
+            
+        };
     };
     
     typedef vector<COLOR_RGB> COLOR_VECTOR;
@@ -37,10 +48,10 @@ public:
     void add(COLOR_RGB &color){
         mVec.push_back(color);
     };
-    void add(int R, int G, int B, string name);
+//    void add(int R, int G, int B, string name);
     COLOR_RGB getColor(int idx);
-    Color3B getColor3B(int idx);
-    Color4F getColor4F(int idx);
+    Color3B getColor3B(int idx, int colorIdx);
+    Color4F getColor4F(int idx, int colorIdx);
     
     
     

@@ -232,12 +232,31 @@ void logics::initColor(rapidjson::Value &p){
     for (rapidjson::SizeType i = 0; i < p.Size(); i++)
     {
         ui_color::COLOR_RGB color;
-        
-        color.R = p[rapidjson::SizeType(i)]["R"].GetInt();
-        color.G = p[rapidjson::SizeType(i)]["G"].GetInt();
-        color.B = p[rapidjson::SizeType(i)]["B"].GetInt();
+        color.R[0] = p[rapidjson::SizeType(i)]["R"].GetInt();
+        color.G[0] = p[rapidjson::SizeType(i)]["G"].GetInt();
+        color.B[0] = p[rapidjson::SizeType(i)]["B"].GetInt();
         color.name = p[rapidjson::SizeType(i)]["name"].GetString();
         ui_color::inst()->add(color);
+    }
+    ui_color::COLOR_VECTOR * vec = ui_color::inst()->get();
+    int nCnt = (int)vec->size();
+    for(int i=0; i < nCnt; i++){
+        for(int j=0; j < nCnt; j++){
+            if(i == j)
+                continue;
+            
+            ui_color::COLOR_RGB color;
+            color.R[0] = vec->at(i).R[0];
+            color.G[0] = vec->at(i).G[0];
+            color.B[0] = vec->at(i).B[0];
+            
+            color.R[1] = vec->at(j).R[0];
+            color.G[1] = vec->at(j).G[0];
+            color.B[1] = vec->at(j).B[0];
+            
+            color.name = vec->at(i).name + "&" + vec->at(j).name;
+            ui_color::inst()->add(color);
+        }
     }
 }
 
