@@ -10,6 +10,20 @@ void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebug
     mDebugModeWall = isDebugModeWall;
     
     mMainLayoput = p;
+    mLayout[LAYER_WALL] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_WALL]);
+    mLayout[LAYER_WALL_TEMP] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_WALL_TEMP]);
+    mLayout[LAYER_BOTTOM] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_BOTTOM]);
+    mLayout[LAYER_BOTTOM_TEMP] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_BOTTOM_TEMP]);
+    mLayout[LAYER_GUIDELINE] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_GUIDELINE]);
+    mLayout[LAYER_OBJECT] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_OBJECT]);
+    
+   
     mDegrees = degrees;
     mH = mMainLayoput->getContentSize().height * 0.5;
     mCenter = Vec2(mMainLayoput->getContentSize().width / 2, mMainLayoput->getContentSize().height / 2);
@@ -39,7 +53,7 @@ void ui_deco::addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2)
             posLabel->setSystemFontSize(8);
             posLabel->setString(to_string(n));
             posLabel->setPosition(mBottomVec[n]);
-            mMainLayoput->addChild(posLabel);
+            mLayout[LAYER_BOTTOM]->addChild(posLabel);
             
         }
     }
@@ -53,7 +67,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
     mWallGridSize = getWallGridSize();
 
     for(int n=0; n< mRightVec.size(); n++){
-        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::GRAY);
+        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
         //p->setRotationSkewX(45);
         p->setRotationSkewY(mDegrees);
         TOUCHED_INFO info;
@@ -64,7 +78,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
     }
 
     for(int n=0; n< mLeftVec.size(); n++){
-        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mMainLayoput, 18, ALIGNMENT_CENTER, Color3B::GRAY);
+        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
         p->setRotationSkewY(-1 * mDegrees);
         TOUCHED_INFO info;
         info.side = TOUCHED_SIDE_LEFT;
@@ -79,14 +93,14 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
             posLabel->setSystemFontSize(8);
             posLabel->setString(to_string(n));
             posLabel->setPosition(mLeftVec[n]);
-            mMainLayoput->addChild(posLabel);
+            mLayout[LAYER_WALL]->addChild(posLabel);
         }
         for(int n=0; n< mRightVec.size(); n++){
             auto posLabel2 = Label::create();
             posLabel2->setSystemFontSize(8);
             posLabel2->setString(to_string(n));
             posLabel2->setPosition(mRightVec[n]);
-            mMainLayoput->addChild(posLabel2);
+            mLayout[LAYER_WALL]->addChild(posLabel2);
             
         }
     }
@@ -96,7 +110,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
 void ui_deco::createBottom(bool isDraw, int div, POSITION_VECTOR &vec, Color4F color1, Color4F color2) {
     const float fH = mMainLayoput->getContentSize().height / (float)div;
     Rect dimension = Rect(0, -1 * mH, mMainLayoput->getContentSize().width, mMainLayoput->getContentSize().height);
-    gui::inst()->addTiles(mMainLayoput, dimension, vec, Vec2(mCenter.x, mCenter.y - fH), fH, mDegrees, isDraw, color1, color2);
+    gui::inst()->addTiles(mLayout[LAYER_BOTTOM], dimension, vec, Vec2(mCenter.x, mCenter.y - fH), fH, mDegrees, isDraw, color1, color2);
 }
 
 void ui_deco::createWall( bool isDraw
@@ -121,7 +135,7 @@ void ui_deco::createWall( bool isDraw
         
         //gui::inst()->drawRect(mMainLayoput, rTop, rBottom, lBottom, lTop, Color4F::ORANGE);
         gui::inst()->addWalls(true
-                              , mMainLayoput
+                              , mLayout[LAYER_WALL]
                               , Rect(Vec2(mWallPostions.left, mWallPostions.leftBottom), Size(mCenter.x - mWallPostions.left.x, mWallPostions.top.y))
                               , vecLeft
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
@@ -132,7 +146,7 @@ void ui_deco::createWall( bool isDraw
                               );
         
         gui::inst()->addWalls(false
-                              , mMainLayoput
+                              , mLayout[LAYER_WALL]
                               , Rect(Vec2(mCenter.x, 0), Size(mWallPostions.right.x - mCenter.x, mWallPostions.top.y))
                               , vecRight
                               , Vec2(mCenter.x, mMainLayoput->getContentSize().height - (n * hW))
@@ -165,17 +179,17 @@ void ui_deco::drawGuidLine(){
     draw->drawLine(Vec2(0, 0), Vec2(0, mH), color);
     draw->drawLine(Vec2(right.x, 0), Vec2(right.x, mH), color);
     
-    mMainLayoput->addChild(draw);
+    mLayout[LAYER_GUIDELINE]->addChild(draw);
     
     float margin = 5;
-    gui::inst()->drawParallelogram(mMainLayoput
+    gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
                                    , mWallPostions.rightBottom
                                    , Vec2(mCenter.x, -1 * mH)
                                    , Vec2(mWallPostions.rightBottom.x, mWallPostions.rightBottom.y - margin)
                                    , Vec2(mCenter.x, -1 * mH - margin)
                                    , Color4F::GRAY);
     
-    gui::inst()->drawParallelogram(mMainLayoput
+    gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
                                    , mWallPostions.leftBottom
                                    , Vec2(mCenter.x, -1 * mH)
                                    , Vec2(mWallPostions.leftBottom.x, mWallPostions.leftBottom.y - margin)
@@ -212,7 +226,7 @@ Color4F ui_deco::getDarkColor(Color4F color){
 void ui_deco::addObject(Sprite * sprite, POSITION_VECTOR &posVec, vector<Sprite*> &vec, int idx){
     sprite->setAnchorPoint(Vec2(1,0));
     sprite->setPosition(posVec[idx]);
-    mMainLayoput->addChild(sprite, idx);
+    mLayout[LAYER_OBJECT]->addChild(sprite, idx);
     vec.push_back(sprite);
 }
 

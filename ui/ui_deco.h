@@ -92,9 +92,20 @@ public:
     
 private:
 #define DARK_RATION 0.837
+    
+    enum LAYER{
+        LAYER_WALL = 0,
+        LAYER_WALL_TEMP,
+        LAYER_BOTTOM,
+        LAYER_BOTTOM_TEMP,
+        LAYER_GUIDELINE,
+        LAYER_OBJECT,
+        LAYER_MAX
+    };
 
     bool mDebugModeBottom, mDebugModeWall;
     Node * mMainLayoput;
+    Layout * mLayout[LAYER_MAX];
     float mDegrees;
     float mH;
     Vec2 mCenter;
