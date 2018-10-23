@@ -1516,23 +1516,28 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 void MainScene::applyInventory(Ref* pSender, int itemId){
     closePopup();
     _item item = logics::hInst->getItem(itemId);
-    int minId = -1;
+    bool isPop = false;
     if(item.type == itemType_wall){
-        minId = 10000;
-        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - minId);
+        isPop = true;
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 10000);
         if(color.R[1] == -1){
-            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - minId, 0));
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0));
         }else{
-            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - minId, 0), ui_color::inst()->getColor4F(itemId - minId, 1));
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0), ui_color::inst()->getColor4F(itemId - 10000, 1));
         }
     } else if(item.type == itemType_bottom){
-        minId = 20000;
-        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - minId);
+        isPop = true;
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 20000);
         if(color.R[1] == -1){
-            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - minId, 0));
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0));
         }else{
-            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - minId, 0), ui_color::inst()->getColor4F(itemId - minId, 1));
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0), ui_color::inst()->getColor4F(itemId - 20000, 1));
         }
+    }
+    
+    if(isPop){
+        inventoryType category = logics::hInst->getInventoryType(itemId);
+        logics::hInst->getActor()->inven.popItem(category, itemId, 1);
     }
 }
 
