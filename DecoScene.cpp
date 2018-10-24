@@ -74,7 +74,7 @@ void DecoScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
 
 void DecoScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
-    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX){
         ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation());
     }
 
@@ -112,7 +112,7 @@ void DecoScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
 
         Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
 
-        if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+        if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX){
             ui_deco::inst()->touchMoved(mTouchVec[0]->getLocation());
         }else{
             Vec2 current = mMainLayoput->getPosition();

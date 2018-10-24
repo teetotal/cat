@@ -41,7 +41,7 @@ void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebug
     mWallPostions.right = Vec2(mMainLayoput->getContentSize().width, mH);
     mWallPostions.rightBottom = Vec2(mMainLayoput->getContentSize().width, 0);
     
-    mTouchedInfo.side = TOUCHED_SIDE_MAX;
+    mTouchedInfo.side = SIDE_MAX;
 }
 
 //바닥 좌표, 타일
@@ -98,7 +98,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
         //p->setRotationSkewX(45);
         p->setRotationSkewY(mDegrees);
         TOUCHED_INFO info;
-        info.side = TOUCHED_SIDE_RIGHT;
+        info.side = SIDE_RIGHT;
         Size size = getGridSize(info);
         p->setPosition(Vec2(mRightVec[n].x - size.width / 4, mRightVec[n].y + size.height * 0.5));
         
@@ -108,7 +108,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
         auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
         p->setRotationSkewY(-1 * mDegrees);
         TOUCHED_INFO info;
-        info.side = TOUCHED_SIDE_LEFT;
+        info.side = SIDE_LEFT;
         Size size = getGridSize(info);
         p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
 
@@ -251,11 +251,11 @@ Color4F ui_deco::getDarkColor(Color4F color){
     return c;
 }
 
-void ui_deco::addObject(Sprite * sprite, POSITION_VECTOR &posVec, vector<Sprite*> &vec, int idx){
-    sprite->setAnchorPoint(Vec2(1,0));
-    sprite->setPosition(posVec[idx]);
-    mLayout[LAYER_OBJECT]->addChild(sprite, idx);
-    vec.push_back(sprite);
+void ui_deco::addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &vec){
+    obj.sprite->setAnchorPoint(Vec2(1,0));
+    obj.sprite->setPosition(posVec[obj.idx]);
+    mLayout[LAYER_OBJECT]->addChild(obj.sprite, obj.idx);
+    vec.push_back(obj);
 }
 
 void ui_deco::touchBegan(Vec2 pos){
@@ -268,8 +268,8 @@ void ui_deco::touchBegan(Vec2 pos){
     bool isTouched = false;
     //bottom
     for(int n=0; n < mBottomSpriteVec.size(); n++){
-        if(mBottomSpriteVec[n]->getBoundingBox().containsPoint(nodePosition)){
-            mTouchedInfo.side = TOUCHED_SIDE_BOTTOM;
+        if(mBottomSpriteVec[n].sprite->getBoundingBox().containsPoint(nodePosition)){
+            mTouchedInfo.side = SIDE_BOTTOM;
             mTouchedInfo.idx = n;
             isTouched= true;
             break;
@@ -279,8 +279,8 @@ void ui_deco::touchBegan(Vec2 pos){
     //left
     if(!isTouched){
         for(int n=0; n < mLeftSpriteVec.size(); n++){
-            if(mLeftSpriteVec[n]->getBoundingBox().containsPoint(nodePosition)){
-                mTouchedInfo.side = TOUCHED_SIDE_LEFT;
+            if(mLeftSpriteVec[n].sprite->getBoundingBox().containsPoint(nodePosition)){
+                mTouchedInfo.side = SIDE_LEFT;
                 mTouchedInfo.idx = n;
                 isTouched= true;
                 break;
@@ -291,8 +291,8 @@ void ui_deco::touchBegan(Vec2 pos){
     //right
     if(!isTouched){
         for(int n=0; n < mRightSpriteVec.size(); n++){
-            if(mRightSpriteVec[n]->getBoundingBox().containsPoint(nodePosition)){
-                mTouchedInfo.side = TOUCHED_SIDE_RIGHT;
+            if(mRightSpriteVec[n].sprite->getBoundingBox().containsPoint(nodePosition)){
+                mTouchedInfo.side = SIDE_RIGHT;
                 mTouchedInfo.idx = n;
                 isTouched= true;
                 break;
@@ -300,7 +300,7 @@ void ui_deco::touchBegan(Vec2 pos){
         }
     }
     if(isTouched){
-        mTouchPointLabel->setPosition(getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx)->getPosition());
+        mTouchPointLabel->setPosition(getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).sprite->getPosition());
         mMainLayoput->addChild(mTouchPointLabel);
         mTouchedInfo.firstTouchTime = getNow();
     }
@@ -333,7 +333,7 @@ void ui_deco::touchEnded(Vec2 pos){
         }
     }
     mTouchedInfoLast.copy(&mTouchedInfo);
-    mTouchedInfo.side = TOUCHED_SIDE_MAX;
+    mTouchedInfo.side = SIDE_MAX;
 }
 void ui_deco::touchMoved(Vec2 pos){
     if(mTouchStart.x == pos.x && mTouchStart.y == pos.y)

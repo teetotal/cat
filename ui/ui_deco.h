@@ -24,6 +24,27 @@ public:
     };
     
     typedef vector<Vec2> POSITION_VECTOR;
+    //touch -------------
+    enum SIDE{
+        SIDE_BOTTOM = 0,
+        SIDE_LEFT,
+        SIDE_RIGHT,
+        SIDE_MAX
+    };
+    
+    struct OBJECT {
+        int id; // for item id
+        Sprite * sprite;
+        SIDE side;
+        int idx; // for position
+        
+        OBJECT(int id, Sprite * sprite, SIDE side, int idx){
+            this->id = id;
+            this->sprite = sprite;
+            this->side = side;
+            this->idx = idx;
+        };
+    };
     
     void init(Node * p, float degrees, bool isDebugModeBottom = false, bool isDebugModeWall = false);
     //복사
@@ -69,26 +90,19 @@ public:
     void drawGuidLine();
     
     //objecs -------------
-    void addObjectBottom(Sprite * sprite, int idx){
-        addObject(sprite, mBottomVec, mBottomSpriteVec, idx);
+    void addObjectBottom(OBJECT &obj){
+        addObject(obj, mBottomVec, mBottomSpriteVec);
     };
-    void addObjectLeft(Sprite * sprite, int idx){
-        addObject(sprite, mLeftVec, mLeftSpriteVec, idx);
+    void addObjectLeft(OBJECT &obj){
+        addObject(obj, mLeftVec, mLeftSpriteVec);
     };
-    void addObjectRight(Sprite * sprite, int idx){
-        addObject(sprite, mRightVec, mRightSpriteVec, idx);
+    void addObjectRight(OBJECT &obj){
+        addObject(obj, mRightVec, mRightSpriteVec);
     };
     
-    //touch -------------
-    enum TOUCHED_SIDE{
-        TOUCHED_SIDE_BOTTOM,
-        TOUCHED_SIDE_LEFT,
-        TOUCHED_SIDE_RIGHT,
-        TOUCHED_SIDE_MAX
-    };
     
     struct TOUCHED_INFO{
-        TOUCHED_SIDE side;
+        SIDE side;
         int idx;
         time_t firstTouchTime;
         void copy(TOUCHED_INFO *p){
@@ -137,7 +151,7 @@ private:
     float mH;
     Vec2 mCenter;
     POSITION_VECTOR mTempVec, mBottomVec, mLeftVec, mRightVec;
-    vector<Sprite*> mBottomSpriteVec, mLeftSpriteVec, mRightSpriteVec;
+    vector<OBJECT> mBottomSpriteVec, mLeftSpriteVec, mRightSpriteVec;
     Size mBottomGridSize, mWallGridSize;
     
     struct WALL_POSITIONS{
@@ -151,7 +165,7 @@ private:
     
     Color4F getDarkColor(Color4F color);
     
-    void addObject(Sprite * sprite, POSITION_VECTOR &posVec, vector<Sprite*> &vec, int idx);
+    void addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &vec);
     
     static bool sortTouchVec(Vec2 a, Vec2 b){
         if(b.y < a.y)
@@ -180,24 +194,24 @@ private:
     
     Sprite * getSprite(TOUCHED_INFO &p){
         switch(p.side){
-            case TOUCHED_SIDE_BOTTOM:
-                return mBottomSpriteVec[p.idx];
-            case TOUCHED_SIDE_LEFT:
-                return mLeftSpriteVec[p.idx];
-            case TOUCHED_SIDE_RIGHT:
-                return mRightSpriteVec[p.idx];
+            case SIDE_BOTTOM:
+                return mBottomSpriteVec[p.idx].sprite;
+            case SIDE_LEFT:
+                return mLeftSpriteVec[p.idx].sprite;
+            case SIDE_RIGHT:
+                return mRightSpriteVec[p.idx].sprite;
             default:
                 return NULL;
         }
     };
     
-    vector<Sprite*> * getSpriteVec(TOUCHED_INFO &p){
+    vector<OBJECT> * getSpriteVec(TOUCHED_INFO &p){
         switch(p.side){
-            case TOUCHED_SIDE_BOTTOM:
+            case SIDE_BOTTOM:
                 return &mBottomSpriteVec;
-            case TOUCHED_SIDE_LEFT:
+            case SIDE_LEFT:
                 return &mLeftSpriteVec;
-            case TOUCHED_SIDE_RIGHT:
+            case SIDE_RIGHT:
                 return &mRightSpriteVec;
             default:
                 return NULL;
@@ -206,11 +220,11 @@ private:
     
     POSITION_VECTOR * getPosVec(TOUCHED_INFO &p){
         switch(p.side){
-            case TOUCHED_SIDE_BOTTOM:
+            case SIDE_BOTTOM:
                 return &mBottomVec;
-            case TOUCHED_SIDE_LEFT:
+            case SIDE_LEFT:
                 return &mLeftVec;
-            case TOUCHED_SIDE_RIGHT:
+            case SIDE_RIGHT:
                 return &mRightVec;
             default:
                 return NULL;
@@ -219,7 +233,7 @@ private:
     
     Size getGridSize(TOUCHED_INFO &p){
         switch(p.side){
-            case TOUCHED_SIDE_BOTTOM:
+            case SIDE_BOTTOM:
                 return mBottomGridSize;
             default:
                 return mWallGridSize;

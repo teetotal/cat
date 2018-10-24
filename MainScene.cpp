@@ -107,12 +107,11 @@ bool MainScene::init()
     mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
     
     //window & door
+    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
+    ui_deco::inst()->addObjectLeft(window);
     
-    Sprite * window = Sprite::create("home/window.png");
-    ui_deco::inst()->addObjectLeft(window, 4);
-    
-    Sprite * door = Sprite::create("home/door.png");
-    ui_deco::inst()->addObjectLeft(door, 19);
+    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
+    ui_deco::inst()->addObjectLeft(door);
     
     float scale;
     for(int n=0; n<9; n++ ){
@@ -121,14 +120,16 @@ bool MainScene::init()
             scale = mTouchGrid.width / sprite->getContentSize().width;
         }
         sprite->setScale(scale);
-        ui_deco::inst()->addObjectBottom(sprite, getRandValue(400));
+        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
+        ui_deco::inst()->addObjectBottom(obj);
     }
    
     //Character
     auto pCharacter = getIdle();
     gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
     
-    ui_deco::inst()->addObjectBottom(pCharacter, 50);
+    ui_deco::OBJECT objActor(100, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
+    ui_deco::inst()->addObjectBottom(objActor);
 //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
     Vec2 posMainLayer = gui::inst()->getCenter();
@@ -1581,7 +1582,7 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
 }
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
-    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX){
         ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation());
     }
     
@@ -1619,7 +1620,7 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
         
         Vec2 move = Vec2(mTouchStart.x - mTouchVec[0]->getLocation().x, mTouchStart.y - mTouchVec[0]->getLocation().y);
         
-        if(ui_deco::inst()->mTouchedInfo.side != ui_deco::TOUCHED_SIDE_MAX){
+        if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX){
             ui_deco::inst()->touchMoved(mTouchVec[0]->getLocation());
         }else{
             Vec2 current = mMainLayoput->getPosition();
