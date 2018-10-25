@@ -768,8 +768,8 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	closePopup();
 	//this->removeChild(layerGray);
 	layer = gui::inst()->addPopup(layerGray, this, size
-		, isSell ? BG_SELL : BG_INVENTORY
-		, Color4B::WHITE);
+//        , isSell ? BG_SELL : BG_INVENTORY
+                                  , "", isSell ? ui_color::inst()->getColor4B(0, 0): ui_color::inst()->getColor4B(1, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -924,7 +924,7 @@ void MainScene::showBuy(inventoryType type) {
 	mIsSell = false;
 	mQuantityItemId = -1;
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, BG_BUY, Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(2, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -1025,7 +1025,7 @@ void MainScene::showAchievement() {
 	ACHIEVEMENT_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, BG_ACHIEVEMENT, Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(3, 0));
 
 	gui::inst()->addTextButtonAutoDimension(0, 0, wstring_to_utf8(L"전체수령"), layer
 		, CC_CALLBACK_1(MainScene::recieveAllAchievement, this)
@@ -1045,7 +1045,7 @@ void MainScene::showCollection() {
 	ACHIEVEMENT_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, BG_COLLECTION, Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(4, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
@@ -1135,7 +1135,7 @@ void MainScene::actionList() {
 	int newLine = 2;   
 
 	closePopup();
-    layer = gui::inst()->addPopup(layerGray, this, size, BG_ACTION, Color4B::WHITE);
+    layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(5, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
     gui::inst()->addTextButtonAutoDimension(8,0
             ,"CLOSE"
@@ -1350,7 +1350,7 @@ void MainScene::showRace() {
 	RACE_SIZE;
 	//this->removeChild(layerGray);
 	closePopup();
-	layer = gui::inst()->addPopup(layerGray, this, size, BG_RACE, Color4B::WHITE);
+	layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(6, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
 
 	gui::inst()->addTextButtonAutoDimension(0, 0, "ITEM", layer

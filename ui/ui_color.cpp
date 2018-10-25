@@ -34,3 +34,8 @@ Color4F ui_color::getColor4F(int idx, int colorIdx){
     Color4F color = Color4F(getColor3B(idx, colorIdx));
     return color;
 }
+
+Color4B ui_color::getColor4B(int idx, int colorIdx){
+    Color4B color = Color4B(getColor3B(idx, colorIdx));
+    return color;
+}

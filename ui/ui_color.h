@@ -52,7 +52,7 @@ public:
     COLOR_RGB getColor(int idx);
     Color3B getColor3B(int idx, int colorIdx);
     Color4F getColor4F(int idx, int colorIdx);
-    
+    Color4B getColor4B(int idx, int colorIdx);
     
     
 private:
