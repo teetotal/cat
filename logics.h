@@ -104,6 +104,7 @@ enum inventoryType {
 	inventoryType_farming,
     inventoryType_wall,
     inventoryType_bottom,
+    inventoryType_interior,
 	inventoryType_max,
     inventoryType_collection
 };
@@ -124,6 +125,7 @@ enum itemType {
     itemType_farming = 400, //농사
     itemType_wall = 500, //벽지
     itemType_bottom, //바닥지
+    itemType_interior, //인테리어
 	itemType_max,
 	itemType_collection,	//도감용
 };

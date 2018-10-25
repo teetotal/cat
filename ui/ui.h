@@ -58,11 +58,10 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 		_CONTINUE \
 		Layout* l = gui::inst()->createLayout(__nodeSize, "", true, Color3B::WHITE); \
 		l->setOpacity(192); \
-		int heightIdx = 1; \
-		gui::inst()->addTextButtonAutoDimension(0, heightIdx++, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
-        LayerColor * colorLayer = _IMG_POINTER; \
+		int heightIdx = 0; \
+		LayerColor * colorLayer = _IMG_POINTER; \
         if(colorLayer != NULL){ \
-            Vec2 pos = gui::inst()->getPointVec2(0, heightIdx++, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO);\
+            Vec2 pos = gui::inst()->getPointVec2(0, 2, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO);\
             pos.x -= 10;\
             pos.y -= 10;\
             colorLayer->setPosition(pos); \
@@ -70,11 +69,11 @@ typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
         } else{ \
             if(_IMG.compare(gui::inst()->EmptyString) != 0) { \
                 Menu * pSpriteMenu; \
-                auto pMenuSprite = gui::inst()->addSpriteButtonRaw(pSpriteMenu, 0, heightIdx++, _IMG, _IMG, l, _CALLBACK, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO); \
+                auto pMenuSprite = gui::inst()->addSpriteButtonRaw(pSpriteMenu, 0, 2, _IMG, _IMG, l, _CALLBACK, ALIGNMENT_CENTER, l->getContentSize(), _GRID_SIZE, Size::ZERO, Size::ZERO); \
                 gui::inst()->setScale(pMenuSprite, 20); \
             } \
         } \
-        \
+        gui::inst()->addTextButtonAutoDimension(0, 1, _SZ0, l, _CALLBACK, 10, ALIGNMENT_CENTER, Color3B::BLACK, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		heightIdx = 1;\
         auto btn1 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ1, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor1, _GRID_SIZE, Size::ZERO, Size::ZERO); \
 		auto btn2 = gui::inst()->addTextButtonAutoDimension(1, heightIdx++, _SZ2, l, _CALLBACK, 12, ALIGNMENT_NONE, fontColor2, _GRID_SIZE, Size::ZERO, Size::ZERO); \

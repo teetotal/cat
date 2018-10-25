@@ -112,17 +112,18 @@ bool MainScene::init()
     
     ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
     ui_deco::inst()->addObjectLeft(door);
-    
-    float scale;
-    for(int n=0; n<9; n++ ){
-        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
-        if(n==0){
-            scale = mTouchGrid.width / sprite->getContentSize().width;
-        }
-        sprite->setScale(scale);
-        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
-        ui_deco::inst()->addObjectBottom(obj);
-    }
+  
+    mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
+//    float scale;
+//    for(int n=0; n<9; n++ ){
+//        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
+//        if(n==0){
+//            scale = mTouchGrid.width / sprite->getContentSize().width;
+//        }
+//        sprite->setScale(scale);
+//        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
+//        ui_deco::inst()->addObjectBottom(obj);
+//    }
    
     //Character
     auto pCharacter = getIdle();
@@ -779,7 +780,7 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
-	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Farm", inventoryType_farming));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Interior", inventoryType_interior));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
     gui::inst()->addTextButtonAutoDimension(__PARAMS("Wall", inventoryType_wall));
@@ -935,6 +936,7 @@ void MainScene::showBuy(inventoryType type) {
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
 //    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
+    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
     gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
@@ -1434,14 +1436,16 @@ void MainScene::updateQuests() {
 
 string MainScene::getItemImg(int id) {
 	_item item = logics::hInst->getItem(id);
-	if (item.type == itemType_farming) {
-		return "fruit/" + to_string(id - itemType_farming) + ".png";
-	}
-	if (item.type == itemType_hp_meal) {
-		return "fruit/" + to_string(id - itemType_hp) + ".png";
-	}
-
-	return "items/" + to_string(id % 20) + ".png";
+    switch(item.type){
+        case itemType_farming:
+            return "fruit/" + to_string(id - itemType_farming) + ".png";
+        case itemType_hp_meal:
+            return "fruit/" + to_string(id - itemType_hp) + ".png";
+        case itemType_interior:
+            return "home/0" + to_string(id - 2000) + ".png";
+        default:
+            return "items/" + to_string(id % 20) + ".png";
+    }
 }
 
 LayerColor * MainScene::getItemColor(int id){
@@ -1534,6 +1538,11 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
         }else{
             ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0), ui_color::inst()->getColor4F(itemId - 20000, 1));
         }
+    } else if(item.type == itemType_interior){
+        isPop = true;
+        auto img = Sprite::create(getItemImg(item.id));
+        ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_BOTTOM, ui_deco::inst()->getDefaultBottomIdx());
+        ui_deco::inst()->addObjectBottom(obj);
     }
     
     if(isPop){

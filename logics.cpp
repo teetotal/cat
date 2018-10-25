@@ -1903,6 +1903,9 @@ inventoryType logics::getInventoryType(int itemId) {
     else if (item.type == itemType_bottom) {
         t = inventoryType_bottom;
     }
+    else if (item.type == itemType_interior) {
+        t = inventoryType_interior;
+    }
 	else {
 		t = inventoryType_collection;
 	}

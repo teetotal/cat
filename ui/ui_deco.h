@@ -47,6 +47,9 @@ public:
     };
     
     void init(Node * p, float degrees, bool isDebugModeBottom = false, bool isDebugModeWall = false);
+    int getDefaultBottomIdx(){
+        return (int)(mBottomVec.size() / 2);
+    };
     //복사
     void clone(Node * pParentNode, ui_deco * p){
         init(pParentNode, p->mDegrees);

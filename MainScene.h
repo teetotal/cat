@@ -239,7 +239,6 @@ private:
 
 	SCENECODE getSceneCodeFromQuestCategory(int category);
     
-    
     virtual void onTouchesBegan(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
     virtual void onTouchesCancelled(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
     virtual void onTouchesEnded(const std::vector<cocos2d::Touch*>& touches, cocos2d::Event *event);
@@ -249,7 +248,7 @@ private:
     Layout * mMainLayoput;
     Vec2 mTouchStart;
     Size mTouchGrid;
-
+    float mInteriorScale;
     vector<Vec2> mTouchPosVec;
     
     vector<Touch*> mTouchVec;
