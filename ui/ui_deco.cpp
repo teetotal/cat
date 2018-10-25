@@ -317,6 +317,11 @@ void ui_deco::touchEnded(Vec2 pos){
     if(mTouchedInfoLast.side == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
         bool currentFlipped = p->isFlippedX();
         p->setFlippedX(currentFlipped ? false : true);
+        if(p->isFlippedX()){
+            p->setAnchorPoint(Vec2(0, 0));
+        }else {
+            p->setAnchorPoint(Vec2(1, 0));
+        }
     }else{
         POSITION_VECTOR * vec = getPosVec(mTouchedInfo);
         if(vec == NULL)
