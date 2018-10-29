@@ -4,6 +4,9 @@
 
 #include "ui_deco.h"
 #include "../library/util.h"
+#include "json/document.h"
+#include "json/stringbuffer.h"
+#include "json/writer.h"
 
 ui_deco * ui_deco::hInst = NULL;
 
@@ -378,4 +381,29 @@ void ui_deco::touchMoved(Vec2 pos){
     }
     
     mTouchStart = pos;
+}
+
+string ui_deco::getJson(vector<OBJECT> *vec){
+    rapidjson::Document d;
+    d.SetArray();
+    rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+    for (int n = 0; n < (int)vec->size(); n++) {
+        OBJECT obj = vec->at(n);
+        
+        rapidjson::Value objValue;
+        objValue.SetObject();
+        objValue.AddMember("id", obj.id, allocator);
+        objValue.AddMember("idx", obj.idx, allocator);
+        
+        d.PushBack(objValue, allocator);
+    }
+
+    rapidjson::StringBuffer bufferJson;
+    bufferJson.Clear();
+    rapidjson::Writer<rapidjson::StringBuffer> writer(bufferJson);
+    d.Accept(writer);
+    
+    string sz = bufferJson.GetString();
+    
+    return sz;
 }

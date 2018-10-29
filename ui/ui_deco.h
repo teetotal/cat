@@ -47,6 +47,16 @@ public:
     };
     
     void init(Node * p, float degrees, bool isDebugModeBottom = false, bool isDebugModeWall = false);
+    string getWallLeftJson(){
+        return getJson(&mLeftSpriteVec);
+    };
+    string getWallRightJson(){
+        return getJson(&mRightSpriteVec);
+    };
+    string getBottomJson(){
+        return getJson(&mBottomSpriteVec);
+    };
+    
     int getDefaultBottomIdx(){
         return (int)(mBottomVec.size() / 2);
     };
@@ -242,6 +252,8 @@ private:
                 return mWallGridSize;
         }
     };
+    
+    string getJson(vector<OBJECT> *vec);
     
     static ui_deco * hInst;
     

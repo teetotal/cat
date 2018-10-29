@@ -1541,6 +1541,7 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
     } else if(item.type == itemType_interior){
         isPop = true;
         auto img = Sprite::create(getItemImg(item.id));
+        gui::inst()->setScale(img, mInteriorScale);
         ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_BOTTOM, ui_deco::inst()->getDefaultBottomIdx());
         ui_deco::inst()->addObjectBottom(obj);
     }
