@@ -105,7 +105,7 @@ bool logics::initActor(bool isFarmingDataLoad)
 	
 	//actor
 	{
-		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal, wallLeft, wallRight, bottom FROM actor WHERE idx = 1");
+		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal FROM actor WHERE idx = 1");
 		if (stmt == NULL)
 			return false;
 
@@ -136,10 +136,6 @@ bool logics::initActor(bool isFarmingDataLoad)
 			actor->property.strength = sqlite3_column_int(stmt, idx++);
 			actor->property.intelligence = sqlite3_column_int(stmt, idx++);
 			actor->property.appeal = sqlite3_column_int(stmt, idx++);
-            
-            string szWallLeft = (const char*)sqlite3_column_text(stmt, idx++);
-            string szWallRight = (const char*)sqlite3_column_text(stmt, idx++);
-            string szBottom = (const char*)sqlite3_column_text(stmt, idx++);
 
 		}
 			
@@ -1944,6 +1940,7 @@ void logics::saveActor() {
     string szWallLeftJson = ui_deco::inst()->getWallLeftJson();
     string szWallRightJson = ui_deco::inst()->getWallRightJson();
     string szBottomJson = ui_deco::inst()->getBottomJson();
+    string szColorsJson = ui_deco::inst()->getColorJson();
 
 	hIsSync = true;
 	int rc = 0;
@@ -1951,7 +1948,7 @@ void logics::saveActor() {
 	string szQuery = "";
 	char bufActor[1024] = { 0 };
 	sprintf(bufActor
-		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallLeft='%s', wallRight='%s', bottom='%s' WHERE idx = 1;"
+		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallLeft='%s', wallRight='%s', bottom='%s', colors='%s' WHERE idx = 1;"
 		, mActor->userId.c_str()
 		, mActor->userName.c_str()
 		, mActor->id.c_str()
@@ -1970,6 +1967,7 @@ void logics::saveActor() {
         , szWallLeftJson.c_str()
         , szWallRightJson.c_str()
         , szBottomJson.c_str()
+        , szColorsJson.c_str()
 	);
 	
     szQuery += bufActor;

@@ -6,6 +6,9 @@
 #define PROJ_ANDROID_UI_DECO_H
 
 #include "ui.h"
+#include "json/document.h"
+#include "json/stringbuffer.h"
+#include "json/writer.h"
 
 class ui_deco {
 public:
@@ -56,6 +59,7 @@ public:
     string getBottomJson(){
         return getJson(&mBottomSpriteVec);
     };
+    string getColorJson();
     
     int getDefaultBottomIdx(){
         return (int)(mBottomVec.size() / 2);
@@ -156,7 +160,7 @@ private:
         LAYER_OBJECT,
         LAYER_MAX
     };
-
+    
     bool mDebugModeBottom, mDebugModeWall;
     Node * mParentLayoput, * mMainLayoput;
     Layout * mLayout[LAYER_MAX];
@@ -254,6 +258,7 @@ private:
     };
     
     string getJson(vector<OBJECT> *vec);
+    void addColor4FJson(rapidjson::Document &d, Color4F color);
     
     static ui_deco * hInst;
     

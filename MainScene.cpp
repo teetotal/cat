@@ -90,55 +90,14 @@ bool MainScene::init()
 		CCLOG("Init Farm Failure !!!!!!!!!!!!!!");
 		return false;
 	}
-
+    //Deco init
+    if (!initDeco()) {
+        CCLOG("Init Deco Failure !!!!!!!!!!!!!!");
+        return false;
+    }
+    
     //Cat Main UI
-    //-------------------------------------------------
-    const float degrees = 27.f;
-    const float layerWidth = gui::inst()->getTanLen(visibleSize.height / 2, degrees) * 2;
-    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, visibleSize.height), "", false, Color3B::GRAY);
-
-    const float _div = 40;
-
-    ui_deco::inst()->init(mMainLayoput, degrees, false, false);
-    ui_deco::inst()->addBottom(_div, 8, ui_color::inst()->getColor4F(0,0), ui_color::inst()->getColor4F(1,0));
-    ui_deco::inst()->addWall(5, ui_color::inst()->getColor4F(3,0));
-    ui_deco::inst()->drawGuidLine();
     
-    mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
-    
-    //window & door
-    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
-    ui_deco::inst()->addObjectLeft(window);
-    
-    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
-    ui_deco::inst()->addObjectLeft(door);
-  
-    mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
-//    float scale;
-//    for(int n=0; n<9; n++ ){
-//        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
-//        if(n==0){
-//            scale = mTouchGrid.width / sprite->getContentSize().width;
-//        }
-//        sprite->setScale(scale);
-//        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
-//        ui_deco::inst()->addObjectBottom(obj);
-//    }
-   
-    //Character
-    auto pCharacter = getIdle();
-    gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
-    
-    ui_deco::OBJECT objActor(100, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
-    ui_deco::inst()->addObjectBottom(objActor);
-//    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
-    
-    Vec2 posMainLayer = gui::inst()->getCenter();
-    posMainLayer.y  += mMainLayoput->getContentSize().height /3;
-    mMainLayoput->setPosition(posMainLayer);
-    mMainLayoput->setAnchorPoint(Vec2(0.5, 0.5));
-    this->addChild(mMainLayoput);
-    //---------------------------------------------------------------------------
     loadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 150, 10);
     
     //string name = wstring_to_utf8(logics::hInst->getActor()->name, true);
@@ -198,6 +157,88 @@ bool MainScene::init()
 	}, 0.5, "questTimer");
 
 	CCLOG("Init Done !!!!!!!!!!!!!!");
+    return true;
+}
+
+bool MainScene::initDeco() {
+    const float degrees = 27.f;
+    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
+    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
+    const float _div = 40;
+    ui_deco::inst()->init(mMainLayoput, degrees, false, false);
+    
+    Color4F colors[4] = {Color4F::WHITE, Color4F::WHITE, Color4F::WHITE, Color4F::WHITE};
+    
+    sqlite3_stmt * stmt = Sql::inst()->select("SELECT colors, wallLeft, wallRight, bottom FROM actor WHERE idx = 1");
+    if (stmt == NULL)
+        return false;
+    
+    int result = sqlite3_step(stmt);
+    if (result == SQLITE_ROW){
+        int idx = 0;
+        const char* sz = (const char*)sqlite3_column_text(stmt, idx++); //colors
+        if(sz){
+            rapidjson::Document d;
+            d.Parse(sz);
+            if (d.HasParseError())
+                return false;
+            
+            for (rapidjson::SizeType i = 0; i < d.Size(); i++)
+            {
+                if(d[rapidjson::SizeType(i)].HasMember("r")){
+                    colors[i].r = d[rapidjson::SizeType(i)]["r"].GetFloat();
+                    colors[i].g = d[rapidjson::SizeType(i)]["g"].GetFloat();
+                    colors[i].b = d[rapidjson::SizeType(i)]["b"].GetFloat();
+                    colors[i].a = d[rapidjson::SizeType(i)]["a"].GetFloat();
+                }
+            }
+        }
+        sz = (const char*)sqlite3_column_text(stmt, idx++); //wallLeft
+        sz = (const char*)sqlite3_column_text(stmt, idx++); //wallRight
+        sz = (const char*)sqlite3_column_text(stmt, idx++); //bottom
+    }
+    
+    //-------------------------------------------------
+    ui_deco::inst()->addWall(5, colors[0], colors[1]);
+    ui_deco::inst()->addBottom(_div, 8, colors[2], colors[3]);
+    
+    ui_deco::inst()->drawGuidLine();
+    
+    mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
+    mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
+    
+    //window & door
+    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
+    ui_deco::inst()->addObjectLeft(window);
+    
+    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
+    ui_deco::inst()->addObjectLeft(door);
+    
+    //    float scale;
+    //    for(int n=0; n<9; n++ ){
+    //        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
+    //        if(n==0){
+    //            scale = mTouchGrid.width / sprite->getContentSize().width;
+    //        }
+    //        sprite->setScale(scale);
+    //        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
+    //        ui_deco::inst()->addObjectBottom(obj);
+    //    }
+    
+    //Character
+    auto pCharacter = getIdle();
+    gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
+    
+    ui_deco::OBJECT objActor(100, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
+    ui_deco::inst()->addObjectBottom(objActor);
+    //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
+    
+    Vec2 posMainLayer = gui::inst()->getCenter();
+    posMainLayer.y  += mMainLayoput->getContentSize().height /3;
+    mMainLayoput->setPosition(posMainLayer);
+    mMainLayoput->setAnchorPoint(Vec2(0.5, 0.5));
+    this->addChild(mMainLayoput);
+    //---------------------------------------------------------------------------
     return true;
 }
 

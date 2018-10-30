@@ -108,9 +108,9 @@ public:
 
 
 private:
-
 	bool initFarm();
-
+    bool initDeco();
+    
 	int mLevel;
     gui mGrid;
     ui_gacha  mGacha;

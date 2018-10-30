@@ -4,13 +4,16 @@
 
 #include "ui_deco.h"
 #include "../library/util.h"
-#include "json/document.h"
-#include "json/stringbuffer.h"
-#include "json/writer.h"
+
 
 ui_deco * ui_deco::hInst = NULL;
 
 void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebugModeWall){
+    mWallColor1 = Color4F::WHITE;
+    mWallColor2 = Color4F::WHITE;
+    mBottomColor1 = Color4F::WHITE;
+    mBottomColor2 = Color4F::WHITE;
+    
     mDebugModeBottom = isDebugModeBottom;
     mDebugModeWall = isDebugModeWall;
     
@@ -398,6 +401,36 @@ string ui_deco::getJson(vector<OBJECT> *vec){
         d.PushBack(objValue, allocator);
     }
 
+    rapidjson::StringBuffer bufferJson;
+    bufferJson.Clear();
+    rapidjson::Writer<rapidjson::StringBuffer> writer(bufferJson);
+    d.Accept(writer);
+    
+    string sz = bufferJson.GetString();
+    
+    return sz;
+}
+
+void ui_deco::addColor4FJson(rapidjson::Document &d, Color4F color){
+    rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+    rapidjson::Value objValue;
+    objValue.SetObject();
+    objValue.AddMember("r", color.r, allocator);
+    objValue.AddMember("g", color.g, allocator);
+    objValue.AddMember("b", color.b, allocator);
+    objValue.AddMember("a", color.a, allocator);
+    
+    d.PushBack(objValue, allocator);
+}
+
+string ui_deco::getColorJson(){
+    rapidjson::Document d;
+    d.SetArray();
+    addColor4FJson(d, mWallColor1);
+    addColor4FJson(d, mWallColor2);
+    addColor4FJson(d, mBottomColor1);
+    addColor4FJson(d, mBottomColor2);
+    
     rapidjson::StringBuffer bufferJson;
     bufferJson.Clear();
     rapidjson::Writer<rapidjson::StringBuffer> writer(bufferJson);
