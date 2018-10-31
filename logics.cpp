@@ -92,11 +92,14 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 		return false;
 	}
 	log("init logics Done!!!!!!!!!!!!!!!!!!!!!!!");
-
-	mIsRunThread = true;
-	mThread = new thread(threadRun);
-
+    
+    mIsRunThread = true;
+    mThread = new thread(threadRun);
+    
 	return true;
+}
+void logics::run(){
+    
 }
 /* private initialize */
 bool logics::initActor(bool isFarmingDataLoad)
@@ -1872,7 +1875,7 @@ void logics::threadRun()
 	while (logics::hInst->mIsRunThread) {
 		sleepThisThread(SEC);
 		if (count >= actorSaveInterval) {
-			logics::hInst->saveActor();
+            logics::hInst->saveActor();
 			count = 0;
 		}
 		count++;
@@ -1939,19 +1942,13 @@ void logics::saveActor() {
 		CCLOG("saveActor locked!!");
 		return;
 	}
-    
-    string szWallLeftJson = ui_deco::inst()->getWallLeftJson();
-    string szWallRightJson = ui_deco::inst()->getWallRightJson();
-    string szBottomJson = ui_deco::inst()->getBottomJson();
-    string szColorsJson = ui_deco::inst()->getColorJson();
 
 	hIsSync = true;
 	int rc = 0;
 
-	string szQuery = "";
 	char bufActor[1024] = { 0 };
 	sprintf(bufActor
-		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallLeft='%s', wallRight='%s', bottom='%s', colors='%s' WHERE idx = 1;"
+		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d WHERE idx = 1;"
 		, mActor->userId.c_str()
 		, mActor->userName.c_str()
 		, mActor->id.c_str()
@@ -1967,22 +1964,33 @@ void logics::saveActor() {
 		, mActor->property.strength
 		, mActor->property.intelligence
 		, mActor->property.appeal
-        , szWallLeftJson.c_str()
-        , szWallRightJson.c_str()
-        , szBottomJson.c_str()
-        , szColorsJson.c_str()
 	);
-	
-    szQuery += bufActor;
     
-    rc = Sql::inst()->exec(szQuery);
+    rc = Sql::inst()->exec(bufActor);
     if (rc != 0) {
-        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, szQuery.c_str());
+        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
     }
     
-    szQuery = "";
+    //한번에 업데이트 하니까 쓰레드가 죽는다.
+    string szWallLeftJson = ui_deco::inst()->getWallLeftJson();
+    string szWallRightJson = ui_deco::inst()->getWallRightJson();
+    string szBottomJson = ui_deco::inst()->getBottomJson();
+    string szColorsJson = ui_deco::inst()->getColorJson();
     
-	
+    sprintf(bufActor
+            , "UPDATE actor SET wallLeft='%s', wallRight='%s', bottom='%s', colors='%s' WHERE idx = 1;"
+            , szWallLeftJson.c_str()
+            , szWallRightJson.c_str()
+            , szBottomJson.c_str()
+            , szColorsJson.c_str()
+            );
+    
+    rc = Sql::inst()->exec(bufActor);
+    if (rc != 0) {
+        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
+    }
+  
+    string szQuery = "";
 		
 	//collection
 	//d["collection"].Clear();		
@@ -2163,4 +2171,5 @@ void logics::saveActor() {
 	}
 	*/
 	hIsSync = false;
+    CCLOG("saved Actor");
 }

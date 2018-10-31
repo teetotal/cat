@@ -381,6 +381,7 @@ public:
 		hInst = NULL;
 	};
 	bool init(farmingFinshedNotiCallback, tradeUpdatedCallback, achievementCallback, bool isFarmingDataLoad = true);
+    void run();
 	void finalize();
 	void saveActor(); //현재 정보 저장
 	bool insertItem(_item);	
@@ -567,7 +568,8 @@ public:
 	//quest
 	Quest mQuest;
 	static logics * hInst;
-
+    static bool hIsSync;
+    
 	bool mIsRunThread;
 private:
 	//error messages
@@ -740,6 +742,6 @@ private:
 	//string mActorStringFromJSON;
 
 	Sql mSql;
-	static bool hIsSync;
+	
 };
 

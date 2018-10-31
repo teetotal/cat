@@ -398,6 +398,7 @@ string ui_deco::getJson(vector<OBJECT> *vec){
         objValue.SetObject();
         objValue.AddMember("id", obj.id, allocator);
         objValue.AddMember("idx", obj.idx, allocator);
+        objValue.AddMember("flipped", obj.sprite->isFlippedX(), allocator);
         
         d.PushBack(objValue, allocator);
     }

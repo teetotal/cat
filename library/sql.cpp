@@ -1,4 +1,4 @@
-﻿#include "sql.h"
+#include "sql.h"
 
 Sql * Sql::hInst = NULL;
 
@@ -17,16 +17,19 @@ void Sql::finalize() {
 	sqlite3_close(mDB);
 }
 */
+int Sql::exec(const char* query){
+    mLock.lock();
+    char *zErrMsg = 0;
+    int rc = sqlite3_exec(mDB, query, NULL, NULL, &zErrMsg);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "SQL error: %s\n", zErrMsg);
+        sqlite3_free(zErrMsg);
+    }
+    mLock.unlock();
+    return rc;
+}
 int Sql::exec(string query) {
-	mLock.lock();
-	char *zErrMsg = 0;
-	int rc = sqlite3_exec(mDB, query.c_str(), NULL, NULL, &zErrMsg);
-	if (rc != SQLITE_OK) {
-		fprintf(stderr, "SQL error: %s\n", zErrMsg);
-		sqlite3_free(zErrMsg);		
-	}	
-	mLock.unlock();
-	return rc;
+    return exec(query.c_str());
 }
 
 sqlite3_stmt * Sql::select(string query) {

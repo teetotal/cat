@@ -61,7 +61,7 @@ bool MainScene::init()
         return false;
     }
 
-    auto visibleSize = Director::getInstance()->getVisibleSize();
+//    auto visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
     //touch
@@ -135,8 +135,6 @@ bool MainScene::init()
     mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
 
 	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
-	//EaseBackOut::create
-
 	//quest 표시
 	updateQuests();
     //gacha
@@ -157,7 +155,8 @@ bool MainScene::init()
 		mLevel = logics::hInst->getActor()->level;
 	}, 0.5, "questTimer");
 
-	CCLOG("Init Done !!!!!!!!!!!!!!");
+//    CCLOG("Init Done !!!!!!!!!!!!!!");
+    logics::hInst->run();
     return true;
 }
 bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
@@ -171,11 +170,19 @@ bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
         {
             int id = d[rapidjson::SizeType(i)]["id"].GetInt();
             int idx = d[rapidjson::SizeType(i)]["idx"].GetInt();
+            bool isFlipped = d[rapidjson::SizeType(i)]["flipped"].GetBool();
             if(id > 0){
                 auto sprite = Sprite::create(getItemImg(id));
+                sprite->setFlippedX(isFlipped);
+                if(isFlipped)
+                    sprite->setAnchorPoint(Vec2(0, 0));
+                else
+                    sprite->setAnchorPoint(Vec2(1, 0));
+                
                 if (side == ui_deco::SIDE_BOTTOM) {
                     sprite->setScale(mInteriorScale);
                 }
+                
                 ui_deco::OBJECT obj(id, sprite, side, idx);
                 ui_deco::inst()->addObject(obj);
             }
@@ -1682,6 +1689,7 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
         if(mTouchVec.size() > touchIndex)
             mTouchVec[touchIndex] = NULL;
     }
+    
 }
 void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
 {

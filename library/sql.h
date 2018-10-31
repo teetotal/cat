@@ -1,4 +1,4 @@
-﻿
+
 #ifndef PROJ_ANDROID_SQL_H
 #define PROJ_ANDROID_SQL_H
 
@@ -28,7 +28,7 @@ public:
 	void finalize() {
 		sqlite3_close(mDB);
 	};
-
+    int exec(const char* query);
 	int exec(string query);
 	sqlite3_stmt * select(string query);
 
