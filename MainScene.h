@@ -110,6 +110,7 @@ public:
 private:
 	bool initFarm();
     bool initDeco();
+    bool initDecoObject(const char * sz, ui_deco::SIDE side);
     
 	int mLevel;
     gui mGrid;

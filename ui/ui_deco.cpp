@@ -339,6 +339,7 @@ void ui_deco::touchEnded(Vec2 pos){
             if(rect.containsPoint(p->getPosition())){
                 p->setPosition(vec->at(n));
                 p->setLocalZOrder(n);
+                getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).idx = n;
                 break;
             }
         }

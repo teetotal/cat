@@ -47,6 +47,8 @@ bool MainScene::init()
 	layer = NULL;
 	mAlertLayer = NULL;
     hInst = this;    
+	
+	//logics
 	if (!logics::hInst->init(MainScene::farmingCB, MainScene::tradeCB, MainScene::achievementCB, false)) {
 		CCLOG("logics Init Failure !!!!!!!!!!!!!!");
 		return false;
@@ -71,8 +73,6 @@ bool MainScene::init()
 //    _eventDispatcher->addEventListenerWithFixedPriority(listener, 1);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
-    
-    
 	Color3B fontColor = Color3B::BLACK;
 	//BG
 	
@@ -85,16 +85,17 @@ bool MainScene::init()
 	/**/
     mGrid.init("fonts/Goyang.ttf", 14, Color4F::WHITE);
 
-	//farming init
-	if (!initFarm()) {
-		CCLOG("Init Farm Failure !!!!!!!!!!!!!!");
-		return false;
-	}
     //Deco init
     if (!initDeco()) {
         CCLOG("Init Deco Failure !!!!!!!!!!!!!!");
         return false;
     }
+    
+	//farming init
+	if (!initFarm()) {
+		CCLOG("Init Farm Failure !!!!!!!!!!!!!!");
+		return false;
+	}
     
     //Cat Main UI
     
@@ -159,6 +160,30 @@ bool MainScene::init()
 	CCLOG("Init Done !!!!!!!!!!!!!!");
     return true;
 }
+bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
+    if(sz){
+        rapidjson::Document d;
+        d.Parse(sz);
+        if (d.HasParseError())
+            return false;
+        
+        for (rapidjson::SizeType i = 0; i < d.Size(); i++)
+        {
+            int id = d[rapidjson::SizeType(i)]["id"].GetInt();
+            int idx = d[rapidjson::SizeType(i)]["idx"].GetInt();
+            if(id > 0){
+                auto sprite = Sprite::create(getItemImg(id));
+                if (side == ui_deco::SIDE_BOTTOM) {
+                    sprite->setScale(mInteriorScale);
+                }
+                ui_deco::OBJECT obj(id, sprite, side, idx);
+                ui_deco::inst()->addObject(obj);
+            }
+        }
+    }
+    
+    return true;
+}
 
 bool MainScene::initDeco() {
     const float degrees = 27.f;
@@ -166,7 +191,7 @@ bool MainScene::initDeco() {
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
     const float _div = 40;
     ui_deco::inst()->init(mMainLayoput, degrees, false, false);
-    
+   
     Color4F colors[4] = {Color4F::WHITE, Color4F::WHITE, Color4F::WHITE, Color4F::WHITE};
     
     sqlite3_stmt * stmt = Sql::inst()->select("SELECT colors, wallLeft, wallRight, bottom FROM actor WHERE idx = 1");
@@ -193,26 +218,30 @@ bool MainScene::initDeco() {
                 }
             }
         }
+        
+        ui_deco::inst()->addWall(5, colors[0], colors[1]);
+        ui_deco::inst()->addBottom(_div, 8, colors[2], colors[3]);
+        ui_deco::inst()->drawGuidLine();
+        mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
+        mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
+        
+        
         sz = (const char*)sqlite3_column_text(stmt, idx++); //wallLeft
+        initDecoObject(sz, ui_deco::SIDE_LEFT);
         sz = (const char*)sqlite3_column_text(stmt, idx++); //wallRight
+        initDecoObject(sz, ui_deco::SIDE_RIGHT);
         sz = (const char*)sqlite3_column_text(stmt, idx++); //bottom
+        initDecoObject(sz, ui_deco::SIDE_BOTTOM);
     }
     
     //-------------------------------------------------
-    ui_deco::inst()->addWall(5, colors[0], colors[1]);
-    ui_deco::inst()->addBottom(_div, 8, colors[2], colors[3]);
-    
-    ui_deco::inst()->drawGuidLine();
-    
-    mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
-    mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
     
     //window & door
-    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
-    ui_deco::inst()->addObjectLeft(window);
-    
-    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
-    ui_deco::inst()->addObjectLeft(door);
+//    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
+//    ui_deco::inst()->addObjectLeft(window);
+//
+//    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
+//    ui_deco::inst()->addObjectLeft(door);
     
     //    float scale;
     //    for(int n=0; n<9; n++ ){
@@ -229,7 +258,7 @@ bool MainScene::initDeco() {
     auto pCharacter = getIdle();
     gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
     
-    ui_deco::OBJECT objActor(100, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
+    ui_deco::OBJECT objActor(-1, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
     ui_deco::inst()->addObjectBottom(objActor);
     //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
@@ -821,12 +850,12 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Grow", inventoryType_growth));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Interior", inventoryType_interior));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
-    gui::inst()->addTextButtonAutoDimension(__PARAMS("Wall", inventoryType_wall));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Wall", inventoryType_wall));
     gui::inst()->addTextButtonAutoDimension(__PARAMS("Bottom", inventoryType_bottom));
-    
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Interior", inventoryType_interior));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Exterior", inventoryType_exterior));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
 	
 	if (isSell) {
 		mIsSell = true;
@@ -977,11 +1006,13 @@ void MainScene::showBuy(inventoryType type) {
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
 //    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
-    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
-    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
     gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Bottom", inventoryType_bottom));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Exterior", inventoryType_exterior));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
+	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
+	
 	
 	mQuantityLayout = gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
 		, wstring_to_utf8(L"구매")
@@ -1484,12 +1515,14 @@ string MainScene::getItemImg(int id) {
             return "fruit/" + to_string(id - itemType_hp) + ".png";
         case itemType_interior:
             return "home/0" + to_string(id - 2000) + ".png";
+		case itemType_exterior:
+            return "home/exterior/0" + to_string(id - 3000) + ".png";
         default:
             return "items/" + to_string(id % 20) + ".png";
     }
 }
 
-LayerColor * MainScene::getItemColor(int id){
+LayerColor * MainScene::getItemColor(int id) {
     _item item = logics::hInst->getItem(id);
     int minId = -1;
     if(item.type == itemType_wall){
@@ -1562,9 +1595,8 @@ SCENECODE MainScene::getSceneCodeFromQuestCategory(int category) {
 void MainScene::applyInventory(Ref* pSender, int itemId){
     closePopup();
     _item item = logics::hInst->getItem(itemId);
-    bool isPop = false;
+    bool isPop = true;
     if(item.type == itemType_wall){
-        isPop = true;
         ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 10000);
         if(color.R[1] == -1){
             ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0));
@@ -1572,7 +1604,6 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
             ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0), ui_color::inst()->getColor4F(itemId - 10000, 1));
         }
     } else if(item.type == itemType_bottom){
-        isPop = true;
         ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 20000);
         if(color.R[1] == -1){
             ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0));
@@ -1580,11 +1611,14 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
             ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0), ui_color::inst()->getColor4F(itemId - 20000, 1));
         }
     } else if(item.type == itemType_interior){
-        isPop = true;
         auto img = Sprite::create(getItemImg(item.id));
-        gui::inst()->setScale(img, mInteriorScale);
+        img->setScale(mInteriorScale);
         ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_BOTTOM, ui_deco::inst()->getDefaultBottomIdx());
-        ui_deco::inst()->addObjectBottom(obj);
+        ui_deco::inst()->addObject(obj);
+    } else if(item.type == itemType_exterior){
+        auto img = Sprite::create(getItemImg(item.id));
+        ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_LEFT, ui_deco::inst()->getDefaultLeftIdx());
+        ui_deco::inst()->addObject(obj);
     }
     
     if(isPop){

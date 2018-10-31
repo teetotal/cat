@@ -64,6 +64,9 @@ public:
     int getDefaultBottomIdx(){
         return (int)(mBottomVec.size() / 2);
     };
+    int getDefaultLeftIdx(){
+        return (int)(mLeftVec.size() / 2);
+    };
     //복사
     void clone(Node * pParentNode, ui_deco * p){
         init(pParentNode, p->mDegrees);
@@ -107,6 +110,18 @@ public:
     void drawGuidLine();
     
     //objecs -------------
+    void addObject(OBJECT &obj){
+        switch(obj.side){
+            case SIDE_BOTTOM:
+                return addObjectBottom(obj);
+            case SIDE_LEFT:
+                return addObjectLeft(obj);
+            case SIDE_RIGHT:
+                return addObjectRight(obj);
+            default:
+                return;
+        }
+    };
     void addObjectBottom(OBJECT &obj){
         addObject(obj, mBottomVec, mBottomSpriteVec);
     };
