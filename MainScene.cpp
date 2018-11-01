@@ -156,7 +156,7 @@ bool MainScene::init()
 	}, 0.5, "questTimer");
 
 //    CCLOG("Init Done !!!!!!!!!!!!!!");
-    logics::hInst->run();
+   
     return true;
 }
 bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
@@ -171,21 +171,24 @@ bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
             int id = d[rapidjson::SizeType(i)]["id"].GetInt();
             int idx = d[rapidjson::SizeType(i)]["idx"].GetInt();
             bool isFlipped = d[rapidjson::SizeType(i)]["flipped"].GetBool();
-            if(id > 0){
-                auto sprite = Sprite::create(getItemImg(id));
-                sprite->setFlippedX(isFlipped);
-                if(isFlipped)
-                    sprite->setAnchorPoint(Vec2(0, 0));
-                else
-                    sprite->setAnchorPoint(Vec2(1, 0));
-                
-                if (side == ui_deco::SIDE_BOTTOM) {
+            
+            auto sprite = (id != -1) ? Sprite::create(getItemImg(id)) : getIdle();
+            sprite->setFlippedX(isFlipped);
+            if(isFlipped)
+                sprite->setAnchorPoint(Vec2(0, 0));
+            else
+                sprite->setAnchorPoint(Vec2(1, 0));
+            
+            if (side == ui_deco::SIDE_BOTTOM) {
+                if(id != -1)
                     sprite->setScale(mInteriorScale);
-                }
-                
-                ui_deco::OBJECT obj(id, sprite, side, idx);
-                ui_deco::inst()->addObject(obj);
+                else
+                    gui::inst()->setScale(sprite, mTouchGrid.width * 2);
             }
+            
+            ui_deco::OBJECT obj(id, sprite, side, idx);
+            ui_deco::inst()->addObject(obj);
+            
         }
     }
     
@@ -227,7 +230,7 @@ bool MainScene::initDeco() {
         }
         
         ui_deco::inst()->addWall(5, colors[0], colors[1]);
-        ui_deco::inst()->addBottom(_div, 8, colors[2], colors[3]);
+        ui_deco::inst()->addBottom(_div, _div /*8*/, colors[2], colors[3]);
         ui_deco::inst()->drawGuidLine();
         mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
         mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
@@ -242,31 +245,6 @@ bool MainScene::initDeco() {
     }
     
     //-------------------------------------------------
-    
-    //window & door
-//    ui_deco::OBJECT window(1, Sprite::create("home/window.png"), ui_deco::SIDE_LEFT, 4);
-//    ui_deco::inst()->addObjectLeft(window);
-//
-//    ui_deco::OBJECT door(2, Sprite::create("home/door.png"), ui_deco::SIDE_LEFT, 19);
-//    ui_deco::inst()->addObjectLeft(door);
-    
-    //    float scale;
-    //    for(int n=0; n<9; n++ ){
-    //        Sprite * sprite = Sprite::create("home/0"+to_string(n)+".png");
-    //        if(n==0){
-    //            scale = mTouchGrid.width / sprite->getContentSize().width;
-    //        }
-    //        sprite->setScale(scale);
-    //        ui_deco::OBJECT obj(3 + n, sprite, ui_deco::SIDE_BOTTOM, getRandValue(400));
-    //        ui_deco::inst()->addObjectBottom(obj);
-    //    }
-    
-    //Character
-    auto pCharacter = getIdle();
-    gui::inst()->setScale(pCharacter, mTouchGrid.width * 2);
-    
-    ui_deco::OBJECT objActor(-1, pCharacter, ui_deco::SIDE_BOTTOM, getRandValue(400));
-    ui_deco::inst()->addObjectBottom(objActor);
     //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
     Vec2 posMainLayer = gui::inst()->getCenter();
@@ -922,6 +900,7 @@ void MainScene::buyCallback(Ref* pSender) {
 	if (err != error_success) {
 		alert(err);
 	} else {
+        logics::hInst->saveActor();
 		closePopup();
 		updateState(true);
 	}

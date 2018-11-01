@@ -14,6 +14,8 @@ void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebug
     mBottomColor1 = Color4F::WHITE;
     mBottomColor2 = Color4F::WHITE;
     
+    mTouchPointSprite = NULL;
+    
     mDebugModeBottom = isDebugModeBottom;
     mDebugModeWall = isDebugModeWall;
     
@@ -259,7 +261,9 @@ Color4F ui_deco::getDarkColor(Color4F color){
 
 void ui_deco::addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &vec){
     obj.sprite->setAnchorPoint(Vec2(1,0));
-    obj.sprite->setPosition(posVec[obj.idx]);
+    Vec2 pos = posVec[obj.idx];
+    pos.y -= mBottomGridSize.height / 2;
+    obj.sprite->setPosition(pos);
     mLayout[LAYER_OBJECT]->addChild(obj.sprite, obj.idx);
     vec.push_back(obj);
 }
@@ -267,9 +271,6 @@ void ui_deco::addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &ve
 void ui_deco::touchBegan(Vec2 pos){
     mTouchStart = pos;
     Vec2 nodePosition = mMainLayoput->convertToNodeSpace(mTouchStart);
-    
-    mTouchPointLabel = Label::create();
-    mTouchPointLabel->setString("x");
     
     bool isTouched = false;
     //bottom
@@ -306,8 +307,9 @@ void ui_deco::touchBegan(Vec2 pos){
         }
     }
     if(isTouched){
-        mTouchPointLabel->setPosition(getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).sprite->getPosition());
-        mMainLayoput->addChild(mTouchPointLabel);
+        mTouchPointSprite = createClone(getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).sprite);
+        
+        mMainLayoput->addChild(mTouchPointSprite);
         mTouchedInfo.firstTouchTime = getNow();
     }
     
@@ -317,7 +319,10 @@ void ui_deco::touchEnded(Vec2 pos){
     if(p == NULL)
         return;
     
-    mMainLayoput->removeChild(mTouchPointLabel);
+    if(mTouchPointSprite){
+        mMainLayoput->removeChild(mTouchPointSprite);
+        mTouchPointSprite = NULL;
+    }
     
     //flip
     if(mTouchedInfoLast.side == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
@@ -337,7 +342,9 @@ void ui_deco::touchEnded(Vec2 pos){
             Rect rect = Rect(vec->at(n), getGridSize(mTouchedInfo));
             
             if(rect.containsPoint(p->getPosition())){
-                p->setPosition(vec->at(n));
+                Vec2 pos = vec->at(n);
+                pos.y -= mBottomGridSize.height / 2;
+                p->setPosition(pos);
                 p->setLocalZOrder(n);
                 getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).idx = n;
                 break;
@@ -371,10 +378,9 @@ void ui_deco::touchMoved(Vec2 pos){
         Rect rect = Rect(vec->at(n), getGridSize(mTouchedInfo));
         
         if(rect.containsPoint(p->getPosition())){
-            mTouchPointLabel->setPosition(vec->at(n));
-            
-            //p->setPosition(vec->at(n));
-            //p->setLocalZOrder(n);
+            Vec2 pos = vec->at(n);
+            pos.y -= mBottomGridSize.height / 2;
+            mTouchPointSprite->setPosition(pos);
             isFind = true;
             break;
         }
@@ -441,4 +447,14 @@ string ui_deco::getColorJson(){
     string sz = bufferJson.GetString();
     
     return sz;
+}
+
+Sprite * ui_deco::createClone(Sprite * p){
+    auto sprite = Sprite::createWithTexture(p->getTexture());
+    sprite->setAnchorPoint(p->getAnchorPoint());
+    sprite->setFlippedX(p->isFlippedX());
+    sprite->setScale(p->getScale());
+    sprite->setPosition(p->getPosition());
+    sprite->setOpacity(64);
+    return sprite;
 }

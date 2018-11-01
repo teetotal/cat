@@ -220,9 +220,12 @@ private:
     
     //touch
     Vec2 mTouchStart;
-    Label * mTouchPointLabel;
+    //Label * mTouchPointLabel;
+    Sprite * mTouchPointSprite;
     
     TOUCHED_INFO mTouchedInfoLast;
+    
+    Sprite * createClone(Sprite * p);
     
     Sprite * getSprite(TOUCHED_INFO &p){
         switch(p.side){

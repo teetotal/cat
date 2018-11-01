@@ -93,13 +93,11 @@ bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeC
 	}
 	log("init logics Done!!!!!!!!!!!!!!!!!!!!!!!");
     
-    mIsRunThread = true;
-    mThread = new thread(threadRun);
-    
 	return true;
 }
 void logics::run(){
-    
+    mIsRunThread = true;
+    mThread = new thread(threadRun);
 }
 /* private initialize */
 bool logics::initActor(bool isFarmingDataLoad)

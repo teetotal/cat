@@ -133,6 +133,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
 // This function will be called when the app is inactive. Note, when receiving a phone call it is invoked.
 void AppDelegate::applicationDidEnterBackground() {
+    logics::hInst->saveActor();
     Director::getInstance()->stopAnimation();
 
 #if USE_AUDIO_ENGINE
