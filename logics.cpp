@@ -1975,15 +1975,22 @@ void logics::saveActor() {
     string szBottomJson = ui_deco::inst()->getBottomJson();
     string szColorsJson = ui_deco::inst()->getColorJson();
     
-    sprintf(bufActor
-            , "UPDATE actor SET wallLeft='%s', wallRight='%s', bottom='%s', colors='%s' WHERE idx = 1;"
-            , szWallLeftJson.c_str()
-            , szWallRightJson.c_str()
-            , szBottomJson.c_str()
-            , szColorsJson.c_str()
-            );
+    rc = Sql::inst()->exec("UPDATE actor SET wallLeft='"+ szWallLeftJson +"' WHERE idx = 1;");
+    if (rc != 0) {
+        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
+    }
     
-    rc = Sql::inst()->exec(bufActor);
+    rc = Sql::inst()->exec("UPDATE actor SET wallRight='"+ szWallRightJson +"' WHERE idx = 1;");
+    if (rc != 0) {
+        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
+    }
+    
+    rc = Sql::inst()->exec("UPDATE actor SET bottom='"+ szBottomJson +"' WHERE idx = 1;");
+    if (rc != 0) {
+        CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
+    }
+    
+    rc = Sql::inst()->exec("UPDATE actor SET colors='" + szColorsJson + "' WHERE idx = 1;");
     if (rc != 0) {
         CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
     }
