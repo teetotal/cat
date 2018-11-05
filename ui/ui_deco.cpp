@@ -260,9 +260,16 @@ Color4F ui_deco::getDarkColor(Color4F color){
 }
 
 void ui_deco::addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &vec){
-    obj.sprite->setAnchorPoint(Vec2(1,0));
-    Vec2 pos = posVec[obj.idx];
-    pos.y -= mBottomGridSize.height / 2;
+    switch(obj.side){
+        case SIDE_LEFT:
+            obj.sprite->setAnchorPoint(Vec2(0,0));
+            break;
+        default:
+            obj.sprite->setAnchorPoint(Vec2(1,0));
+            break;
+    }
+    
+    Vec2 pos = getAdjustedPos(posVec[obj.idx], obj.side);
     obj.sprite->setPosition(pos);
     mLayout[LAYER_OBJECT]->addChild(obj.sprite, obj.idx);
     vec.push_back(obj);
@@ -325,7 +332,7 @@ void ui_deco::touchEnded(Vec2 pos){
     }
     
     //flip
-    if(mTouchedInfoLast.side == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
+    if(SIDE_BOTTOM == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
         bool currentFlipped = p->isFlippedX();
         p->setFlippedX(currentFlipped ? false : true);
         if(p->isFlippedX()){
@@ -339,11 +346,10 @@ void ui_deco::touchEnded(Vec2 pos){
             return;
         
         for(int n=0; n< vec->size(); n++){
-            Rect rect = Rect(vec->at(n), getGridSize(mTouchedInfo));
+            Rect rect = getPosRect(getGridSize(mTouchedInfo), vec->at(n));
             
             if(rect.containsPoint(p->getPosition())){
-                Vec2 pos = vec->at(n);
-                pos.y -= mBottomGridSize.height / 2;
+                Vec2 pos = getAdjustedPos(vec->at(n), mTouchedInfo.side);
                 p->setPosition(pos);
                 p->setLocalZOrder(n);
                 getSpriteVec(mTouchedInfo)->at(mTouchedInfo.idx).idx = n;
@@ -375,11 +381,10 @@ void ui_deco::touchMoved(Vec2 pos){
     
     bool isFind=false;
     for(int n=0; n< vec->size(); n++){
-        Rect rect = Rect(vec->at(n), getGridSize(mTouchedInfo));
+        Rect rect = getPosRect(getGridSize(mTouchedInfo), vec->at(n));
         
         if(rect.containsPoint(p->getPosition())){
-            Vec2 pos = vec->at(n);
-            pos.y -= mBottomGridSize.height / 2;
+            Vec2 pos = getAdjustedPos(vec->at(n), mTouchedInfo.side);
             mTouchPointSprite->setPosition(pos);
             isFind = true;
             break;
@@ -457,4 +462,30 @@ Sprite * ui_deco::createClone(Sprite * p){
     sprite->setPosition(p->getPosition());
     sprite->setOpacity(64);
     return sprite;
+}
+
+Vec2 ui_deco::getAdjustedPos(Vec2 pos, SIDE side){
+    Vec2 p;
+    switch(side){
+        case SIDE_BOTTOM:
+            p.y = pos.y - mBottomGridSize.height / 2;
+            p.x = pos.x + mBottomGridSize.width / 2;
+            break;
+        case SIDE_LEFT:
+            p.y = pos.y - mWallGridSize.height /2;
+            p.x = pos.x - mWallGridSize.width /2;
+            break;
+        default:
+            p = pos;
+            break;
+    }
+    return p;
+}
+
+Rect ui_deco::getPosRect(Size gridSize, Vec2 posStart){
+    Vec2 pos = posStart;
+    pos.x -= gridSize.width / 2;
+    pos.y -= gridSize.height / 2;
+    Rect rect = Rect(pos, gridSize);
+    return rect;
 }

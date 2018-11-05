@@ -158,6 +158,10 @@ public:
         float fH =  mMainLayoput->getContentSize().height / (float)mWallDivCnt;
         return Size(gui::inst()->getTanLen(fH, mDegrees), fH);
     };
+    //자석기능
+    Vec2 getAdjustedPos(Vec2 pos, SIDE side);
+    //위치 rect
+    Rect getPosRect(Size gridSize, Vec2 posStart);
     
     float mDegrees;
     int mBottomDivCnt, mDrawBottomDivCnt, mWallDivCnt;
