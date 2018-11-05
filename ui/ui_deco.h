@@ -75,7 +75,7 @@ public:
         drawGuidLine();
     };
     //바닥 좌표, 타일
-    void addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2);
+    void addBottom(int posDiv, int drawDiv, Color4F color1 = Color4F::BLACK, Color4F color2 = Color4F::GRAY);
     //벽
     void addWall(int div, Color4F color1, Color4F color2);
     //벽

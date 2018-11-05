@@ -159,12 +159,13 @@ bool MainScene::init()
    
     return true;
 }
-bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
+int MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
+    int ret = 0;
     if(sz){
         rapidjson::Document d;
         d.Parse(sz);
         if (d.HasParseError())
-            return false;
+            return -1;
         
         for (rapidjson::SizeType i = 0; i < d.Size(); i++)
         {
@@ -188,11 +189,11 @@ bool MainScene::initDecoObject(const char * sz, ui_deco::SIDE side){
             
             ui_deco::OBJECT obj(id, sprite, side, idx);
             ui_deco::inst()->addObject(obj);
-            
+            ret ++;
         }
     }
     
-    return true;
+    return ret;
 }
 
 bool MainScene::initDeco() {
@@ -230,7 +231,7 @@ bool MainScene::initDeco() {
         }
         
         ui_deco::inst()->addWall(5, colors[0], colors[1]);
-        ui_deco::inst()->addBottom(_div, _div /*8*/, colors[2], colors[3]);
+        ui_deco::inst()->addBottom(_div, _div / 5, colors[2], colors[3]);
         ui_deco::inst()->drawGuidLine();
         mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
         mInteriorScale = mTouchGrid.width / Sprite::create("home/00.png")->getContentSize().width;
@@ -241,9 +242,15 @@ bool MainScene::initDeco() {
         sz = (const char*)sqlite3_column_text(stmt, idx++); //wallRight
         initDecoObject(sz, ui_deco::SIDE_RIGHT);
         sz = (const char*)sqlite3_column_text(stmt, idx++); //bottom
-        initDecoObject(sz, ui_deco::SIDE_BOTTOM);
+        if(initDecoObject(sz, ui_deco::SIDE_BOTTOM) <= 0){
+            auto sprite = getIdle();
+            sprite->setAnchorPoint(Vec2(1, 0));
+            gui::inst()->setScale(sprite, mTouchGrid.width * 2);
+            
+            ui_deco::OBJECT obj(-1, sprite, ui_deco::SIDE_BOTTOM, ui_deco::inst()->getDefaultBottomIdx());
+            ui_deco::inst()->addObject(obj);
+        }
     }
-    
     //-------------------------------------------------
     //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
     
