@@ -272,6 +272,7 @@ void ui_deco::addObject(OBJECT &obj, POSITION_VECTOR &posVec, vector<OBJECT> &ve
     Vec2 pos = getAdjustedPos(posVec[obj.idx], obj.side);
     obj.sprite->setPosition(pos);
     mLayout[LAYER_OBJECT]->addChild(obj.sprite, obj.idx);
+    obj.uniqueVectorId = (int)vec.size();
     vec.push_back(obj);
 }
 
@@ -321,10 +322,33 @@ void ui_deco::touchBegan(Vec2 pos){
     }
     
 }
-void ui_deco::touchEnded(Vec2 pos){
-    Sprite * p = getSprite(mTouchedInfo);
+void ui_deco::removeLastObject() {
+    vector<OBJECT> * vec = getSpriteVec(mTouchedInfoLast);
+    auto sprite = vec->at(mTouchedInfoLast.idx).sprite;
+    //sprite->runAction(MoveBy::create(10, Vec2(100, 0)));
+    mLayout[LAYER_OBJECT]->removeChild(sprite);
+    vec->erase(vec->begin() + mTouchedInfoLast.idx);
+}
+
+void ui_deco::setFlipLastObject(){
+    Sprite * p = getSprite(mTouchedInfoLast);
     if(p == NULL)
         return;
+    bool currentFlipped = p->isFlippedX();
+    p->setFlippedX(currentFlipped ? false : true);
+    if(p->isFlippedX()){
+        p->setAnchorPoint(Vec2(0, 0));
+    }else {
+        p->setAnchorPoint(Vec2(1, 0));
+    }
+}
+//더블 터치면 true
+bool ui_deco::touchEnded(Vec2 pos){
+    bool isFlipped = false;
+    
+    Sprite * p = getSprite(mTouchedInfo);
+    if(p == NULL)
+        return isFlipped;
     
     if(mTouchPointSprite){
         mMainLayoput->removeChild(mTouchPointSprite);
@@ -333,17 +357,11 @@ void ui_deco::touchEnded(Vec2 pos){
     
     //flip
     if(SIDE_BOTTOM == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
-        bool currentFlipped = p->isFlippedX();
-        p->setFlippedX(currentFlipped ? false : true);
-        if(p->isFlippedX()){
-            p->setAnchorPoint(Vec2(0, 0));
-        }else {
-            p->setAnchorPoint(Vec2(1, 0));
-        }
+        isFlipped = true;
     }else{
         POSITION_VECTOR * vec = getPosVec(mTouchedInfo);
         if(vec == NULL)
-            return;
+            return isFlipped;
         
         for(int n=0; n< vec->size(); n++){
             Rect rect = getPosRect(getGridSize(mTouchedInfo), vec->at(n));
@@ -359,6 +377,8 @@ void ui_deco::touchEnded(Vec2 pos){
     }
     mTouchedInfoLast.copy(&mTouchedInfo);
     mTouchedInfo.side = SIDE_MAX;
+    
+    return isFlipped;
 }
 void ui_deco::touchMoved(Vec2 pos){
     if(mTouchStart.x == pos.x && mTouchStart.y == pos.y)

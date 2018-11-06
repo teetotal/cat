@@ -255,6 +255,11 @@ private:
     vector<Touch*> mTouchVec;
     //아이템 적용
     void applyInventory(Ref* pSender, int itemId);
+    //아이템 가방
+    void backToInventory(Ref* pSender);
+    //아이템 회전
+    void flip(Ref* pSender);
+    
     int getValidTouchCnt(){
         int ret = 0;
         for(int n =0; n< mTouchVec.size(); n++){

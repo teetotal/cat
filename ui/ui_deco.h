@@ -36,6 +36,7 @@ public:
     };
     
     struct OBJECT {
+        int uniqueVectorId; //sprite 벡터내 유일한 키 값. 벡터 idx
         int id; // for item id
         Sprite * sprite;
         SIDE side;
@@ -145,7 +146,7 @@ public:
     } mTouchedInfo;
     
     void touchBegan(Vec2 pos);
-    void touchEnded(Vec2 pos);
+    bool touchEnded(Vec2 pos); //더블 터치면 true
     void touchMoved(Vec2 pos);
     
     
@@ -157,6 +158,12 @@ public:
     Size getWallGridSize(){
         float fH =  mMainLayoput->getContentSize().height / (float)mWallDivCnt;
         return Size(gui::inst()->getTanLen(fH, mDegrees), fH);
+    };
+    //set flip
+    void setFlipLastObject();
+    void removeLastObject();
+    int getLastObjectItemId(){
+        return getSpriteVec(mTouchedInfoLast)->at(mTouchedInfoLast.idx).id;
     };
     //자석기능
     Vec2 getAdjustedPos(Vec2 pos, SIDE side);

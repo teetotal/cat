@@ -545,6 +545,7 @@ ScrollView * gui::addScrollView(Vec2 p1, Vec2 p2, Size size, Size grid, Size ori
         d = ScrollView::Direction::VERTICAL;
   
     sv->setDirection(d);
+//    sv->setPropagateTouchEvents(true);
 	if (parent != NULL)
 		parent->addChild(sv);
 

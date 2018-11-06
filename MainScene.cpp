@@ -989,23 +989,41 @@ void MainScene::showBuy(inventoryType type) {
 	closePopup();
 	layer = gui::inst()->addPopup(layerGray, this, size, "", ui_color::inst()->getColor4B(2, 0));
 	layerGray->setLocalZOrder(ZORDER_POPUP);
+    showBuyCategory(this, type);
+    
 	gui::inst()->addTextButtonAutoDimension(8, 0, "CLOSE", layer
 		, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_CLOSEPOPUP)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
 	int nMenuIdx = 0;
 	//tab
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
 //    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
-    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Bottom", inventoryType_bottom));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Exterior", inventoryType_exterior));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
-	gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
-	
+    
+    //scrollview 가 먼저 눌리는건 Menu의 localZorder값이 낮아서 그럼. 보튼 생성 함수를 고쳐야 함.
+    auto item1 = MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall));
+    auto item2 = MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_bottom));
+    auto item3 = MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior));
+    auto item4 = MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior));
+    auto item5 = MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn));
+    auto item6 = MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_HP));
+    
+    auto pMenu = Menu::create(item1, item2, item3, item4,item5, item6,NULL);
+    pMenu->alignItemsHorizontally();
+    Vec2 pos = gui::inst()->getPointVec2(4, 0, ALIGNMENT_CENTER, layer->getContentSize(), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+    pMenu->setPosition(pos);
+    pMenu->setLocalZOrder(100);
+    layer->addChild(pMenu);
+    
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Bottom", inventoryType_bottom));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Exterior", inventoryType_exterior));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
+//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
+//
 	
 	mQuantityLayout = gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
 		, wstring_to_utf8(L"구매")
@@ -1018,7 +1036,7 @@ void MainScene::showBuy(inventoryType type) {
 	time->setAnchorPoint(Vec2(0, 0));
 	time->setPosition(Vec2(margin.width, 0));
 	
-	showBuyCategory(this, type);
+	
 }
 
 void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
@@ -1612,6 +1630,8 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
         auto img = Sprite::create(getItemImg(item.id));
         ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_LEFT, ui_deco::inst()->getDefaultLeftIdx());
         ui_deco::inst()->addObject(obj);
+    } else {
+        isPop = false;
     }
     
     if(isPop){
@@ -1640,7 +1660,10 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
         mTouchStart = mTouchVec[0]->getLocation();
         ui_deco::inst()->touchBegan(mTouchVec[0]->getLocation());
     }
-
+    
+    if(this->getChildByTag(1000))
+        this->removeChildByTag(1000);
+    
     mTouchGap = -1;
     return;
 }
@@ -1660,8 +1683,19 @@ void MainScene::onTouchesCancelled(const std::vector<Touch*>& touches, Event *ev
 }
 void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
 {
-    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX){
-        ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation());
+    if(ui_deco::inst()->mTouchedInfo.side != ui_deco::SIDE_MAX
+       && ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation())
+       && ui_deco::inst()->getLastObjectItemId() > 0
+       ){
+       
+        auto item1 = MenuItemFont::create("가방", CC_CALLBACK_1(MainScene::backToInventory, this));
+        auto item2 = MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this));
+        auto pMenu = Menu::create(item1, item2, NULL);
+        pMenu->alignItemsVertically();
+        Vec2 pos = mTouchVec[0]->getLocation();
+        pMenu->setPosition(pos);
+        pMenu->setTag(1000);
+        this->addChild(pMenu);
     }
     
     Touch* touch;
@@ -1676,6 +1710,14 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
             mTouchVec[touchIndex] = NULL;
     }
     
+//    Vec2 locationInNode = event->getCurrentTarget()->convertToNodeSpace(touch->getLocation());
+//    Size s = event->getCurrentTarget()->getContentSize();
+//    Rect rect = Rect(0,0, s.width, s.height);
+//
+//    if (rect.containsPoint(locationInNode)) {
+//        printf("listener1");
+//        return;
+//    }
 }
 void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
 {
@@ -1734,4 +1776,24 @@ void MainScene::onTouchesMoved(const std::vector<Touch*>& touches, Event *event)
        
         mMainLayoput->setScale(ratio);
     }
+}
+
+void MainScene::backToInventory(Ref* pSender){
+    //to inven
+    int itemId = ui_deco::inst()->getLastObjectItemId();
+    if(itemId > 0){
+        logics::hInst->addInventory(itemId, 1);
+        ui_deco::inst()->removeLastObject();
+        if(this->getChildByTag(1000))
+            this->removeChildByTag(1000);
+        
+        updateState(true);
+    }
+    
+}
+
+void MainScene::flip(Ref* pSender){
+    ui_deco::inst()->setFlipLastObject();
+    if(this->getChildByTag(1000))
+        this->removeChildByTag(1000);
 }
