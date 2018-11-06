@@ -23,6 +23,8 @@ using namespace cocos2d::ui;
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 90); auto gridSize = Size(3, 5);
 #define ACTION_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size::ZERO; auto nodeSize = Size(178, 70); auto gridSize = Size(3, 4);
 
+#define TAG_DECO_MENU 1000
+
 #define nodeMargin 8
 
 MainScene * MainScene::hInst = NULL;
@@ -858,7 +860,7 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 		time->setPosition(Vec2(margin.width, 0));
 		
 		//수량 추가
-		gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
+		mQuantityLayout = gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
 			, wstring_to_utf8(L"판매")
 			, CC_CALLBACK_1(MainScene::quantityCallback, this, -1)
 			, CC_CALLBACK_1(MainScene::quantityCallback, this, 1)
@@ -1637,6 +1639,7 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
     if(isPop){
         inventoryType category = logics::hInst->getInventoryType(itemId);
         logics::hInst->getActor()->inven.popItem(category, itemId, 1);
+        logics::hInst->saveActor();
     }
 }
 
@@ -1661,8 +1664,7 @@ void MainScene::onTouchesBegan(const std::vector<Touch*>& touches, Event *event)
         ui_deco::inst()->touchBegan(mTouchVec[0]->getLocation());
     }
     
-    if(this->getChildByTag(1000))
-        this->removeChildByTag(1000);
+    removeDecoMenu();
     
     mTouchGap = -1;
     return;
@@ -1687,15 +1689,7 @@ void MainScene::onTouchesEnded(const std::vector<Touch*>& touches, Event *event)
        && ui_deco::inst()->touchEnded(mTouchVec[0]->getLocation())
        && ui_deco::inst()->getLastObjectItemId() > 0
        ){
-       
-        auto item1 = MenuItemFont::create("가방", CC_CALLBACK_1(MainScene::backToInventory, this));
-        auto item2 = MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this));
-        auto pMenu = Menu::create(item1, item2, NULL);
-        pMenu->alignItemsVertically();
-        Vec2 pos = mTouchVec[0]->getLocation();
-        pMenu->setPosition(pos);
-        pMenu->setTag(1000);
-        this->addChild(pMenu);
+        createDecoMenu(mTouchVec[0]->getLocation());
     }
     
     Touch* touch;
@@ -1784,9 +1778,7 @@ void MainScene::backToInventory(Ref* pSender){
     if(itemId > 0){
         logics::hInst->addInventory(itemId, 1);
         ui_deco::inst()->removeLastObject();
-        if(this->getChildByTag(1000))
-            this->removeChildByTag(1000);
-        
+        removeDecoMenu();
         updateState(true);
     }
     
@@ -1794,6 +1786,20 @@ void MainScene::backToInventory(Ref* pSender){
 
 void MainScene::flip(Ref* pSender){
     ui_deco::inst()->setFlipLastObject();
-    if(this->getChildByTag(1000))
-        this->removeChildByTag(1000);
+    removeDecoMenu();
+}
+
+void MainScene::removeDecoMenu() {
+    if(this->getChildByTag(TAG_DECO_MENU))
+        this->removeChildByTag(TAG_DECO_MENU);
+}
+
+void MainScene::createDecoMenu(Vec2 pos) {
+    auto item1 = MenuItemFont::create("가방", CC_CALLBACK_1(MainScene::backToInventory, this));
+    auto item2 = MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this));
+    auto pMenu = Menu::create(item1, item2, NULL);
+    pMenu->alignItemsVertically();
+    pMenu->setPosition(pos);
+    pMenu->setTag(TAG_DECO_MENU);
+    this->addChild(pMenu);
 }

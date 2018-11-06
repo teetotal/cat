@@ -259,6 +259,8 @@ private:
     void backToInventory(Ref* pSender);
     //아이템 회전
     void flip(Ref* pSender);
+    void createDecoMenu(Vec2 pos);
+    void removeDecoMenu();
     
     int getValidTouchCnt(){
         int ret = 0;
