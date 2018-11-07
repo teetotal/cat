@@ -4,18 +4,20 @@
 
 #include "ActionBasic.h"
 #include "SimpleAudioEngine.h"
+#define PLAYTIME 12
+#define TIMING_Y    2
+#define TIMING_X_START 0
+#define TIMING_X_END 9
+#define TIMING_X_BUTTON 7
+#define TIMING_RADIUS 30
+#define TIMING_MAX_TIME 30
+
 
 float animationDelay = 0.1f;
 int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
-float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
-
-#define TIMING_Y    3
-#define TIMING_X_START 0
-#define TIMING_X_END 9
-#define TIMING_X_BUTTON 7
-#define TIMING_RADIUS 50
-#define TIMING_MAX_TIME 15
+//float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
+float step = 100.0f / PLAYTIME * animationDelay;
 
 Scene* ActionBasic::createScene()
 {
@@ -114,8 +116,8 @@ RepeatForever * ActionBasic::getRunningAnimation() {
     
     return RepeatForever::create(Animate::create(animation));
 }
-void ActionBasic::callbackTiming(Ref* pSender){
-    Vec2 center = gui::inst()->getPointVec2(TIMING_X_BUTTON, TIMING_Y);
+void ActionBasic::callbackTiming(Ref* pSender, int idx){
+    Vec2 center = gui::inst()->getPointVec2(TIMING_X_BUTTON, getTouchYPosition(idx));
     float radius = TIMING_RADIUS;
     
     /*
@@ -126,15 +128,21 @@ void ActionBasic::callbackTiming(Ref* pSender){
     
     string sz = "Bad";
     Color3B fontColor = Color3B::RED;
-    if(mTimingRunner && mTimingRunner->getBoundingBox().intersectsCircle(center, radius)){
+    if(mTimingRunner[idx] && mTimingRunner[idx]->getBoundingBox().intersectsCircle(center, radius)){
         sz = "Cool";
         fontColor = Color3B::BLUE;
         addTouchCnt();
+        mTimingRunner[idx]->stopAllActions();
+        mTimingRunner[idx]->runAction(Sequence::create(
+                                                       ScaleBy::create(0.1, 2)
+                                                       , CallFunc::create([=]() { mTimingRunner[idx] = NULL; })
+                                                       , RemoveSelf::create()
+                                                       ,NULL));
     }else{
         addTouchCnt(true);
     }
     
-    gui::inst()->addLabel(TIMING_X_BUTTON, TIMING_Y - 1, sz, this, 0, ALIGNMENT_CENTER, fontColor)
+    gui::inst()->addLabel(TIMING_X_BUTTON, getTouchYPosition(idx) - 1, sz, this, 0, ALIGNMENT_CENTER, fontColor)
     ->runAction(
                 Sequence::create(
                                  ScaleTo::create(0.2, 3)
@@ -149,21 +157,28 @@ void ActionBasic::runAction_timing(_training &t) {
 //    gui::inst()->setScale(pMan, 80);
 //    gui::inst()->addToCenter(pMan, this);
     mActionCnt = 0;
-    mTimingRunner = NULL;
+    mTimingRunner[0] = NULL;
     
-    auto btn = gui::inst()->addSpriteButton(TIMING_X_BUTTON, TIMING_Y, "cat-hand1.png", "cat-hand2.png", this, CC_CALLBACK_1(ActionBasic::callbackTiming, this));
-    gui::inst()->setScale(btn, TIMING_RADIUS * 2);
+    for(int n=0; n < TIMING_RUNNER_CNT; n ++){
+        auto btn = gui::inst()->addSpriteButton(TIMING_X_BUTTON, getTouchYPosition(n), "cat-hand1.png", "cat-hand2.png", this, CC_CALLBACK_1(ActionBasic::callbackTiming, this, n));
+        gui::inst()->setScale(btn, TIMING_RADIUS * 2);
+    }
     
     this->schedule([=](float delta) {
-        if(mTimingRunner == NULL){
-            mTimingRunner = this->createRunner();
-            mTimingRunner->runAction(Sequence::create(
-                                          EaseOut::create(
-                                                          MoveTo::create(animationDelay * max(5, getRandValueOverZero(TIMING_MAX_TIME)), Vec2(gui::inst()->getPointVec2(TIMING_X_END, TIMING_Y)))
-                                            , 0.4)
-                                          , RemoveSelf::create()
-                                          , CallFunc::create([=]() { mTimingRunner = NULL; })
-                                          , NULL));
+        for(int n=0; n < TIMING_RUNNER_CNT; n++){
+            if(mTimingRunner[n] == NULL){
+                mTimingRunner[n] = this->createRunner();
+                mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
+                float speed = animationDelay * max(12 - mAction.level, getRandValueOverZero(TIMING_MAX_TIME));
+                mTimingRunner[n]->runAction(
+                        Sequence::create(
+        EaseOut::create(
+            MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))), 0.4)
+                                , RemoveSelf::create()
+                                , CallFunc::create([=]() { mTimingRunner[n] = NULL; })
+                                , NULL)
+                );
+            }
         }
 
         float percent = mLoadingBar->getPercent();
@@ -381,7 +396,7 @@ void ActionBasic::onEnter() {
         case trainingType_play:
         case trainingType_party:
         case trainingType_training:
-            mMaxTouchCnt = nMax / TIMING_MAX_TIME;
+            mMaxTouchCnt = 10;
             sz = logics::hInst->getL10N("ACTION_TIMING");
             break;
         case trainingType_study:
@@ -413,4 +428,8 @@ void ActionBasic::onExitTransitionDidStart() {
 }
 void ActionBasic::onExit() {
 	Scene::onExit();
+}
+
+int ActionBasic::getTouchYPosition(int idx){
+    return TIMING_Y + (idx * 2);
 }

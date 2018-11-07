@@ -8,7 +8,7 @@
 #include "logics.h"
 
 USING_NS_CC;
-
+#define TIMING_RUNNER_CNT 2
 class ActionBasic : public Scene {
 public:
 	static Scene* createScene();
@@ -41,7 +41,8 @@ private:
 	void callbackActionAnimation(int id, int maxTimes);
 
 	void callback(Ref* pSender, SCENECODE type);
-    void callbackTiming(Ref* pSender);
+    void callbackTiming(Ref* pSender, int idx);
+    int getTouchYPosition(int idx);
 	void closeScene() {
 		Director::getInstance()->popScene();
 	};
@@ -50,7 +51,7 @@ private:
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
 	LoadingBar * mLoadingBar;
 	Layout * mLayer;
-    Sprite * mTimingRunner;
+    Sprite * mTimingRunner[TIMING_RUNNER_CNT];
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
 	_training mAction;
 

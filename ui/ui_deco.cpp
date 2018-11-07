@@ -356,7 +356,7 @@ bool ui_deco::touchEnded(Vec2 pos){
     }
     
     //flip
-    if(SIDE_BOTTOM == mTouchedInfo.side && mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
+    if(mTouchedInfoLast.idx == mTouchedInfo.idx && (getNow() - mTouchedInfoLast.firstTouchTime) < 1){
         isFlipped = true;
     }else{
         POSITION_VECTOR * vec = getPosVec(mTouchedInfo);

@@ -165,6 +165,9 @@ public:
     int getLastObjectItemId(){
         return getSpriteVec(mTouchedInfoLast)->at(mTouchedInfoLast.idx).id;
     };
+    SIDE getLastObjectSide(){
+        return getSpriteVec(mTouchedInfoLast)->at(mTouchedInfoLast.idx).side;
+    };
     //자석기능
     Vec2 getAdjustedPos(Vec2 pos, SIDE side);
     //위치 rect

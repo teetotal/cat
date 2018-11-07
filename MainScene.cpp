@@ -1795,9 +1795,17 @@ void MainScene::removeDecoMenu() {
 }
 
 void MainScene::createDecoMenu(Vec2 pos) {
+    auto pMenu = Menu::create();
     auto item1 = MenuItemFont::create("가방", CC_CALLBACK_1(MainScene::backToInventory, this));
-    auto item2 = MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this));
-    auto pMenu = Menu::create(item1, item2, NULL);
+    pMenu->addChild(item1);
+    switch(ui_deco::inst()->getLastObjectSide()){
+        case ui_deco::SIDE_BOTTOM:
+            pMenu->addChild(MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this)));
+            break;
+        default:
+            break;
+    }
+    
     pMenu->alignItemsVertically();
     pMenu->setPosition(pos);
     pMenu->setTag(TAG_DECO_MENU);
