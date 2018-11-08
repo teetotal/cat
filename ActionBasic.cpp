@@ -4,13 +4,13 @@
 
 #include "ActionBasic.h"
 #include "SimpleAudioEngine.h"
-#define PLAYTIME 12
+#define PLAYTIME 20.00
 #define TIMING_Y    2
 #define TIMING_X_START 0
 #define TIMING_X_END 9
 #define TIMING_X_BUTTON 7
 #define TIMING_RADIUS 30
-#define TIMING_MAX_TIME 30
+#define TIMING_MAX_TIME 200
 
 
 float animationDelay = 0.1f;
@@ -34,11 +34,15 @@ bool ActionBasic::init()
 	bg->setContentSize(Director::getInstance()->getVisibleSize());
 	gui::inst()->addToCenter(bg, this);
 
-	mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
-	mTitle = gui::inst()->addLabel(4, 0, " ", this);
-	mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
-	mRewardInfo = gui::inst()->addLabel(4, 1, " ", this);
-	mTouchInfo = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
+//    mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
+    mTime = PLAYTIME;
+    mTimeLabel = gui::inst()->addLabel(4, 1, " ", this, 24, ALIGNMENT_CENTER, Color3B::BLUE);
+    setTime(0);
+	mTitle = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
+	//mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
+	mRewardInfo = gui::inst()->addLabel(0, 6, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
+    mTouchInfo = gui::inst()->addLabel(4, 0, "Score: 0", this, 32, ALIGNMENT_CENTER, Color3B::BLACK);
+    gui::inst()->addLabel(7, 0, "High Score: 25", this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
     
 	return true;
 }
@@ -126,10 +130,10 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
      this->addChild(draw);
     */
     
-    string sz = "Bad";
+    string sz = "-1";
     Color3B fontColor = Color3B::RED;
     if(mTimingRunner[idx] && mTimingRunner[idx]->getBoundingBox().intersectsCircle(center, radius)){
-        sz = "Cool";
+        sz = "+1";
         fontColor = Color3B::BLUE;
         addTouchCnt();
         mTimingRunner[idx]->stopAllActions();
@@ -169,11 +173,12 @@ void ActionBasic::runAction_timing(_training &t) {
             if(mTimingRunner[n] == NULL){
                 mTimingRunner[n] = this->createRunner();
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
-                float speed = animationDelay * max(12 - mAction.level, getRandValueOverZero(TIMING_MAX_TIME));
+                float speed1 = (float)max(50, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
+                float speed2 = (float)max(50, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
                 mTimingRunner[n]->runAction(
                         Sequence::create(
-        EaseOut::create(
-            MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))), 0.4)
+                                EaseOut::create(MoveTo::create(speed1, Vec2(gui::inst()->getPointVec2(TIMING_X_END / 2, getTouchYPosition(n)))), 0.2)
+                                , EaseOut::create(MoveTo::create(speed2, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))), 0.2)
                                 , RemoveSelf::create()
                                 , CallFunc::create([=]() { mTimingRunner[n] = NULL; })
                                 , NULL)
@@ -181,11 +186,9 @@ void ActionBasic::runAction_timing(_training &t) {
             }
         }
 
-        float percent = mLoadingBar->getPercent();
-        percent += step;
-        mLoadingBar->setPercent(percent);
+        setTime(animationDelay);
         
-        if (percent >= 100.0f) {
+        if (mTime <= 0) {
             this->unschedule("updateLoadingBar");
 //            pMan->stopAllActions();
             callbackActionAnimation(t.id, mMaxTouchCnt);
@@ -214,11 +217,9 @@ void ActionBasic::runAction_tap(_training &t) {
 
 	this->schedule([=](float delta) {
 		
-		float percent = mLoadingBar->getPercent();
-		percent += step;		
-		mLoadingBar->setPercent(percent);
+		setTime(animationDelay);
 
-		if (percent >= 100.0f) {
+		if (mTime <= 0) {
 			this->unschedule("updateLoadingBar");
 			pMan->stopAllActions();
 			callbackActionAnimation(t.id, mMaxTouchCnt);
@@ -253,12 +254,10 @@ void ActionBasic::runAction_touch(_training &t) {
 			pTouchButton->runAction(MoveTo::create(animationDelay, position));
 		}
 
-		float percent = mLoadingBar->getPercent();
-		percent += step;
+		setTime(animationDelay);
 		mActionCnt++;
-		mLoadingBar->setPercent(percent);
-
-		if (percent >= 100.0f) {
+		
+		if (mTime <= 0) {
 			this->unschedule("updateLoadingBar");
 			//pMan->stopAllActions();
 			callbackActionAnimation(t.id, mMaxTouchCnt);
@@ -335,7 +334,8 @@ void ActionBasic::addTouchCnt(bool isFail) {
         }
 		else
             mActionTouchCnt++;
-        string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
+        //string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
+        string sz = "Score: " + to_string(mActionTouchCnt);
 		mTouchInfo->setString(sz);
 	}
 }
@@ -432,4 +432,20 @@ void ActionBasic::onExit() {
 
 int ActionBasic::getTouchYPosition(int idx){
     return TIMING_Y + (idx * 2);
+}
+
+void ActionBasic::setTime(float diff) {
+    mTime -= diff;
+    if(mTime < 0)
+        mTime = 0;
+    if(mTime < 3.f)
+        mTimeLabel->setColor(Color3B::ORANGE);
+    else
+        mTimeLabel->setColor(Color3B::BLUE);
+    
+    int tmp = mTime * 100;
+    int val = tmp / 100;
+    int remain = tmp % 100;
+    
+    mTimeLabel->setString(to_string(val) + "." + to_string(remain));
 }

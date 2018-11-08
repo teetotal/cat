@@ -48,8 +48,11 @@ private:
 	};
 
 	void addTouchCnt(bool isFail = false);
+    void setTime(float diff);
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
-	LoadingBar * mLoadingBar;
+//    LoadingBar * mLoadingBar;
+    Label * mTimeLabel;
+    float mTime;
 	Layout * mLayer;
     Sprite * mTimingRunner[TIMING_RUNNER_CNT];
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
