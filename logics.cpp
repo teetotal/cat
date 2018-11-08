@@ -350,6 +350,7 @@ bool logics::initTraining(rapidjson::Value & t)
 		string sz = t[rapidjson::SizeType(i)]["name"].GetString();
 		p.name = utf8_to_utf16(sz);
 		p.type = (trainingType)t[rapidjson::SizeType(i)]["type"].GetInt();
+        p.grade = (trainingType)t[rapidjson::SizeType(i)]["grade"].GetInt();
 		p.level = t[rapidjson::SizeType(i)]["level"].GetInt();
 
 		p.reward.strength = t[rapidjson::SizeType(i)]["reward"]["strength"].GetInt();
@@ -1932,6 +1933,16 @@ void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inv
 
 		v.PushBack(objValue, allocator);
 	}
+}
+
+int logics::getHighScore(int id) {
+    if(mTrainingHighScore.find(id) == mTrainingHighScore.end())
+        return  0;
+    else
+        return mTrainingHighScore[id];
+}
+void logics::setHighScore(int id, int score) {
+    mTrainingHighScore[id] = score;
 }
 
 void logics::saveActor() {

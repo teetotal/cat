@@ -8,7 +8,7 @@
 #include "logics.h"
 
 USING_NS_CC;
-#define TIMING_RUNNER_CNT 2
+#define TIMING_RUNNER_CNT 3
 class ActionBasic : public Scene {
 public:
 	static Scene* createScene();
@@ -49,9 +49,12 @@ private:
 
 	void addTouchCnt(bool isFail = false);
     void setTime(float diff);
+    void setHighScoreLabel(int n) {
+        mHighScore->setString("High Score: " + to_string(n));
+    };
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
 //    LoadingBar * mLoadingBar;
-    Label * mTimeLabel;
+    Label * mTimeLabel, * mHighScore;
     float mTime;
 	Layout * mLayer;
     Sprite * mTimingRunner[TIMING_RUNNER_CNT];

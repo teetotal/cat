@@ -233,6 +233,7 @@ struct _training {
 	int id;
 	wstring name;
 	trainingType type;
+    int grade;      //type별 수준
 	int level;      //시작 레벨
 	time_t start;	//시작
 	int count;		//등장 횟수
@@ -360,6 +361,7 @@ struct _raceCurrent
 
 typedef map<int, _item> __items;
 typedef map<int, _training, std::greater<int>> __training;
+typedef map<int, int> __highScore;
 typedef map<int, _race> raceMeta;
 
 class logics 
@@ -481,6 +483,8 @@ public:
 	//Training 
 	errorCode isValidTraining(int id);
 	errorCode runTraining(int id, itemsVector &rewards, _property * rewardProperty, int &point, trainingType &type, float preservationRatio = 0.f);
+    int getHighScore(int id);
+    void setHighScore(int id, int score);
 
 	//Trade
 	errorCode runTrade(bool isBuy, int id, int quantity);
@@ -579,6 +583,7 @@ private:
 
     __items mItems;		//items
 	__training mTraining;//성장
+    __highScore mTrainingHighScore; // 액션 하이스코어
 
 	//Actor
 	_actor* mActor;

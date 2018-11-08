@@ -4,13 +4,13 @@
 
 #include "ActionBasic.h"
 #include "SimpleAudioEngine.h"
-#define PLAYTIME 20.00
+#define PLAYTIME 25.00
 #define TIMING_Y    2
 #define TIMING_X_START 0
 #define TIMING_X_END 9
 #define TIMING_X_BUTTON 7
 #define TIMING_RADIUS 30
-#define TIMING_MAX_TIME 200
+#define TIMING_MAX_TIME 150
 
 
 float animationDelay = 0.1f;
@@ -18,6 +18,20 @@ int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
 //float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 float step = 100.0f / PLAYTIME * animationDelay;
+int _timingInfo[10][3] =  //runner, distance, difficult
+{{0, 0, 0}
+    , {1, 2, 1}
+    , {1, 3, 2}
+    , {1, 5, 3}
+    
+    , {2, 2, 1}
+    , {2, 3, 2}
+    , {2, 5, 3}
+    
+    , {3, 2, 1}
+    , {3, 3, 2}
+    , {3, 5, 3}
+};
 
 Scene* ActionBasic::createScene()
 {
@@ -42,7 +56,6 @@ bool ActionBasic::init()
 	//mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
 	mRewardInfo = gui::inst()->addLabel(0, 6, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
     mTouchInfo = gui::inst()->addLabel(4, 0, "Score: 0", this, 32, ALIGNMENT_CENTER, Color3B::BLACK);
-    gui::inst()->addLabel(7, 0, "High Score: 25", this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
     
 	return true;
 }
@@ -55,6 +68,8 @@ bool ActionBasic::runAction(int id) {
 	if (logics::hInst->isValidTraining(id) != error_success)
 		return false;
 
+    mHighScore = gui::inst()->addLabel(7, 0, " ", this, 18, ALIGNMENT_CENTER, Color3B::GREEN);
+    setHighScoreLabel(logics::hInst->getHighScore(id));
 	//start touch count
 	mActionCnt = 0;
 	mActionTouchCnt = 0;
@@ -157,28 +172,33 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
 }
 void ActionBasic::runAction_timing(_training &t) {
     
-//    Sprite * pMan = createAnimate(t);
-//    gui::inst()->setScale(pMan, 80);
-//    gui::inst()->addToCenter(pMan, this);
+    int nRunner = _timingInfo[t.grade][0];
+    int nDistance = _timingInfo[t.grade][1];
+    int nDifficult = _timingInfo[t.grade][2];
+    
     mActionCnt = 0;
     mTimingRunner[0] = NULL;
     
-    for(int n=0; n < TIMING_RUNNER_CNT; n ++){
+    for(int n=0; n < nRunner; n ++){
         auto btn = gui::inst()->addSpriteButton(TIMING_X_BUTTON, getTouchYPosition(n), "cat-hand1.png", "cat-hand2.png", this, CC_CALLBACK_1(ActionBasic::callbackTiming, this, n));
         gui::inst()->setScale(btn, TIMING_RADIUS * 2);
     }
     
     this->schedule([=](float delta) {
-        for(int n=0; n < TIMING_RUNNER_CNT; n++){
+        for(int n=0; n < nRunner; n++){
             if(mTimingRunner[n] == NULL){
                 mTimingRunner[n] = this->createRunner();
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
-                float speed1 = (float)max(50, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
-                float speed2 = (float)max(50, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
+                float speed1 = (float)max(30, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
+                float speed2 = (float)max(70, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
                 mTimingRunner[n]->runAction(
                         Sequence::create(
-                                EaseOut::create(MoveTo::create(speed1, Vec2(gui::inst()->getPointVec2(TIMING_X_END / 2, getTouchYPosition(n)))), 0.2)
-                                , EaseOut::create(MoveTo::create(speed2, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))), 0.2)
+                                //EaseOut::create(
+                                                MoveTo::create(speed1, Vec2(gui::inst()->getPointVec2(nDistance, getTouchYPosition(n))))
+                                //                , 0.5)
+                                , EaseOut::create(
+                                                  MoveTo::create(speed2, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n))))
+                                                  , 0.3)
                                 , RemoveSelf::create()
                                 , CallFunc::create([=]() { mTimingRunner[n] = NULL; })
                                 , NULL)
@@ -303,6 +323,12 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 		isInventory = true;
 		szResult += "\n" + szRewardsUTF8;
 	}
+    //new score
+    if(logics::hInst->getHighScore(id) < mActionTouchCnt){
+        logics::hInst->setHighScore(id, mActionTouchCnt);
+        szResult = "New Score " + to_string(mActionTouchCnt)+ "\n" + szResult;
+        setHighScoreLabel(mActionTouchCnt);
+    }
 	switch (err) {
 	case error_success:
 	case error_levelup:
@@ -310,8 +336,8 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 		//updateState(isInventory);
 		gui::inst()->addLabel(4, 3, szResult, this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(
 			Sequence::create(
-				EaseIn::create(ScaleBy::create(1, 3), 0.4)
-				, EaseOut::create(ScaleBy::create(1, 1 / 3), 0.4)
+				EaseIn::create(ScaleBy::create(1, 2), 0.4)
+				, EaseOut::create(ScaleBy::create(1, 1 / 2), 0.4)
 				, CallFunc::create([this]() { closeScene();	})
 				, NULL
 			)
@@ -431,6 +457,26 @@ void ActionBasic::onExit() {
 }
 
 int ActionBasic::getTouchYPosition(int idx){
+    int nRunner = _timingInfo[mAction.grade][0];
+    switch(nRunner){
+        case 1:
+            return 4;
+        case 2: //3,5
+            return idx == 0 ? 3: 5;
+        case 3: //2,4,6
+            switch(idx){
+                case 0:
+                    return 2;
+                case 1:
+                    return 4;
+                case 2:
+                    return 6;
+                    
+            }
+        default:
+            return 4;
+    }
+    
     return TIMING_Y + (idx * 2);
 }
 
