@@ -192,26 +192,38 @@ void ActionBasic::runAction_timing(_training &t) {
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
                 
                 Vector<FiniteTimeAction *> vec;
-                int nDistance = 0;
-                
                 //CCLOG("-----");
                 for(int i=0; i< nCurveCnt; i++){
                     int val = getRandValue(timePerTry * 100 / nCurveCnt);
                     
                     int minSpeed = 40;
                     if(i == nCurveCnt -1){
-                        nDistance = TIMING_X_END;
+                        float speed = (float)max(minSpeed, val) / 100.f;
+                        vec.pushBack(MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))));
                     }
                     else{
-                        nDistance = curvePoint[i];
+                        
                         minSpeed = minSpeed / 2;
+                        float speed = (float)max(minSpeed, val) / 100.f;
+                        if(i == 0)
+                        {
+                            vec.pushBack(
+                                         EaseOut::create(
+                                                        MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(curvePoint[i], getTouchYPosition(n))))
+                                                        , 0.3)
+                                         );
+                        }else{
+                            vec.pushBack(
+                                         EaseIn::create(
+                                                        MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(curvePoint[i], getTouchYPosition(n))))
+                                                        , 0.3)
+                                         );
+                        }
                         
                     }
                     
-                    float speed = (float)max(minSpeed, val) / 100.f;
                     //CCLOG("%d - %f(%d)", nDistance, speed, val);
                     
-                    vec.pushBack(MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(nDistance, getTouchYPosition(n)))));
                 }
                 /*
                 float speed1 = (float)max(30, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
