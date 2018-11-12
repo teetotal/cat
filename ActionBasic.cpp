@@ -12,25 +12,24 @@
 #define TIMING_RADIUS 30
 #define TIMING_MAX_TIME 150
 
-
 float animationDelay = 0.1f;
 int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
 //float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 float step = 100.0f / PLAYTIME * animationDelay;
-int _timingInfo[10][3] =  //runner, distance, difficult
+int _timingInfo[10][3] =  //runner, curveCnt, difficult
 {{0, 0, 0}
     , {1, 2, 1}
     , {1, 3, 2}
-    , {1, 5, 3}
+    , {1, 4, 3}
     
     , {2, 2, 1}
     , {2, 3, 2}
-    , {2, 5, 3}
+    , {2, 4, 3}
     
     , {3, 2, 1}
     , {3, 3, 2}
-    , {3, 5, 3}
+    , {3, 4, 3}
 };
 
 Scene* ActionBasic::createScene()
@@ -172,9 +171,11 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
 }
 void ActionBasic::runAction_timing(_training &t) {
     
+    float timePerTry = PLAYTIME / mMaxTouchCnt; //한번 달릴때마다 걸리는 시간
+    int curvePoint[3] = {3, 4, 5};
     int nRunner = _timingInfo[t.grade][0];
-    int nDistance = _timingInfo[t.grade][1];
-    int nDifficult = _timingInfo[t.grade][2];
+    int nCurveCnt = _timingInfo[t.grade][1];
+    //int nDifficult = _timingInfo[t.grade][2];
     
     mActionCnt = 0;
     mTimingRunner[0] = NULL;
@@ -189,20 +190,41 @@ void ActionBasic::runAction_timing(_training &t) {
             if(mTimingRunner[n] == NULL){
                 mTimingRunner[n] = this->createRunner();
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
+                
+                Vector<FiniteTimeAction *> vec;
+                int nDistance = 0;
+                
+                //CCLOG("-----");
+                for(int i=0; i< nCurveCnt; i++){
+                    int val = getRandValue(timePerTry * 100 / nCurveCnt);
+                    
+                    int minSpeed = 40;
+                    if(i == nCurveCnt -1){
+                        nDistance = TIMING_X_END;
+                    }
+                    else{
+                        nDistance = curvePoint[i];
+                        minSpeed = minSpeed / 2;
+                        
+                    }
+                    
+                    float speed = (float)max(minSpeed, val) / 100.f;
+                    //CCLOG("%d - %f(%d)", nDistance, speed, val);
+                    
+                    vec.pushBack(MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(nDistance, getTouchYPosition(n)))));
+                }
+                /*
                 float speed1 = (float)max(30, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
                 float speed2 = (float)max(70, getRandValueOverZero(TIMING_MAX_TIME)) / 100.f;
-                mTimingRunner[n]->runAction(
-                        Sequence::create(
-                                //EaseOut::create(
-                                                MoveTo::create(speed1, Vec2(gui::inst()->getPointVec2(nDistance, getTouchYPosition(n))))
-                                //                , 0.5)
-                                , EaseOut::create(
-                                                  MoveTo::create(speed2, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n))))
-                                                  , 0.3)
-                                , RemoveSelf::create()
-                                , CallFunc::create([=]() { mTimingRunner[n] = NULL; })
-                                , NULL)
-                );
+                vec.pushBack(MoveTo::create(speed1, Vec2(gui::inst()->getPointVec2(nDistance, getTouchYPosition(n)))));
+                vec.pushBack(EaseOut::create(
+                                             MoveTo::create(speed2, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n))))
+                                             , 0.3));
+                 */
+                vec.pushBack(RemoveSelf::create());
+                vec.pushBack(CallFunc::create([=]() { mTimingRunner[n] = NULL; }));
+                
+                mTimingRunner[n]->runAction(Sequence::create(vec));
             }
         }
 
