@@ -221,6 +221,30 @@ bool logics::initActor(bool isFarmingDataLoad)
 				break;
 		}
 	}
+    //score
+    {
+        sqlite3_stmt * stmt = Sql::inst()->select("select * from score");
+        if (stmt == NULL)
+            return false;
+        
+        int result = 0;
+        while (true)
+        {
+            result = sqlite3_step(stmt);
+            
+            if (result == SQLITE_ROW)
+            {
+                int idx = 0;
+                int id = sqlite3_column_int(stmt, idx++);
+                int score = sqlite3_column_int(stmt, idx++);
+                
+                if(id > 0)
+                    mTrainingHighScore[id] = score;
+            }
+            else
+                break;
+        }
+    }
 	return true;
 }
 bool logics::initErrorMessage(rapidjson::Value & p)
@@ -1942,6 +1966,14 @@ int logics::getHighScore(int id) {
         return mTrainingHighScore[id];
 }
 void logics::setHighScore(int id, int score) {
+    string query = "";
+    if(mTrainingHighScore.find(id) == mTrainingHighScore.end())
+    {
+        query = "INSERT INTO score(id, score) VALUES(" + to_string(id) + "," + to_string(score) + ");";
+    }else{
+        query = "UPDATE score SET score = " + to_string(score) + " WHERE id=" + to_string(id)+ ";";
+    }
+    mSql.exec(query);
     mTrainingHighScore[id] = score;
 }
 

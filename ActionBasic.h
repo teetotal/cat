@@ -52,6 +52,7 @@ private:
     void setHighScoreLabel(int n) {
         mHighScore->setString("High Score: " + to_string(n));
     };
+    void increment(int &val);
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
 //    LoadingBar * mLoadingBar;
     Label * mTimeLabel, * mHighScore;
@@ -62,6 +63,7 @@ private:
 	_training mAction;
 
 	bool mIsStop;
+    mutex lock;
 };
 
 #endif 
