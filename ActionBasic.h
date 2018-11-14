@@ -62,6 +62,8 @@ private:
 	Layout * mLayer;
     Sprite * mTimingRunner[TIMING_RUNNER_CNT];
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
+    int mPreTouchCnt; //이전 점수를 비교하기 위한 변수
+    int mTimerCnt; //타이머 호출 카운터
 	_training mAction;
 
 	bool mIsStop;

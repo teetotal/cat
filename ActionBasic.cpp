@@ -12,6 +12,8 @@
 #define TIMING_RADIUS 30
 #define TIMING_MAX_TIME 150
 
+#define TAP_MAX_TOUCH 50
+
 float animationDelay = 0.1f;
 int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
@@ -148,6 +150,9 @@ RepeatForever * ActionBasic::getRunningAnimation() {
     
     return RepeatForever::create(Animate::create(animation));
 }
+/* ================================================================================
+    TIMING
+ ================================================================================ */
 void ActionBasic::callbackTiming(Ref* pSender, int idx){
     Vec2 center = gui::inst()->getPointVec2(TIMING_X_BUTTON, getTouchYPosition(idx));
     float radius = TIMING_RADIUS;
@@ -245,7 +250,11 @@ void ActionBasic::runAction_timing(_training &t) {
         }
     }, animationDelay, "updateLoadingBar");
 }
-
+/* ================================================================================
+ 
+ TAP
+ 
+ ================================================================================ */
 void ActionBasic::runAction_tap(_training &t) {
 
 	auto listener = EventListenerTouchOneByOne::create();
@@ -257,7 +266,7 @@ void ActionBasic::runAction_tap(_training &t) {
 	
     Vec2 pos = gui::inst()->getCenter();
     pos.y = 35;
-	createRunner(80, pos, Vec2(0.5, 0));
+	auto pRunner = createRunner(80, pos, Vec2(0.5, 0));
 	
 	//tap
 	const int duration = animationDelay * 100 / step;
@@ -265,8 +274,23 @@ void ActionBasic::runAction_tap(_training &t) {
     gui::inst()->addLabel(1, 5, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
 	gui::inst()->addLabel(6, 3, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
 
+    mPreTouchCnt = 0;
+    mTimerCnt = 0;
 	this->schedule([=](float delta) {
-		
+        mTimerCnt++;
+        if(mTimerCnt % 10 == 0){
+            const int max = TAP_MAX_TOUCH;
+            int currentCnt = mActionTouchCnt - mPreTouchCnt;
+            if(currentCnt > max)
+                currentCnt = max;
+            
+            //10:1 : cnt : x = cnt/10
+            float x = ((Director::getInstance()->getVisibleSize().width * 0.9) * currentCnt / max) + pRunner->getContentSize().width;
+            mPreTouchCnt = mActionTouchCnt;
+            Vec2 pos = Vec2(x, pRunner->getPosition().y);
+            pRunner->runAction(MoveTo::create(animationDelay * 10, pos));
+        }
+        
 		setTime(animationDelay);
 
 		if (mTime <= 0) {
@@ -276,6 +300,39 @@ void ActionBasic::runAction_tap(_training &t) {
 	}, animationDelay, "updateLoadingBar");
 }
 
+bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
+    addTouchCnt();
+    return true;
+}
+
+int ActionBasic::getTouchYPosition(int idx){
+    int nRunner = _timingInfo[mAction.grade][0];
+    switch(nRunner){
+        case 1:
+            return 4;
+        case 2: //3,5
+            return idx == 0 ? 3: 5;
+        case 3: //2,4,6
+            switch(idx){
+                case 0:
+                    return 2;
+                case 1:
+                    return 4;
+                case 2:
+                    return 6;
+                    
+            }
+        default:
+            return 4;
+    }
+    return TIMING_Y + (idx * 2);
+}
+
+/* ================================================================================
+ 
+ TOUCH
+ 
+ ================================================================================ */
 void ActionBasic::runAction_touch(_training &t) {	
 	auto size = Size(400, 150);
 	Layout * l = gui::inst()->createLayout(size);
@@ -400,10 +457,6 @@ void ActionBasic::callbackTouch(Ref* pSender) {
 	addTouchCnt();
 };
 
-bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
-	addTouchCnt();
-	return true;
-};
 
 void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 	
@@ -459,7 +512,7 @@ void ActionBasic::onEnter() {
             break;
         case trainingType_study:
         case trainingType_fishing:
-            mMaxTouchCnt = nMax * 2;
+            mMaxTouchCnt = PLAYTIME * TAP_MAX_TOUCH * 0.8; //최대 터치 수에 80% 수준이면 최대
             sz = logics::hInst->getL10N("ACTION_TAP");
             break;
         default:
@@ -486,30 +539,6 @@ void ActionBasic::onExitTransitionDidStart() {
 }
 void ActionBasic::onExit() {
 	Scene::onExit();
-}
-
-int ActionBasic::getTouchYPosition(int idx){
-    int nRunner = _timingInfo[mAction.grade][0];
-    switch(nRunner){
-        case 1:
-            return 4;
-        case 2: //3,5
-            return idx == 0 ? 3: 5;
-        case 3: //2,4,6
-            switch(idx){
-                case 0:
-                    return 2;
-                case 1:
-                    return 4;
-                case 2:
-                    return 6;
-                    
-            }
-        default:
-            return 4;
-    }
-    
-    return TIMING_Y + (idx * 2);
 }
 
 void ActionBasic::setTime(float diff) {
