@@ -28,6 +28,7 @@ private:
 	bool onTouchEnded(Touch* touch, Event* event);
 	void onTouchMoved(Touch *touch, Event *event) {};
 	
+    void initUI();
 	void run();
 	void runAction_touch(_training &t);
 	void runAction_tap(_training &t);
@@ -36,6 +37,7 @@ private:
 	Sprite * createAnimate(_training &t);
     RepeatForever * getRunningAnimation();
     Sprite * createRunner();
+    Sprite * createRunner(float width, Vec2 pos, Vec2 anchor = Vec2(0.5, 0.5));
 
 	void callbackTouch(Ref* pSender);
 	void callbackActionAnimation(int id, int maxTimes);

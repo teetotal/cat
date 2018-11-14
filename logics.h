@@ -133,8 +133,8 @@ enum itemType {
 };
 //training type
 enum trainingType {
-	trainingType_play = 0,	//놀이
-	trainingType_study,		//공부
+	trainingType_play = 0,	//놀이, timing
+	trainingType_study,		//공부, tap
 	trainingType_party,		//파티
 	trainingType_training,	//수련
 	trainingType_work,		//알바

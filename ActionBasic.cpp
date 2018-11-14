@@ -40,23 +40,55 @@ Scene* ActionBasic::createScene()
 
 bool ActionBasic::init()
 {	
-//    auto visibleSize = Director::getInstance()->getVisibleSize();
-	Vec2 origin = Director::getInstance()->getVisibleOrigin();
-	
-	auto bg = Sprite::create("bg_temp.png");
-	bg->setContentSize(Director::getInstance()->getVisibleSize());
-	gui::inst()->addToCenter(bg, this);
+    //    auto visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    
+    auto bg = Sprite::create("bg_temp.png");
+    bg->setContentSize(Director::getInstance()->getVisibleSize());
+    gui::inst()->addToCenter(bg, this);
+	return true;
+}
 
-//    mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
+
+void ActionBasic::initUI() {
+    //bg
+    if(mAction.type == trainingType_study)
+        gui::inst()->addBGScrolling("bg_action_tap_1.png", this, 1.5);
+    
+    //    mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
     mTime = PLAYTIME;
     mTimeLabel = gui::inst()->addLabel(4, 1, " ", this, 24, ALIGNMENT_CENTER, Color3B::BLUE);
     setTime(0);
-	mTitle = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
-	//mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
-	mRewardInfo = gui::inst()->addLabel(0, 6, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
+    mTitle = gui::inst()->addLabel(0, 0, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
+    //mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
+    mRewardInfo = gui::inst()->addLabel(0, 6, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
     mTouchInfo = gui::inst()->addLabel(4, 0, "Score: 0", this, 32, ALIGNMENT_CENTER, Color3B::BLACK);
+    mHighScore = gui::inst()->addLabel(7, 0, " ", this, 18, ALIGNMENT_CENTER, Color3B::GREEN);
+    setHighScoreLabel(logics::hInst->getHighScore(mAction.id));
+    //start touch count
+    mActionCnt = 0;
+    mActionTouchCnt = 0;
+    gui::inst()->mModalTouchCnt = 0;
     
-	return true;
+    
+    //title
+    mTitle->setString(wstring_to_utf8(mAction.name));
+    //reward
+    string pay = " ";
+    if (mAction.cost.point > 0) pay += COIN + to_string(mAction.cost.point) + " ";
+    if (mAction.cost.strength > 0) pay += "S: " + to_string(mAction.cost.strength) + " ";
+    if (mAction.cost.intelligence > 0) pay += "I: " + to_string(mAction.cost.intelligence) + " ";
+    if (mAction.cost.appeal > 0) pay += "A: " + to_string(mAction.cost.appeal) + " ";
+    
+    string reward = "Max ";
+    if (mAction.reward.point > 0)         reward += COIN + to_string(mAction.reward.point) + " ";
+    if (mAction.reward.strength > 0)      reward += "S: " + to_string(mAction.reward.strength) + " ";
+    if (mAction.reward.intelligence > 0)  reward += "I: " + to_string(mAction.reward.intelligence) + " ";
+    if (mAction.reward.appeal > 0)        reward += "A: " + to_string(mAction.reward.appeal) + " ";
+    
+    mRewardInfo->setString(reward);
+    //if (pay.size() > 1)    gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
+    //if (reward.size() > 1)    gui::inst()->addLabel(4, 1, "Max " + reward, this, 12, ALIGNMENT_NONE);
 }
 
 
@@ -66,33 +98,10 @@ bool ActionBasic::runAction(int id) {
 
 	if (logics::hInst->isValidTraining(id) != error_success)
 		return false;
-
-    mHighScore = gui::inst()->addLabel(7, 0, " ", this, 18, ALIGNMENT_CENTER, Color3B::GREEN);
-    setHighScoreLabel(logics::hInst->getHighScore(id));
-	//start touch count
-	mActionCnt = 0;
-	mActionTouchCnt = 0;
-	gui::inst()->mModalTouchCnt = 0;
-
-	mAction = logics::hInst->getActionList()->at(id);
-	//title
-	mTitle->setString(wstring_to_utf8(mAction.name));
-	//reward
-	string pay = " ";
-	if (mAction.cost.point > 0) pay += COIN + to_string(mAction.cost.point) + " ";
-	if (mAction.cost.strength > 0) pay += "S: " + to_string(mAction.cost.strength) + " ";
-	if (mAction.cost.intelligence > 0) pay += "I: " + to_string(mAction.cost.intelligence) + " ";
-	if (mAction.cost.appeal > 0) pay += "A: " + to_string(mAction.cost.appeal) + " ";
-
-	string reward = "Max ";
-	if (mAction.reward.point > 0)         reward += COIN + to_string(mAction.reward.point) + " ";
-	if (mAction.reward.strength > 0)      reward += "S: " + to_string(mAction.reward.strength) + " ";
-	if (mAction.reward.intelligence > 0)  reward += "I: " + to_string(mAction.reward.intelligence) + " ";
-	if (mAction.reward.appeal > 0)        reward += "A: " + to_string(mAction.reward.appeal) + " ";
-
-	mRewardInfo->setString(reward);
-	//if (pay.size() > 1)	gui::inst()->addLabelAutoDimension(2, idx++, "- " + pay, l, 12, ALIGNMENT_NONE, Color3B::RED);
-	//if (reward.size() > 1)	gui::inst()->addLabel(4, 1, "Max " + reward, this, 12, ALIGNMENT_NONE);
+    
+    mAction = logics::hInst->getActionList()->at(id);
+    
+    
 	return true;
 }
 
@@ -113,13 +122,18 @@ Sprite * ActionBasic::createAnimate(_training &t) {
 
 	return pMan;
 }
-
-Sprite * ActionBasic::createRunner(){
-    auto p = gui::inst()->addSprite(TIMING_X_START, TIMING_Y, "race/small/0.png", this);
+Sprite * ActionBasic::createRunner(float width, Vec2 pos, Vec2 anchor) {
+    auto p = gui::inst()->addSprite(0, 0, "race/small/0.png", this);
+    p->setAnchorPoint(anchor);
+    p->setPosition(pos);
     p->runAction(getRunningAnimation());
-    gui::inst()->setScale(p, TIMING_RADIUS * 2);
+    gui::inst()->setScale(p, width);
     
     return p;
+}
+
+Sprite * ActionBasic::createRunner(){
+    return createRunner(TIMING_RADIUS * 2, gui::inst()->getPointVec2(TIMING_X_START, TIMING_Y));
 }
 
 RepeatForever * ActionBasic::getRunningAnimation() {
@@ -241,15 +255,15 @@ void ActionBasic::runAction_tap(_training &t) {
 	listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 	
-	Sprite * pMan = createAnimate(t);
-    gui::inst()->setScale(pMan, 80);
-	gui::inst()->addToCenter(pMan, this);
+    Vec2 pos = gui::inst()->getCenter();
+    pos.y = 35;
+	createRunner(80, pos, Vec2(0.5, 0));
 	
 	//tap
 	const int duration = animationDelay * 100 / step;
     const int times = 4; // 1: 4 = duration : x 
-	gui::inst()->addLabel(1, 5, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
-	gui::inst()->addLabel(6, 3, "Tap!!", this)->runAction(Blink::create(duration, duration * times));
+    gui::inst()->addLabel(1, 5, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
+	gui::inst()->addLabel(6, 3, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
 
 	this->schedule([=](float delta) {
 		
@@ -257,7 +271,6 @@ void ActionBasic::runAction_tap(_training &t) {
 
 		if (mTime <= 0) {
 			this->unschedule("updateLoadingBar");
-			pMan->stopAllActions();
 			callbackActionAnimation(t.id, mMaxTouchCnt);
 		}
 	}, animationDelay, "updateLoadingBar");
@@ -403,6 +416,8 @@ void ActionBasic::callback(Ref* pSender, SCENECODE type) {
 }
 
 void ActionBasic::run() {
+    initUI();
+    
 	mIsStop = false;
 	switch (mAction.type) {
         case trainingType_play:
@@ -502,13 +517,13 @@ void ActionBasic::setTime(float diff) {
     if(mTime < 0)
         mTime = 0;
     if(mTime < 3.f)
-        mTimeLabel->setColor(Color3B::ORANGE);
+        mTimeLabel->setColor(Color3B::RED);
     else
         mTimeLabel->setColor(Color3B::BLUE);
-    
-    int tmp = mTime * 100;
-    int val = tmp / 100;
-    int remain = tmp % 100;
+    const int i = 10;
+    int tmp = mTime * i;
+    int val = tmp / i;
+    int remain = tmp % i;
     
     mTimeLabel->setString(to_string(val) + "." + to_string(remain));
 }
@@ -516,6 +531,6 @@ void ActionBasic::setTime(float diff) {
 void ActionBasic::increment(int &val){
     lock.lock();
     val++;
-    CCLOG("%d, %d", val, mMaxTouchCnt);
+//    CCLOG("%d, %d", val, mMaxTouchCnt);
     lock.unlock();
 }
