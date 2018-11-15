@@ -263,11 +263,24 @@ void ActionBasic::runAction_tap(_training &t) {
 	listener->onTouchEnded = CC_CALLBACK_2(ActionBasic::onTouchEnded, this);
 	listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    
+   
 	
     Vec2 pos = gui::inst()->getCenter();
     pos.y = 35;
 	auto pRunner = createRunner(80, pos, Vec2(0.5, 0));
-	
+    
+    
+    gui::inst()->addTextButton(8, 6, "JUMP", this, [=](Ref* pSender){
+        const float ratio = 0.2;
+        const float jumpHeight = pRunner->getContentSize().height;
+        pRunner->runAction(Sequence::create(
+                                            EaseIn::create(MoveBy::create(0.3, Vec2(0, jumpHeight)), ratio)
+                                            , EaseOut::create(MoveBy::create(0.3, Vec2(0, -1 * jumpHeight)), ratio)
+                                            //, callfuncAction
+                                            , NULL));
+    }
+                               , 20, ALIGNMENT_CENTER, Color3B::BLUE);
 	//tap
 	const int duration = animationDelay * 100 / step;
     const int times = 4; // 1: 4 = duration : x 
