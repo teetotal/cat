@@ -12,15 +12,16 @@ USING_NS_CC;
 class ActionBasic : public Scene {
 public:
 	static Scene* createScene();
-	virtual bool init();
+	virtual bool init() override;
 	CREATE_FUNC(ActionBasic);
 	
 	bool runAction(int id);
+    void update(float delta) override;
 private:
-	virtual void onEnter();
-	virtual void onEnterTransitionDidFinish();
-	virtual void onExitTransitionDidStart();
-	virtual void onExit();
+	virtual void onEnter() override;
+	virtual void onEnterTransitionDidFinish() override;
+	virtual void onExitTransitionDidStart() override;
+	virtual void onExit() override;
 
 	bool onTouchBegan(Touch* touch, Event* event) {
 		return true;
@@ -49,7 +50,7 @@ private:
 		Director::getInstance()->popScene();
 	};
 
-	void addTouchCnt(bool isFail = false);
+	void addTouchCnt(bool isFail = false, unsigned int val = 1);
     void setTime(float diff);
     void setHighScoreLabel(int n) {
         mHighScore->setString("High Score: " + to_string(n));
@@ -61,9 +62,12 @@ private:
     float mTime;
 	Layout * mLayer;
     Sprite * mTimingRunner[TIMING_RUNNER_CNT];
+    Sprite * mTapRunner;
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
     int mPreTouchCnt; //이전 점수를 비교하기 위한 변수
     int mTimerCnt; //타이머 호출 카운터
+    bool mIsJump; //점프 상태 체크용
+    vector<Sprite*> mTapStarVec;
 	_training mAction;
 
 	bool mIsStop;

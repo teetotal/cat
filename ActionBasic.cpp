@@ -254,6 +254,11 @@ void ActionBasic::runAction_timing(_training &t) {
  
  TAP
  
+ 다양한 보너스 점수
+ 보너스 이동속도
+ 마이너스 보너스 점수
+ 보너스 등장 랜덤
+ 
  ================================================================================ */
 void ActionBasic::runAction_tap(_training &t) {
 
@@ -264,20 +269,26 @@ void ActionBasic::runAction_tap(_training &t) {
 	listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
 	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
-   
+    this->scheduleUpdate();
+    
+    mIsJump = false;
 	
     Vec2 pos = gui::inst()->getCenter();
     pos.y = 35;
-	auto pRunner = createRunner(80, pos, Vec2(0.5, 0));
+	mTapRunner = createRunner(80, pos, Vec2(0.5, 0));
     
     
     gui::inst()->addTextButton(8, 6, "JUMP", this, [=](Ref* pSender){
+        if(mIsJump)
+            return;
+        
+        mIsJump = true;
         const float ratio = 0.2;
-        const float jumpHeight = pRunner->getContentSize().height;
-        pRunner->runAction(Sequence::create(
+        const float jumpHeight = mTapRunner->getContentSize().height;
+        mTapRunner->runAction(Sequence::create(
                                             EaseIn::create(MoveBy::create(0.3, Vec2(0, jumpHeight)), ratio)
                                             , EaseOut::create(MoveBy::create(0.3, Vec2(0, -1 * jumpHeight)), ratio)
-                                            //, callfuncAction
+                                            , CallFunc::create([=]() {mIsJump = false;})
                                             , NULL));
     }
                                , 20, ALIGNMENT_CENTER, Color3B::BLUE);
@@ -291,6 +302,15 @@ void ActionBasic::runAction_tap(_training &t) {
     mTimerCnt = 0;
 	this->schedule([=](float delta) {
         mTimerCnt++;
+        if(mTimerCnt % 8 == 0){
+            auto pBonus = gui::inst()->addSprite(9, 4, "star.png", this);
+            gui::inst()->setScale(pBonus, 40);
+            pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mTapRunner->getContentSize().height);
+            pBonus->runAction(MoveTo::create(2, Vec2(-40, pBonus->getPosition().y)));
+            mTapStarVec.push_back(pBonus);
+        }
+        
+        //move character
         if(mTimerCnt % 10 == 0){
             const int max = TAP_MAX_TOUCH;
             int currentCnt = mActionTouchCnt - mPreTouchCnt;
@@ -298,10 +318,10 @@ void ActionBasic::runAction_tap(_training &t) {
                 currentCnt = max;
             
             //10:1 : cnt : x = cnt/10
-            float x = ((Director::getInstance()->getVisibleSize().width * 0.9) * currentCnt / max) + pRunner->getContentSize().width;
+            float x = ((Director::getInstance()->getVisibleSize().width * 0.9) * currentCnt / max) + mTapRunner->getContentSize().width;
             mPreTouchCnt = mActionTouchCnt;
-            Vec2 pos = Vec2(x, pRunner->getPosition().y);
-            pRunner->runAction(MoveTo::create(animationDelay * 10, pos));
+            Vec2 pos = Vec2(x, mTapRunner->getPosition().y);
+            mTapRunner->runAction(MoveTo::create(animationDelay * 10, pos));
         }
         
 		setTime(animationDelay);
@@ -311,6 +331,27 @@ void ActionBasic::runAction_tap(_training &t) {
 			callbackActionAnimation(t.id, mMaxTouchCnt);
 		}
 	}, animationDelay, "updateLoadingBar");
+}
+
+void ActionBasic::update(float delta) {
+    for(int n=0; n < mTapStarVec.size(); n++){
+        if(mTapStarVec[n] && mTapStarVec[n]->getPosition().x > 0){
+            if(mTapRunner->getBoundingBox().intersectsRect(mTapStarVec[n]->getBoundingBox())){
+                addTouchCnt(false, 5);
+                auto bonusLabel = gui::inst()->addLabel(0, 0, "+5", this, 0, ALIGNMENT_CENTER, Color3B::BLUE);
+                bonusLabel->setPosition(mTapStarVec[n]->getPosition());
+                bonusLabel->runAction(
+                                      Sequence::create(
+                                                       ScaleTo::create(0.2, 3)
+                                                       , RemoveSelf::create()
+                                                       , NULL
+                                                       )
+                                      );
+                mTapStarVec[n]->runAction(RemoveSelf::create());
+                mTapStarVec.erase(mTapStarVec.begin() + n);
+            }
+        }
+    }
 }
 
 bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
@@ -452,14 +493,14 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 
 }
 
-void ActionBasic::addTouchCnt(bool isFail) {
+void ActionBasic::addTouchCnt(bool isFail, unsigned int val) {
 	if (!mIsStop) {
         if(isFail){
             if(mActionTouchCnt > 0)
-                mActionTouchCnt--;
+                mActionTouchCnt -= val;
         }
 		else
-            mActionTouchCnt++;
+            mActionTouchCnt += val;
         //string sz = to_string(mActionTouchCnt) + "/" + to_string(mMaxTouchCnt);
         string sz = "Score: " + to_string(mActionTouchCnt);
 		mTouchInfo->setString(sz);
