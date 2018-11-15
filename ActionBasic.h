@@ -9,6 +9,8 @@
 
 USING_NS_CC;
 #define TIMING_RUNNER_CNT 3
+#define TAP_BONUS_CNT 10
+
 class ActionBasic : public Scene {
 public:
 	static Scene* createScene();
@@ -57,7 +59,6 @@ private:
     };
     void increment(int &val);
 	Label * mTitle, * mRewardInfo, * mTouchInfo;
-//    LoadingBar * mLoadingBar;
     Label * mTimeLabel, * mHighScore;
     float mTime;
 	Layout * mLayer;
@@ -66,8 +67,17 @@ private:
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
     int mPreTouchCnt; //이전 점수를 비교하기 위한 변수
     int mTimerCnt; //타이머 호출 카운터
+    //for tap -------------------------------------------
     bool mIsJump; //점프 상태 체크용
-    vector<Sprite*> mTapStarVec;
+    struct tapBonus{
+        Sprite * sprite;
+        int bonus;
+    };
+    vector<tapBonus> mTapBonusVec;
+    vector<Sprite *> mTapHurdleVec; //장애물
+    
+    int mTapBonusGenCounter[3]; //보너스 점수 생성 카운터
+    
 	_training mAction;
 
 	bool mIsStop;

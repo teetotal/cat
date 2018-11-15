@@ -13,6 +13,8 @@
 #define TIMING_MAX_TIME 150
 
 #define TAP_MAX_TOUCH 50
+#define TAP_MARGIN_Y 35
+#define TAP_DEFAULT_POINT 3
 
 float animationDelay = 0.1f;
 int cntAnimationMotion = 6;
@@ -32,6 +34,23 @@ int _timingInfo[10][3] =  //runner, curveCnt, difficult
     , {3, 2, 1}
     , {3, 3, 2}
     , {3, 4, 3}
+};
+
+int _tapInfo[13][3] = //enable tap, enable hurdle. 보너스 점수 종류
+{
+   {0, 0, 0},
+    
+    {0, 0, 1},
+    {0, 0, 2},
+    {0, 0, 3},
+    
+    {0, 1, 1},
+    {0, 1, 2},
+    {0, 1, 3},
+    
+    {1, 1, 1},
+    {1, 1, 2},
+    {1, 1, 3}
 };
 
 Scene* ActionBasic::createScene()
@@ -54,8 +73,8 @@ bool ActionBasic::init()
 
 void ActionBasic::initUI() {
     //bg
-    if(mAction.type == trainingType_study)
-        gui::inst()->addBGScrolling("bg_action_tap_1.png", this, 1.5);
+    if(mAction.type == trainingType_tap)
+        gui::inst()->addBGScrolling("bg_action_tap_" + to_string(_tapInfo[mAction.grade][2]) + ".png", this, 1.5);
     
     //    mLoadingBar = gui::inst()->addProgressBar(4, 0, LOADINGBAR_IMG, this, 100, 0);
     mTime = PLAYTIME;
@@ -254,27 +273,34 @@ void ActionBasic::runAction_timing(_training &t) {
  
  TAP
  
- 다양한 보너스 점수
- 보너스 이동속도
- 마이너스 보너스 점수
- 보너스 등장 랜덤
- 
  ================================================================================ */
 void ActionBasic::runAction_tap(_training &t) {
 
-	auto listener = EventListenerTouchOneByOne::create();
-	listener->setSwallowTouches(true);
-	listener->onTouchBegan = CC_CALLBACK_2(ActionBasic::onTouchBegan, this);
-	listener->onTouchEnded = CC_CALLBACK_2(ActionBasic::onTouchEnded, this);
-	listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
-	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-    
+    if(_tapInfo[t.grade][0] == 1){
+        auto listener = EventListenerTouchOneByOne::create();
+        listener->setSwallowTouches(true);
+        listener->onTouchBegan = CC_CALLBACK_2(ActionBasic::onTouchBegan, this);
+        listener->onTouchEnded = CC_CALLBACK_2(ActionBasic::onTouchEnded, this);
+        listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
+        _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+        
+        //tap
+        const int duration = animationDelay * 100 / step;
+        const int times = 4; // 1: 4 = duration : x
+        gui::inst()->addLabel(1, 5, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
+        gui::inst()->addLabel(6, 3, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
+
+        mMaxTouchCnt += 300; //터치는 기본 300번 추가
+    }
+	
     this->scheduleUpdate();
     
     mIsJump = false;
-	
+    for(int n=0; n < sizeof(mTapBonusGenCounter) / sizeof(mTapBonusGenCounter[0]); n++)
+        mTapBonusGenCounter[n] = 0;
+    
     Vec2 pos = gui::inst()->getCenter();
-    pos.y = 35;
+    pos.y = TAP_MARGIN_Y;
 	mTapRunner = createRunner(80, pos, Vec2(0.5, 0));
     
     
@@ -292,22 +318,47 @@ void ActionBasic::runAction_tap(_training &t) {
                                             , NULL));
     }
                                , 20, ALIGNMENT_CENTER, Color3B::BLUE);
-	//tap
-	const int duration = animationDelay * 100 / step;
-    const int times = 4; // 1: 4 = duration : x 
-    gui::inst()->addLabel(1, 5, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
-	gui::inst()->addLabel(6, 3, "Tap!!", this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(Blink::create(duration, duration * times));
-
+	
     mPreTouchCnt = 0;
     mTimerCnt = 0;
 	this->schedule([=](float delta) {
         mTimerCnt++;
-        if(mTimerCnt % 8 == 0){
+        //bonus
+        const int nGenBonus = 8;
+        const int nMaxGenCnt = ((PLAYTIME * (1/animationDelay)) / nGenBonus) / _tapInfo[t.grade][2];
+        const float nScales[] = {0, 40, 30, 20};
+        
+        if(mTimerCnt % nGenBonus == 0) {
             auto pBonus = gui::inst()->addSprite(9, 4, "star.png", this);
-            gui::inst()->setScale(pBonus, 40);
             pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mTapRunner->getContentSize().height);
+            tapBonus p;
+            p.sprite = pBonus;
+            
+            while(true){
+                int n = getRandValueOverZero(_tapInfo[t.grade][2] + 1);
+                if(mTapBonusGenCounter[n] <= nMaxGenCnt){
+                    p.bonus = TAP_DEFAULT_POINT * n;
+                    mMaxTouchCnt += p.bonus;
+                    mTapBonusGenCounter[n]++;
+                    gui::inst()->setScale(pBonus, nScales[n]);
+                    break;
+                }
+            }
+            
             pBonus->runAction(MoveTo::create(2, Vec2(-40, pBonus->getPosition().y)));
-            mTapStarVec.push_back(pBonus);
+            mTapBonusVec.push_back(p);
+        }
+        
+        //hurdle
+        if(_tapInfo[t.grade][1] == 1){
+            const int nGenHurdle = 12;
+            if(mTimerCnt % nGenHurdle == 0) {
+                auto hurdle = gui::inst()->addSprite(9, 4, "danger.png", this);
+                hurdle->setAnchorPoint(Vec2(0.5, 0));
+                hurdle->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, TAP_MARGIN_Y);
+                hurdle->runAction(MoveTo::create(2, Vec2(-40, hurdle->getPosition().y)));
+                mTapHurdleVec.push_back(hurdle);
+            }
         }
         
         //move character
@@ -334,12 +385,15 @@ void ActionBasic::runAction_tap(_training &t) {
 }
 
 void ActionBasic::update(float delta) {
-    for(int n=0; n < mTapStarVec.size(); n++){
-        if(mTapStarVec[n] && mTapStarVec[n]->getPosition().x > 0){
-            if(mTapRunner->getBoundingBox().intersectsRect(mTapStarVec[n]->getBoundingBox())){
-                addTouchCnt(false, 5);
-                auto bonusLabel = gui::inst()->addLabel(0, 0, "+5", this, 0, ALIGNMENT_CENTER, Color3B::BLUE);
-                bonusLabel->setPosition(mTapStarVec[n]->getPosition());
+    //bonus
+    for(int n=0; n < mTapBonusVec.size(); n++){
+        if(mTapBonusVec[n].sprite && mTapBonusVec[n].sprite->getPosition().x > 0){
+            if(mTapRunner->getBoundingBox().intersectsRect(mTapBonusVec[n].sprite->getBoundingBox())){
+                addTouchCnt(false, mTapBonusVec[n].bonus);
+                auto bonusLabel = gui::inst()->addLabel(0, 0, "+" + to_string(mTapBonusVec[n].bonus), this, 0, ALIGNMENT_CENTER, Color3B::BLUE);
+                Vec2 pos = mTapBonusVec[n].sprite->getPosition();
+                pos.y += 10;
+                bonusLabel->setPosition(pos);
                 bonusLabel->runAction(
                                       Sequence::create(
                                                        ScaleTo::create(0.2, 3)
@@ -347,8 +401,30 @@ void ActionBasic::update(float delta) {
                                                        , NULL
                                                        )
                                       );
-                mTapStarVec[n]->runAction(RemoveSelf::create());
-                mTapStarVec.erase(mTapStarVec.begin() + n);
+                mTapBonusVec[n].sprite->runAction(RemoveSelf::create());
+                mTapBonusVec.erase(mTapBonusVec.begin() + n);
+            }
+        }
+    }
+    
+    //hurdle
+    for(int n=0; n < mTapHurdleVec.size(); n++){
+        if(mTapHurdleVec[n] && mTapHurdleVec[n]->getPosition().x > 0){
+            if(mTapRunner->getBoundingBox().intersectsRect(mTapHurdleVec[n]->getBoundingBox())){
+                addTouchCnt(true, TAP_DEFAULT_POINT);
+                auto bonusLabel = gui::inst()->addLabel(0, 0, "-" + to_string(TAP_DEFAULT_POINT), this, 0, ALIGNMENT_CENTER, Color3B::RED);
+                Vec2 pos = mTapHurdleVec[n]->getPosition();
+                pos.y += 10;
+                bonusLabel->setPosition(pos);
+                bonusLabel->runAction(
+                                      Sequence::create(
+                                                       ScaleTo::create(0.2, 3)
+                                                       , RemoveSelf::create()
+                                                       , NULL
+                                                       )
+                                      );
+                mTapHurdleVec[n]->runAction(RemoveSelf::create());
+                mTapHurdleVec.erase(mTapHurdleVec.begin() + n);
             }
         }
     }
@@ -527,15 +603,15 @@ void ActionBasic::run() {
     
 	mIsStop = false;
 	switch (mAction.type) {
-        case trainingType_play:
-        case trainingType_party:
+        case trainingType_timing:
         case trainingType_training:
             runAction_timing(mAction);
             break;
-        case trainingType_study:
+        case trainingType_tap:
         case trainingType_fishing:
             runAction_tap(mAction);
             break;
+        case trainingType_touch:
         default:
             runAction_touch(mAction);
             break;
@@ -548,27 +624,18 @@ void ActionBasic::onEnter() {
 	string sz;
     float nMax = (100.f / step);
     
-    /*
-     trainingType_play = 0,    //놀이
-     trainingType_study,        //공부
-     trainingType_party,        //파티
-     trainingType_training,    //수련
-     trainingType_work,        //알바
-     trainingType_fishing,    //낚시
-     trainingType_hunting,        //사냥
-     */
-	switch (mAction.type) {
-        case trainingType_play:
-        case trainingType_party:
+    mMaxTouchCnt = 0;
+	
+    switch (mAction.type) {
+        case trainingType_timing:
         case trainingType_training:
-            mMaxTouchCnt = 0;
             sz = logics::hInst->getL10N("ACTION_TIMING");
             break;
-        case trainingType_study:
+        case trainingType_tap:
         case trainingType_fishing:
-            mMaxTouchCnt = PLAYTIME * TAP_MAX_TOUCH * 0.8; //최대 터치 수에 80% 수준이면 최대
             sz = logics::hInst->getL10N("ACTION_TAP");
             break;
+        case trainingType_touch:
         default:
             mMaxTouchCnt = nMax / 3;
             sz = logics::hInst->getL10N("ACTION_TOUCH");
