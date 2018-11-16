@@ -6,6 +6,8 @@ struct intPair {
 time_t getNow();
 int getRandValue(int max);
 int getRandValueOverZero(int max);
+int getRandValueMinMax(int min, int max);
+
 void sleepThisThread(size_t msec);
 time_t getTime(int hour, int min, int sec);
 int rounding(float f); //반올림

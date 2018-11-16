@@ -36,21 +36,33 @@ int _timingInfo[10][3] =  //runner, curveCnt, difficult
     , {3, 4, 3}
 };
 
-int _tapInfo[13][3] = //enable tap, enable hurdle. 보너스 점수 종류
+int _tapInfo[][3] = //enable tap, hurdle level. 보너스 점수 종류
 {
    {0, 0, 0},
     
-    {0, 0, 1},
-    {0, 0, 2},
-    {0, 0, 3},
+    {0, 0, 1},  //grade 1
+    {0, 0, 2},  //grade 2
+    {0, 0, 3},  //grade 3
     
-    {0, 1, 1},
-    {0, 1, 2},
-    {0, 1, 3},
+    {0, 1, 1},  //grade 4
+    {0, 1, 2},  //grade 5
+    {0, 1, 3},  //grade 6
     
-    {1, 1, 1},
-    {1, 1, 2},
-    {1, 1, 3}
+    {0, 2, 1},  //grade 7
+    {0, 2, 2},  //grade 8
+    {0, 2, 3},  //grade 9
+    
+    {1, 0, 1},  //grade 10
+    {1, 0, 2},  //grade 11
+    {1, 0, 3},  //grade 12
+    
+    {1, 1, 1},  //grade 13
+    {1, 1, 2},  //grade 14
+    {1, 1, 3},  //grade 15
+    
+    {1, 2, 1},  //grade 16
+    {1, 2, 2},  //grade 17
+    {1, 2, 3}   //grade 18
 };
 
 Scene* ActionBasic::createScene()
@@ -295,29 +307,29 @@ void ActionBasic::runAction_tap(_training &t) {
 	
     this->scheduleUpdate();
     
-    mIsJump = false;
-    for(int n=0; n < sizeof(mTapBonusGenCounter) / sizeof(mTapBonusGenCounter[0]); n++)
-        mTapBonusGenCounter[n] = 0;
+    mContextTap.mIsJump = false;
+    for(int n=0; n < sizeof(mContextTap.mTapBonusGenCounter) / sizeof(mContextTap.mTapBonusGenCounter[0]); n++)
+        mContextTap.mTapBonusGenCounter[n] = 0;
     
     Vec2 pos = gui::inst()->getCenter();
     pos.y = TAP_MARGIN_Y;
-	mTapRunner = createRunner(80, pos, Vec2(0.5, 0));
+	mContextTap.mTapRunner = createRunner(80, pos, Vec2(0.5, 0));
     
     
     gui::inst()->addTextButton(8, 6, "JUMP", this, [=](Ref* pSender){
-        if(mIsJump)
+        if(mContextTap.mIsJump)
             return;
         
-        mIsJump = true;
+        mContextTap.mIsJump = true;
         const float ratio = 0.2;
-        const float jumpHeight = mTapRunner->getContentSize().height;
-        mTapRunner->runAction(Sequence::create(
-                                            EaseIn::create(MoveBy::create(0.3, Vec2(0, jumpHeight)), ratio)
-                                            , EaseOut::create(MoveBy::create(0.3, Vec2(0, -1 * jumpHeight)), ratio)
-                                            , CallFunc::create([=]() {mIsJump = false;})
+        const float jumpHeight = mContextTap.mTapRunner->getContentSize().height * 0.8;
+        mContextTap.mTapRunner->runAction(Sequence::create(
+                                            EaseIn::create(MoveBy::create(0.25, Vec2(0, jumpHeight)), ratio)
+                                            , EaseOut::create(MoveBy::create(0.25, Vec2(0, -1 * jumpHeight)), ratio)
+                                            , CallFunc::create([=]() {mContextTap.mIsJump = false;})
                                             , NULL));
     }
-                               , 20, ALIGNMENT_CENTER, Color3B::BLUE);
+                               , 32, ALIGNMENT_CENTER, Color3B::BLUE);
 	
     mPreTouchCnt = 0;
     mTimerCnt = 0;
@@ -330,34 +342,36 @@ void ActionBasic::runAction_tap(_training &t) {
         
         if(mTimerCnt % nGenBonus == 0) {
             auto pBonus = gui::inst()->addSprite(9, 4, "star.png", this);
-            pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mTapRunner->getContentSize().height);
+            pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mContextTap.mTapRunner->getContentSize().height);
             tapBonus p;
             p.sprite = pBonus;
             
             while(true){
                 int n = getRandValueOverZero(_tapInfo[t.grade][2] + 1);
-                if(mTapBonusGenCounter[n] <= nMaxGenCnt){
+                if(mContextTap.mTapBonusGenCounter[n] <= nMaxGenCnt){
                     p.bonus = TAP_DEFAULT_POINT * n;
                     mMaxTouchCnt += p.bonus;
-                    mTapBonusGenCounter[n]++;
+                    mContextTap.mTapBonusGenCounter[n]++;
                     gui::inst()->setScale(pBonus, nScales[n]);
                     break;
                 }
             }
-            
-            pBonus->runAction(MoveTo::create(2, Vec2(-40, pBonus->getPosition().y)));
-            mTapBonusVec.push_back(p);
+            float duration = (float)getRandValueMinMax(150, 250) / 100.f;
+            pBonus->runAction(MoveTo::create(duration, Vec2(-40, pBonus->getPosition().y)));
+            mContextTap.mTapBonusVec.push_back(p);
         }
         
         //hurdle
-        if(_tapInfo[t.grade][1] == 1){
+        if(_tapInfo[t.grade][1] >= 1){
             const int nGenHurdle = 12;
             if(mTimerCnt % nGenHurdle == 0) {
                 auto hurdle = gui::inst()->addSprite(9, 4, "danger.png", this);
+                gui::inst()->setScale(hurdle, mContextTap.mTapRunner->getContentSize().height / 4);
                 hurdle->setAnchorPoint(Vec2(0.5, 0));
                 hurdle->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, TAP_MARGIN_Y);
-                hurdle->runAction(MoveTo::create(2, Vec2(-40, hurdle->getPosition().y)));
-                mTapHurdleVec.push_back(hurdle);
+                float duration = _tapInfo[t.grade][1] == 1 ? 2 : (float)getRandValueMinMax(150, 250) / 100.f;
+                hurdle->runAction(MoveTo::create(duration, Vec2(-40, hurdle->getPosition().y)));
+                mContextTap.mTapHurdleVec.push_back(hurdle);
             }
         }
         
@@ -369,10 +383,10 @@ void ActionBasic::runAction_tap(_training &t) {
                 currentCnt = max;
             
             //10:1 : cnt : x = cnt/10
-            float x = ((Director::getInstance()->getVisibleSize().width * 0.9) * currentCnt / max) + mTapRunner->getContentSize().width;
+            float x = ((Director::getInstance()->getVisibleSize().width * 0.9) * currentCnt / max) + mContextTap.mTapRunner->getContentSize().width;
             mPreTouchCnt = mActionTouchCnt;
-            Vec2 pos = Vec2(x, mTapRunner->getPosition().y);
-            mTapRunner->runAction(MoveTo::create(animationDelay * 10, pos));
+            Vec2 pos = Vec2(x, mContextTap.mTapRunner->getPosition().y);
+            mContextTap.mTapRunner->runAction(MoveTo::create(animationDelay * 10, pos));
         }
         
 		setTime(animationDelay);
@@ -386,12 +400,12 @@ void ActionBasic::runAction_tap(_training &t) {
 
 void ActionBasic::update(float delta) {
     //bonus
-    for(int n=0; n < mTapBonusVec.size(); n++){
-        if(mTapBonusVec[n].sprite && mTapBonusVec[n].sprite->getPosition().x > 0){
-            if(mTapRunner->getBoundingBox().intersectsRect(mTapBonusVec[n].sprite->getBoundingBox())){
-                addTouchCnt(false, mTapBonusVec[n].bonus);
-                auto bonusLabel = gui::inst()->addLabel(0, 0, "+" + to_string(mTapBonusVec[n].bonus), this, 0, ALIGNMENT_CENTER, Color3B::BLUE);
-                Vec2 pos = mTapBonusVec[n].sprite->getPosition();
+    for(int n=0; n < mContextTap.mTapBonusVec.size(); n++){
+        if(mContextTap.mTapBonusVec[n].sprite && mContextTap.mTapBonusVec[n].sprite->getPosition().x > 0){
+            if(mContextTap.mTapRunner->getBoundingBox().intersectsRect(mContextTap.mTapBonusVec[n].sprite->getBoundingBox())){
+                addTouchCnt(false, mContextTap.mTapBonusVec[n].bonus);
+                auto bonusLabel = gui::inst()->addLabel(0, 0, "+" + to_string(mContextTap.mTapBonusVec[n].bonus), this, 0, ALIGNMENT_CENTER, Color3B::BLUE);
+                Vec2 pos = mContextTap.mTapBonusVec[n].sprite->getPosition();
                 pos.y += 10;
                 bonusLabel->setPosition(pos);
                 bonusLabel->runAction(
@@ -401,19 +415,19 @@ void ActionBasic::update(float delta) {
                                                        , NULL
                                                        )
                                       );
-                mTapBonusVec[n].sprite->runAction(RemoveSelf::create());
-                mTapBonusVec.erase(mTapBonusVec.begin() + n);
+                mContextTap.mTapBonusVec[n].sprite->runAction(RemoveSelf::create());
+                mContextTap.mTapBonusVec.erase(mContextTap.mTapBonusVec.begin() + n);
             }
         }
     }
     
     //hurdle
-    for(int n=0; n < mTapHurdleVec.size(); n++){
-        if(mTapHurdleVec[n] && mTapHurdleVec[n]->getPosition().x > 0){
-            if(mTapRunner->getBoundingBox().intersectsRect(mTapHurdleVec[n]->getBoundingBox())){
+    for(int n=0; n < mContextTap.mTapHurdleVec.size(); n++){
+        if(mContextTap.mTapHurdleVec[n] && mContextTap.mTapHurdleVec[n]->getPosition().x > 0){
+            if(mContextTap.mTapRunner->getBoundingBox().intersectsRect(mContextTap.mTapHurdleVec[n]->getBoundingBox())){
                 addTouchCnt(true, TAP_DEFAULT_POINT);
                 auto bonusLabel = gui::inst()->addLabel(0, 0, "-" + to_string(TAP_DEFAULT_POINT), this, 0, ALIGNMENT_CENTER, Color3B::RED);
-                Vec2 pos = mTapHurdleVec[n]->getPosition();
+                Vec2 pos = mContextTap.mTapHurdleVec[n]->getPosition();
                 pos.y += 10;
                 bonusLabel->setPosition(pos);
                 bonusLabel->runAction(
@@ -423,8 +437,8 @@ void ActionBasic::update(float delta) {
                                                        , NULL
                                                        )
                                       );
-                mTapHurdleVec[n]->runAction(RemoveSelf::create());
-                mTapHurdleVec.erase(mTapHurdleVec.begin() + n);
+                mContextTap.mTapHurdleVec[n]->runAction(RemoveSelf::create());
+                mContextTap.mTapHurdleVec.erase(mContextTap.mTapHurdleVec.begin() + n);
             }
         }
     }
@@ -542,7 +556,7 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 	}
     //new score
     if(logics::hInst->getHighScore(id) < mActionTouchCnt){
-        logics::hInst->setHighScore(id, mActionTouchCnt);
+        logics::hInst->setHighScore(id, mActionTouchCnt, maxTimes);
         szResult = "New Score " + to_string(mActionTouchCnt)+ "\n" + szResult;
         setHighScoreLabel(mActionTouchCnt);
     }

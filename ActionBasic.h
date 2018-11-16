@@ -63,20 +63,26 @@ private:
     float mTime;
 	Layout * mLayer;
     Sprite * mTimingRunner[TIMING_RUNNER_CNT];
-    Sprite * mTapRunner;
+    
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
     int mPreTouchCnt; //이전 점수를 비교하기 위한 변수
     int mTimerCnt; //타이머 호출 카운터
     //for tap -------------------------------------------
-    bool mIsJump; //점프 상태 체크용
     struct tapBonus{
         Sprite * sprite;
         int bonus;
     };
-    vector<tapBonus> mTapBonusVec;
-    vector<Sprite *> mTapHurdleVec; //장애물
     
-    int mTapBonusGenCounter[3]; //보너스 점수 생성 카운터
+    struct contextTap{
+        Sprite * mTapRunner;
+        bool mIsJump; //점프 상태 체크용
+        vector<tapBonus> mTapBonusVec;
+        vector<Sprite *> mTapHurdleVec; //장애물
+        
+        int mTapBonusGenCounter[3]; //보너스 점수 생성 카운터
+    } mContextTap;
+    
+    
     
 	_training mAction;
 

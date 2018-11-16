@@ -205,7 +205,12 @@ bool MainScene::initDeco() {
     const float _div = 40;
     ui_deco::inst()->init(mMainLayoput, degrees, false, false);
    
-    Color4F colors[4] = {Color4F::WHITE, Color4F::WHITE, Color4F::WHITE, Color4F::WHITE};
+    Color4F colors[4] = {
+        ui_color::inst()->getColor4F(0, 0)
+        , ui_color::inst()->getColor4F(1, 0)
+        , ui_color::inst()->getColor4F(2, 0)
+        , ui_color::inst()->getColor4F(3, 0)
+    };
     
     sqlite3_stmt * stmt = Sql::inst()->select("SELECT colors, wallLeft, wallRight, bottom FROM actor WHERE idx = 1");
     if (stmt == NULL)
@@ -1203,7 +1208,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		, if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue; switch (type) { case 0: break; case 1: if (it->second.reward.strength == 0) continue; break; case 2: if (it->second.reward.intelligence == 0) continue; break; case 3: if (it->second.reward.appeal == 0) continue; break; default: break; }
 		, getItemImg(it->first)
 		, CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
-		, "Lv." + to_string(it->second.level)
+        , to_string((unsigned int)((float)logics::hInst->getHighScore(it->first) / (float)logics::hInst->getMaxScore(it->first) * 100.f))
 		, wstring_to_utf8(it->second.name)
 		, COIN + to_string(it->second.cost.point)
 		, gui::inst()->EmptyString

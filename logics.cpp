@@ -237,9 +237,12 @@ bool logics::initActor(bool isFarmingDataLoad)
                 int idx = 0;
                 int id = sqlite3_column_int(stmt, idx++);
                 int score = sqlite3_column_int(stmt, idx++);
+                int max = sqlite3_column_int(stmt, idx++);
                 
-                if(id > 0)
+                if(id > 0) {
                     mTrainingHighScore[id] = score;
+                    mTrainingMaxScore[id] = max;
+                }
             }
             else
                 break;
@@ -1965,16 +1968,24 @@ int logics::getHighScore(int id) {
     else
         return mTrainingHighScore[id];
 }
-void logics::setHighScore(int id, int score) {
+void logics::setHighScore(int id, int score, int max) {
     string query = "";
     if(mTrainingHighScore.find(id) == mTrainingHighScore.end())
     {
-        query = "INSERT INTO score(id, score) VALUES(" + to_string(id) + "," + to_string(score) + ");";
+        query = "INSERT INTO score(id, score, max) VALUES(" + to_string(id) + "," + to_string(score) + ", " + to_string(max) +");";
     }else{
-        query = "UPDATE score SET score = " + to_string(score) + " WHERE id=" + to_string(id)+ ";";
+        query = "UPDATE score SET score = " + to_string(score) + ", max = " + to_string(max) + " WHERE id=" + to_string(id)+ ";";
     }
     mSql.exec(query);
     mTrainingHighScore[id] = score;
+    mTrainingMaxScore[id] = max;
+}
+
+int logics::getMaxScore(int id) {
+    if(mTrainingMaxScore.find(id) == mTrainingMaxScore.end())
+        return  -1;
+    else
+        return mTrainingMaxScore[id];
 }
 
 void logics::saveActor() {

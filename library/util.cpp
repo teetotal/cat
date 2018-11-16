@@ -28,6 +28,13 @@ int getRandValueOverZero(int max) {
 		n = 1;
 	return n;
 }
+
+int getRandValueMinMax(int min, int max) {
+    int val = max - min;
+    int ran = getRandValue(val);
+    return min + ran;
+}
+
 int getRandValue(int max) {
 	if (max == 0)
 		return 0;
