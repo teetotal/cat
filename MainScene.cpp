@@ -1189,6 +1189,32 @@ void MainScene::showCollection() {
 	layer->addChild(sv, 1, CHILD_ID_COLLECTION);
 }
 
+string MainScene::getStar(int point){
+    //★☆
+    /*
+     1-25 ☆
+     26-40 ★
+     41-60 ★☆
+     61-75 ★★
+     76-90 ★★☆
+     91- ★★★
+     */
+    if(point <=0)
+        return " ";
+    else if(point > 0 && point <= 25)
+        return "☆";
+    else if(point > 25 && point <= 40)
+        return "★";
+    else if(point > 40 && point <= 60)
+        return "★☆";
+    else if(point > 60 && point <= 75)
+        return "★★";
+    else if(point > 75 && point <= 90)
+        return "★★☆";
+    else
+        return "★★★";
+    
+}
 
 void MainScene::showActionCategory(Ref* pSender, int type) {
 	ACTION_SIZE;
@@ -1205,10 +1231,10 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
 		, nodeMargin
 		, nodeSize
 		, (__training::iterator it = pTraining->begin(); it != pTraining->end(); ++it)
-		, if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue; switch (type) { case 0: break; case 1: if (it->second.reward.strength == 0) continue; break; case 2: if (it->second.reward.intelligence == 0) continue; break; case 3: if (it->second.reward.appeal == 0) continue; break; default: break; }
+               , if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue; switch (type) { case 0: break; case 1: if (it->second.reward.strength == 0) continue; break; case 2: if (it->second.reward.intelligence == 0) continue; break; case 3: if (it->second.reward.appeal == 0) continue; break; default: break; } fontColor0 = Color3B::MAGENTA;
 		, getItemImg(it->first)
 		, CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
-        , to_string((unsigned int)((float)logics::hInst->getHighScore(it->first) / (float)logics::hInst->getMaxScore(it->first) * 100.f))
+        , getStar((unsigned int)((float)logics::hInst->getHighScore(it->first) / (float)logics::hInst->getMaxScore(it->first) * 100.f))
 		, wstring_to_utf8(it->second.name)
 		, COIN + to_string(it->second.cost.point)
 		, gui::inst()->EmptyString

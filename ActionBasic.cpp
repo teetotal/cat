@@ -340,7 +340,7 @@ void ActionBasic::runAction_tap(_training &t) {
         const int nMaxGenCnt = ((PLAYTIME * (1/animationDelay)) / nGenBonus) / _tapInfo[t.grade][2];
         const float nScales[] = {0, 40, 30, 20};
         
-        if(mTimerCnt % nGenBonus == 0) {
+        if(mTimerCnt % nGenBonus == 0 && mTime > 2.5) { //2초 이상 남았을 때만 생성
             auto pBonus = gui::inst()->addSprite(9, 4, "star.png", this);
             pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mContextTap.mTapRunner->getContentSize().height);
             tapBonus p;
@@ -363,10 +363,10 @@ void ActionBasic::runAction_tap(_training &t) {
         
         //hurdle
         if(_tapInfo[t.grade][1] >= 1){
-            const int nGenHurdle = 12;
+            const int nGenHurdle = 15;
             if(mTimerCnt % nGenHurdle == 0) {
                 auto hurdle = gui::inst()->addSprite(9, 4, "danger.png", this);
-                gui::inst()->setScale(hurdle, mContextTap.mTapRunner->getContentSize().height / 4);
+                gui::inst()->setScale(hurdle, mContextTap.mTapRunner->getContentSize().height / 6);
                 hurdle->setAnchorPoint(Vec2(0.5, 0));
                 hurdle->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, TAP_MARGIN_Y);
                 float duration = _tapInfo[t.grade][1] == 1 ? 2 : (float)getRandValueMinMax(150, 250) / 100.f;
