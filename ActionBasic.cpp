@@ -40,29 +40,29 @@ int _tapInfo[][3] = //enable tap, hurdle level. 보너스 점수 종류
 {
    {0, 0, 0},
     
-    {0, 0, 1},  //grade 1
-    {0, 0, 2},  //grade 2
-    {0, 0, 3},  //grade 3
+    {0, 1, 1},  //grade 1
+    {0, 1, 2},  //grade 2
+    {0, 1, 3},  //grade 3
     
-    {0, 1, 1},  //grade 4
-    {0, 1, 2},  //grade 5
-    {0, 1, 3},  //grade 6
+    {0, 2, 1},  //grade 4
+    {0, 2, 2},  //grade 5
+    {0, 3, 3},  //grade 6
     
-    {0, 2, 1},  //grade 7
-    {0, 2, 2},  //grade 8
-    {0, 2, 3},  //grade 9
+    {0, 3, 1},  //grade 7
+    {0, 3, 2},  //grade 8
+    {0, 3, 3},  //grade 9
     
-    {1, 0, 1},  //grade 10
-    {1, 0, 2},  //grade 11
-    {1, 0, 3},  //grade 12
+    {1, 1, 1},  //grade 10
+    {1, 1, 2},  //grade 11
+    {1, 1, 3},  //grade 12
     
-    {1, 1, 1},  //grade 13
-    {1, 1, 2},  //grade 14
-    {1, 1, 3},  //grade 15
+    {1, 2, 1},  //grade 13
+    {1, 2, 2},  //grade 14
+    {1, 2, 3},  //grade 15
     
-    {1, 2, 1},  //grade 16
-    {1, 2, 2},  //grade 17
-    {1, 2, 3}   //grade 18
+    {1, 3, 1},  //grade 16
+    {1, 3, 2},  //grade 17
+    {1, 3, 3}   //grade 18
 };
 
 Scene* ActionBasic::createScene()
@@ -363,13 +363,15 @@ void ActionBasic::runAction_tap(_training &t) {
         
         //hurdle
         if(_tapInfo[t.grade][1] >= 1){
-            const int nGenHurdle = 15;
+            int nGenHurdle = (4 - _tapInfo[t.grade][1]) * 15;
+            
             if(mTimerCnt % nGenHurdle == 0) {
                 auto hurdle = gui::inst()->addSprite(9, 4, "danger.png", this);
                 gui::inst()->setScale(hurdle, mContextTap.mTapRunner->getContentSize().height / 6);
                 hurdle->setAnchorPoint(Vec2(0.5, 0));
                 hurdle->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, TAP_MARGIN_Y);
-                float duration = _tapInfo[t.grade][1] == 1 ? 2 : (float)getRandValueMinMax(150, 250) / 100.f;
+                //float duration = _tapInfo[t.grade][1] == 1 ? 2 : (float)getRandValueMinMax(150, 250) / 100.f;
+                float duration = (float)getRandValueMinMax(150, 250) / 100.f;
                 hurdle->runAction(MoveTo::create(duration, Vec2(-40, hurdle->getPosition().y)));
                 mContextTap.mTapHurdleVec.push_back(hurdle);
             }
