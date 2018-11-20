@@ -237,7 +237,7 @@ bool MainScene::initDeco() {
             }
         }
         
-        ui_deco::inst()->addWall(5, colors[0], colors[1]);
+        ui_deco::inst()->addWall(_div/ 2, colors[0], colors[1]);
         ui_deco::inst()->addBottom(_div, _div / 5, colors[2], colors[3]);
         ui_deco::inst()->drawGuidLine();
         mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);

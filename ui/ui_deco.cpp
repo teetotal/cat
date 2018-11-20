@@ -100,7 +100,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
     std::sort (mLeftVec.begin(), mLeftVec.end(), ui_deco::sortTouchVecLeft);
     
     mWallGridSize = getWallGridSize();
-
+/*
     for(int n=0; n< mRightVec.size(); n++){
         auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
         //p->setRotationSkewX(45);
@@ -121,7 +121,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
         p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
 
     }
-    
+*/
     if(mDebugModeWall){
         for(int n=0; n< mLeftVec.size(); n++){
             auto posLabel = Label::create();
