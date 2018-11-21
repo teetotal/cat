@@ -212,7 +212,7 @@ bool MainScene::initDeco() {
         , ui_color::inst()->getColor4F(3, 0)
     };
     
-    sqlite3_stmt * stmt = Sql::inst()->select("SELECT colors, wallLeft, wallRight, bottom FROM actor WHERE idx = 1");
+    sqlite3_stmt * stmt = Sql::inst()->select("SELECT colors, wallLeft, wallRight, bottom, wallParttern FROM actor WHERE idx = 1");
     if (stmt == NULL)
         return false;
     
@@ -237,7 +237,7 @@ bool MainScene::initDeco() {
             }
         }
         
-        ui_deco::inst()->addWall(_div/ 2, colors[0], colors[1]);
+        ui_deco::inst()->addWall(_div/ 8, colors[0], colors[1]);
         ui_deco::inst()->addBottom(_div, _div / 5, colors[2], colors[3]);
         ui_deco::inst()->drawGuidLine();
         mTouchGrid = ui_deco::inst()->getBottomGridSize(); //Size(gui::inst()->getTanLen(fH, degrees) * 2, fH * 2);
@@ -257,6 +257,11 @@ bool MainScene::initDeco() {
             ui_deco::OBJECT obj(-1, sprite, ui_deco::SIDE_BOTTOM, ui_deco::inst()->getDefaultBottomIdx());
             ui_deco::inst()->addObject(obj);
         }
+        
+        sz = (const char*)sqlite3_column_text(stmt, idx++); //wallParttern
+        if(sz)
+            ui_deco::inst()->addWallParttern(sz);
+        
     }
     //-------------------------------------------------
     //    gui::inst()->drawGrid(mMainLayoput, mMainLayoput->getContentSize(), mTouchGrid, Size::ZERO, Size::ZERO);
@@ -926,7 +931,7 @@ void MainScene::selectCallback(Ref* pSender, int id) {
     _item item = logics::hInst->getItem(mQuantityItemId);
     
     mQuantityLayout->removeChildByTag(CHILD_ID_QUANTITY_COLOR);
-    
+    mQuantityImg->setTexture("blank.png");
     LayerColor * colorLayer = getItemColor(id);
     if(colorLayer){
         colorLayer->setContentSize(Size(20, 20));
@@ -940,7 +945,7 @@ void MainScene::selectCallback(Ref* pSender, int id) {
         
     }else{
         mQuantityImg->setTexture(getItemImg(id));
-        mQuantityImg->setContentSize(Size(20, 20));
+        gui::inst()->setScale(mQuantityImg, 20);
     }
 	
 	mQuantityTitle->setString(wstring_to_utf8(item.name));
@@ -1010,14 +1015,16 @@ void MainScene::showBuy(inventoryType type) {
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
     
     //scrollview 가 먼저 눌리는건 Menu의 localZorder값이 낮아서 그럼. 보튼 생성 함수를 고쳐야 함.
-    auto item1 = MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall));
-    auto item2 = MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_bottom));
-    auto item3 = MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior));
-    auto item4 = MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior));
-    auto item5 = MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn));
-    auto item6 = MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_HP));
+    auto pMenu = Menu::create();
     
-    auto pMenu = Menu::create(item1, item2, item3, item4,item5, item6,NULL);
+    pMenu->addChild(MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall)));
+    pMenu->addChild(MenuItemFont::create("Parttern", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall_pattern)));
+    pMenu->addChild(MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_bottom)));
+    pMenu->addChild(MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior)));
+    pMenu->addChild(MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior)));
+    pMenu->addChild(MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn)));
+    pMenu->addChild(MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_HP)));
+    
     pMenu->alignItemsHorizontally();
     Vec2 pos = gui::inst()->getPointVec2(4, 0, ALIGNMENT_CENTER, layer->getContentSize(), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
     pMenu->setPosition(pos);
@@ -1561,6 +1568,8 @@ string MainScene::getItemImg(int id) {
             return "home/0" + to_string(id - 2000) + ".png";
 		case itemType_exterior:
             return "home/exterior/0" + to_string(id - 3000) + ".png";
+        case itemType_wall_pattern:
+            return "parttern/" + to_string(id - 4000) + ".png";
         default:
             return "items/" + to_string(id % 20) + ".png";
     }
@@ -1663,7 +1672,10 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
         auto img = Sprite::create(getItemImg(item.id));
         ui_deco::OBJECT obj(item.id, img, ui_deco::SIDE_LEFT, ui_deco::inst()->getDefaultLeftIdx());
         ui_deco::inst()->addObject(obj);
-    } else {
+    } else if(item.type == itemType_wall_pattern){
+        ui_deco::inst()->addWallParttern(getItemImg(item.id));
+    }
+    else {
         isPop = false;
     }
     

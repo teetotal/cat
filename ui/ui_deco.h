@@ -83,6 +83,8 @@ public:
     void addWall(int div, Color4F color){
         addWall(div, color, getDarkColor(color));
     }
+    //벽 무늬
+    void addWallParttern(const string img);
     
     void changeColorBottom(Color4F color1, Color4F color2);
     void changeColorBottom(Color4F color){
@@ -176,13 +178,14 @@ public:
     float mDegrees;
     int mBottomDivCnt, mDrawBottomDivCnt, mWallDivCnt;
     Color4F mBottomColor1, mBottomColor2, mWallColor1, mWallColor2;
+    string mWallPartternImg;
     
 private:
 #define DARK_RATION 0.837
     
     enum LAYER{
-        LAYER_WALL = 0,
-        LAYER_WALL_TEMP,
+        LAYER_WALL = 0, //벽 색
+        LAYER_WALL_DECO, //벽 무늬
         LAYER_BOTTOM,
         LAYER_BOTTOM_TEMP,
         LAYER_GUIDELINE,

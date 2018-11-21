@@ -26,8 +26,8 @@ void ui_deco::init(Node * p, float degrees, bool isDebugModeBottom, bool isDebug
     
     mLayout[LAYER_WALL] = gui::inst()->createLayout(mMainLayoput->getContentSize());
     mMainLayoput->addChild(mLayout[LAYER_WALL]);
-    mLayout[LAYER_WALL_TEMP] = gui::inst()->createLayout(mMainLayoput->getContentSize());
-    mMainLayoput->addChild(mLayout[LAYER_WALL_TEMP]);
+    mLayout[LAYER_WALL_DECO] = gui::inst()->createLayout(mMainLayoput->getContentSize());
+    mMainLayoput->addChild(mLayout[LAYER_WALL_DECO]);
     mLayout[LAYER_BOTTOM] = gui::inst()->createLayout(mMainLayoput->getContentSize());
     mMainLayoput->addChild(mLayout[LAYER_BOTTOM]);
     mLayout[LAYER_BOTTOM_TEMP] = gui::inst()->createLayout(mMainLayoput->getContentSize());
@@ -89,6 +89,41 @@ void ui_deco::changeColorWall(Color4F color1, Color4F color2){
     mLeftVec.clear();
     addWall(mWallDivCnt, color1, color2);
 }
+void ui_deco::addWallParttern(const string img){
+    mLayout[LAYER_WALL_DECO]->removeAllChildren();
+    for(int n=0; n< mRightVec.size(); n++){
+        TOUCHED_INFO info;
+        info.side = SIDE_RIGHT;
+        Size size = getGridSize(info);
+        
+        auto p = gui::inst()->addSpriteAutoDimension(0, 0, img, mLayout[LAYER_WALL_DECO]);
+        //p->setRotationSkewX(45);
+        p->setRotationSkewY(mDegrees);
+        //gui::inst()->setScale(p, size.width / 2);
+        p->getContentSize().width > p->getContentSize().height ? gui::inst()->setScale(p, size.width / 2) : gui::inst()->setScaleByHeight(p, size.height / 2);
+        
+        p->setPosition(Vec2(mRightVec[n].x - size.width / 4, mRightVec[n].y + size.height * 0.5));
+        
+    }
+    
+    for(int n=0; n< mLeftVec.size(); n++){
+        //auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
+        TOUCHED_INFO info;
+        info.side = SIDE_LEFT;
+        Size size = getGridSize(info);
+        
+        auto p = gui::inst()->addSpriteAutoDimension(0, 0, img, mLayout[LAYER_WALL_DECO]);
+        p->setRotationSkewY(-1 * mDegrees);
+        //p->setContentSize(Size(size.width / 2, size.height / 2));
+        p->getContentSize().width > p->getContentSize().height ? gui::inst()->setScale(p, size.width / 2) : gui::inst()->setScaleByHeight(p, size.height / 2);
+        
+        
+        p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
+        
+    }
+    
+    mWallPartternImg = img;
+}
 //벽
 void ui_deco::addWall(int div, Color4F color1, Color4F color2){
     mWallDivCnt = div;
@@ -100,28 +135,7 @@ void ui_deco::addWall(int div, Color4F color1, Color4F color2){
     std::sort (mLeftVec.begin(), mLeftVec.end(), ui_deco::sortTouchVecLeft);
     
     mWallGridSize = getWallGridSize();
-/*
-    for(int n=0; n< mRightVec.size(); n++){
-        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
-        //p->setRotationSkewX(45);
-        p->setRotationSkewY(mDegrees);
-        TOUCHED_INFO info;
-        info.side = SIDE_RIGHT;
-        Size size = getGridSize(info);
-        p->setPosition(Vec2(mRightVec[n].x - size.width / 4, mRightVec[n].y + size.height * 0.5));
-        
-    }
 
-    for(int n=0; n< mLeftVec.size(); n++){
-        auto p = gui::inst()->addLabelAutoDimension(0, 0, "┕", mLayout[LAYER_WALL], 18, ALIGNMENT_CENTER, Color3B::GRAY);
-        p->setRotationSkewY(-1 * mDegrees);
-        TOUCHED_INFO info;
-        info.side = SIDE_LEFT;
-        Size size = getGridSize(info);
-        p->setPosition(Vec2(mLeftVec[n].x - size.width / 4, mLeftVec[n].y + size.height * 0.5));
-
-    }
-*/
     if(mDebugModeWall){
         for(int n=0; n< mLeftVec.size(); n++){
             auto posLabel = Label::create();

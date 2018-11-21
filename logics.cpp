@@ -1941,6 +1941,9 @@ inventoryType logics::getInventoryType(int itemId) {
 	else if (item.type == itemType_exterior) {
         t = inventoryType_exterior;
     }
+    else if (item.type == itemType_wall_pattern) {
+        t = inventoryType_wall_pattern;
+    }
 	else {
 		t = inventoryType_collection;
 	}
@@ -2000,7 +2003,7 @@ void logics::saveActor() {
 
 	char bufActor[1024] = { 0 };
 	sprintf(bufActor
-		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d WHERE idx = 1;"
+		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallParttern='%s' WHERE idx = 1;"
 		, mActor->userId.c_str()
 		, mActor->userName.c_str()
 		, mActor->id.c_str()
@@ -2016,6 +2019,7 @@ void logics::saveActor() {
 		, mActor->property.strength
 		, mActor->property.intelligence
 		, mActor->property.appeal
+        , ui_deco::inst()->mWallPartternImg.c_str()
 	);
     
     rc = Sql::inst()->exec(bufActor);
@@ -2049,12 +2053,12 @@ void logics::saveActor() {
         CCLOG("Actor Saving failure !!! \n rc: %d \n%s", rc, bufActor);
     }
   
-    string szQuery = "";
+    string szQuery = "DELETE FROM collection;";
 		
 	//collection
 	//d["collection"].Clear();		
 	if (mActor->collection.size() > 0) {
-		szQuery += "\nDELETE FROM collection;\nINSERT INTO collection(id) VALUES";
+		szQuery += "\nINSERT INTO collection(id) VALUES";
 		for (keyBoolMap::iterator it = mActor->collection.begin(); it != mActor->collection.end(); ++it) {
 			if (it->second == true) {
 				//d["collection"].PushBack(it->first, d.GetAllocator());
@@ -2067,11 +2071,12 @@ void logics::saveActor() {
 		szQuery += ";";
 	}
 
-	//inventory	
+	//inventory
+    szQuery += "\nDELETE FROM inventory;";
 	vector<intPair> vec;
 	mActor->inven.getWarehouse(vec);
 	if (vec.size() > 0) {
-		szQuery += "\nDELETE FROM inventory;\nINSERT INTO inventory(category, id, quantity) VALUES";
+		szQuery += "\nINSERT INTO inventory(category, id, quantity) VALUES";
 		for (int n = 0; n < (int)vec.size(); n++) {
             assert(vec[n].key != 0);
             
@@ -2084,9 +2089,10 @@ void logics::saveActor() {
 	}
 	
 	//farming
+    szQuery += "\nDELETE FROM farm;";
 	if (mFarming.countField() > 0) {
 		int n = 0;		
-		szQuery += "\nDELETE FROM farm;\nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
+		szQuery += "\nINSERT INTO farm(id, x, y, seedId, timePlant, cntCare, timeLastGrow, boost, level, accumulation) VALUES";
 		char buffer[8 * 1024] = { 0, };
 		int len = 0;
 

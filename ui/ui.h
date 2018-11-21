@@ -400,11 +400,17 @@ public:
     float getScale(Node * p, float targetWidth){
         return targetWidth / p->getContentSize().width;
     };
+    float getScaleByHeight(Node * p, float targetHeight){
+        return targetHeight / p->getContentSize().height;
+    };
     //set Scale
 	void setScale(Node * p, float targetWidth) {
 		//float ratio = targetWidth / p->getContentSize().width;
 		p->setScale(getScale(p, targetWidth));
 	};
+    void setScaleByHeight(Node * p, float targetHeight) {
+        p->setScale(getScaleByHeight(p, targetHeight));
+    };
 
 	//정 중앙 포인트 가져오기
 	Vec2 getCenterFromSize(Size size) {

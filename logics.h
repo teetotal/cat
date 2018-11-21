@@ -106,6 +106,7 @@ enum inventoryType {
     inventoryType_bottom,
     inventoryType_interior,
 	inventoryType_exterior,
+    inventoryType_wall_pattern,
 	inventoryType_max,
     inventoryType_collection
 };
@@ -128,6 +129,7 @@ enum itemType {
     itemType_bottom, //바닥지
     itemType_interior, //인테리어 가구
 	itemType_exterior, //외장재
+    itemType_wall_pattern, //벽 무늬
 	itemType_max,
 	itemType_collection,	//도감용
 };
