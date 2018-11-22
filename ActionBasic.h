@@ -54,8 +54,17 @@ private:
 
 	void addTouchCnt(bool isFail = false, unsigned int val = 1);
     void setTime(float diff);
-    void setHighScoreLabel(int n) {
-        mHighScore->setString("High Score: " + to_string(n));
+    string getScoreStar(float score, float max) {
+        string sz = gui::inst()->getStar((unsigned int)(score / max * 100.f));
+        return sz;
+    };
+    void setHighScoreLabel() {
+        float max = logics::hInst->getMaxScore(mAction.id);
+        if(max == -1)
+            return;
+        
+        string sz = gui::inst()->getStar((unsigned int)((float)logics::hInst->getHighScore(mAction.id) / max * 100.f));
+        mHighScore->setString("High Score: " + sz);
     };
     void increment(int &val);
 	Label * mTitle, * mRewardInfo, * mTouchInfo;

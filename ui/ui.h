@@ -477,6 +477,33 @@ public:
     //벡터 외적. 음수 = false
     bool vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x);
     
+    string getStar(int point){
+        //★☆
+        /*
+         1-25 ☆
+         26-40 ★
+         41-60 ★☆
+         61-75 ★★
+         76-90 ★★☆
+         91- ★★★
+         */
+        if(point <=0)
+            return " ";
+        else if(point > 0 && point <= 25)
+            return "☆";
+        else if(point > 25 && point <= 40)
+            return "★";
+        else if(point > 40 && point <= 60)
+            return "★☆";
+        else if(point > 60 && point <= 75)
+            return "★★";
+        else if(point > 75 && point <= 90)
+            return "★★☆";
+        else
+            return "★★★";
+        
+    };
+    
 	int mModalTouchCnt;
 	string EmptyString;
 

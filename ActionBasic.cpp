@@ -3,6 +3,7 @@
 //
 
 #include "ActionBasic.h"
+#include "ui/ui_color.h"
 #include "SimpleAudioEngine.h"
 #define PLAYTIME 25.00
 #define TIMING_Y    2
@@ -23,17 +24,17 @@ int loopAnimation = 4 * 3;
 float step = 100.0f / PLAYTIME * animationDelay;
 int _timingInfo[10][3] =  //runner, curveCnt, difficult
 {{0, 0, 0}
-    , {1, 2, 1}
-    , {1, 3, 2}
-    , {1, 4, 3}
+    , {1, 2, 120}
+    , {1, 3, 80}
+    , {1, 4, 40}
     
-    , {2, 2, 1}
-    , {2, 3, 2}
-    , {2, 4, 3}
+    , {2, 2, 120}
+    , {2, 3, 80}
+    , {2, 4, 40}
     
-    , {3, 2, 1}
-    , {3, 3, 2}
-    , {3, 4, 3}
+    , {3, 2, 120}
+    , {3, 3, 80}
+    , {3, 4, 40}
 };
 
 int _tapInfo[][3] = //enable tap, hurdle level. 보너스 점수 종류
@@ -96,8 +97,8 @@ void ActionBasic::initUI() {
     //mTitle->setPosition(Vec2(mTitle->getPosition().x, mTitle->getPosition().y + 15));
     mRewardInfo = gui::inst()->addLabel(0, 6, " ", this, 0, ALIGNMENT_NONE, Color3B::GRAY);
     mTouchInfo = gui::inst()->addLabel(4, 0, "Score: 0", this, 32, ALIGNMENT_CENTER, Color3B::BLACK);
-    mHighScore = gui::inst()->addLabel(7, 0, " ", this, 18, ALIGNMENT_CENTER, Color3B::GREEN);
-    setHighScoreLabel(logics::hInst->getHighScore(mAction.id));
+    mHighScore = gui::inst()->addLabel(7, 0, " ", this, 18, ALIGNMENT_CENTER, Color3B::MAGENTA);
+    setHighScoreLabel();
     //start touch count
     mActionCnt = 0;
     mActionTouchCnt = 0;
@@ -242,16 +243,14 @@ void ActionBasic::runAction_timing(_training &t) {
                 
                 Vector<FiniteTimeAction *> vec;
                 for(int i=0; i< nCurveCnt; i++){
-                    int val = getRandValue(100);
                     
-                    int minSpeed = 40;
                     if(i == nCurveCnt -1){
-                        float speed = (float)max(minSpeed, val) / 100.f;
+                        float speed = (float)max(40, getRandValue(80)) / 100.f;
                         vec.pushBack(MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(TIMING_X_END, getTouchYPosition(n)))));
                     }
                     else{
-                        minSpeed = minSpeed / 2;
-                        float speed = (float)max(minSpeed, val) / 100.f;
+                        int val = getRandValue(200);
+                        float speed = (float)max(_timingInfo[t.grade][2], val) / 100.f;
                         vec.pushBack(
                                      EaseOut::create(
                                                     MoveTo::create(speed, Vec2(gui::inst()->getPointVec2(curvePoint[i], getTouchYPosition(n))))
@@ -518,7 +517,7 @@ void ActionBasic::runAction_touch(_training &t) {
 	
 	return;
 }
-
+//결과
 void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 	mIsStop = true;
 	vector<_itemPair> rewards;
@@ -534,6 +533,14 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 
 	errorCode err = logics::hInst->runTraining(id, rewards, &property, point, type, ratioTouch);
 	wstring sz = logics::hInst->getErrorMessage(err);
+    switch (err) {
+        case error_success:
+        case error_levelup:
+            break;
+        default:
+            //alert(err);
+            break;
+    }
 
 	wstring szRewards = L"";
 	for (int n = 0; n < rewards.size(); n++) {
@@ -542,47 +549,62 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 	}
 
 	bool isInventory = false;
-
-    string szResult = to_string(mActionTouchCnt) + "/" + to_string(maxTimes);
-    szResult += "\nBonus: " + to_string((int)(ratioTouch * 100.f)) + "% \n";
-	if (point > 0)	szResult = COIN + to_string(point);
-	if (property.strength > 0) szResult += " S:" + to_string(property.strength);
-	if (property.intelligence > 0) szResult += " I:" + to_string(property.intelligence);
-	if (property.appeal > 0) szResult += " A:" + to_string(property.appeal);
-	//szResult += " (" + to_string(ratioTouch * 100) + "%)";
-
+    
+    //UI구성
+    Color4B bgColor = Color4B::WHITE;
+    //bgColor.a = 225;
+    auto layer = LayerColor::create(bgColor, 300, 200);
+    Vec2 pos = gui::inst()->getCenter();
+    pos.x -= layer->getContentSize().width / 2;
+    pos.y -= layer->getContentSize().height / 2;
+    layer->setPosition(pos);
+    this->addChild(layer);
+    
+    gui::inst()->addLabelAutoDimension(4, 1, "RESULT", layer, 20, ALIGNMENT_CENTER, Color3B::BLACK);
+    gui::inst()->addTextButtonAutoDimension(4, 7, "CLOSE", layer, [=](Ref* pSender){ closeScene(); } , 0, ALIGNMENT_CENTER, Color3B::BLUE);
+    
+    int idx = 4;
+    gui::inst()->addLabelAutoDimension(2, idx, "Score", layer, 12, ALIGNMENT_NONE, Color3B::GRAY);
+    string szResultDetail = to_string(mActionTouchCnt) + " / " + to_string(maxTimes);
+    gui::inst()->addLabelAutoDimension(4, idx++, szResultDetail, layer, 0, ALIGNMENT_NONE, Color3B::GREEN);
+    
+    gui::inst()->addLabelAutoDimension(2, idx, "Reward", layer, 12, ALIGNMENT_NONE, Color3B::GRAY);
+    
+    if (point > 0) gui::inst()->addLabelAutoDimension(4, idx++, COIN + to_string(point), layer, 0, ALIGNMENT_NONE);
+	if (property.strength > 0) gui::inst()->addLabelAutoDimension(4, idx++, "S: " + to_string(property.strength), layer, 0, ALIGNMENT_NONE);
+	if (property.intelligence > 0) gui::inst()->addLabelAutoDimension(4, idx++, "I: " + to_string(property.intelligence), layer, 0, ALIGNMENT_NONE);
+	if (property.appeal > 0) gui::inst()->addLabelAutoDimension(4, idx++, "A: " + to_string(property.appeal), layer, 0, ALIGNMENT_NONE);
+	
 	string szRewardsUTF8 = wstring_to_utf8(szRewards, true);
 	if (szRewardsUTF8.size() > 1) {
 		isInventory = true;
-		szResult += "\n" + szRewardsUTF8;
+        gui::inst()->addLabelAutoDimension(3, idx++, szRewardsUTF8, layer);
 	}
     //new score
-    if(logics::hInst->getHighScore(id) < mActionTouchCnt){
-        logics::hInst->setHighScore(id, mActionTouchCnt, maxTimes);
-        szResult = "New Score " + to_string(mActionTouchCnt)+ "\n" + szResult;
-        setHighScoreLabel(mActionTouchCnt);
+    bool isNewScore = false;
+    string szResult = getScoreStar(mActionTouchCnt, maxTimes);
+    if(mActionTouchCnt <= 0){
+        szResult = "T.T";
     }
-	switch (err) {
-	case error_success:
-	case error_levelup:
-		//showResult(szResult, isInventory);
-		//updateState(isInventory);
-		gui::inst()->addLabel(4, 3, szResult, this, 0, ALIGNMENT_CENTER, Color3B::ORANGE)->runAction(
-			Sequence::create(
-				EaseIn::create(ScaleBy::create(1, 2), 0.4)
-				, EaseOut::create(ScaleBy::create(1, 1 / 2), 0.4)
-				, CallFunc::create([this]() { closeScene();	})
-				, NULL
-			)
-		);
-		break;
-	default:
-		//alert(err);
-		break;
-	}
-
-	//closeScene();
-
+    else if(logics::hInst->getHighScore(id) < mActionTouchCnt){
+        logics::hInst->setHighScore(id, mActionTouchCnt, maxTimes);
+        setHighScoreLabel();
+        isNewScore = true;
+        szResult = "New Score " + szResult;
+    }
+    
+    auto labelScore = gui::inst()->addLabelAutoDimension(4, 2, szResult, layer, 32, ALIGNMENT_CENTER, Color3B::MAGENTA);
+    if(isNewScore) {
+        labelScore->runAction(
+                              Sequence::create(
+                                               EaseIn::create(ScaleTo::create(1, 2), 0.4)
+                                               , EaseOut::create(ScaleTo::create(1, 1), 0.4)
+                                               //, DelayTime::create(10)
+                                               //, CallFunc::create([=]() { closeScene();    })
+                                               , NULL
+                                               )
+                              );
+    }
 }
 
 void ActionBasic::addTouchCnt(bool isFail, unsigned int val) {

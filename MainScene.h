@@ -186,7 +186,6 @@ private:
 
     //
     void actionList(); //액션 목록
-    string getStar(int point); //별점
     void updateState(bool isInventoryUpdated); // hp, exp 등 업데이트
 	void alert(errorCode err);
 

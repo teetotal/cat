@@ -1196,33 +1196,6 @@ void MainScene::showCollection() {
 	layer->addChild(sv, 1, CHILD_ID_COLLECTION);
 }
 
-string MainScene::getStar(int point){
-    //★☆
-    /*
-     1-25 ☆
-     26-40 ★
-     41-60 ★☆
-     61-75 ★★
-     76-90 ★★☆
-     91- ★★★
-     */
-    if(point <=0)
-        return " ";
-    else if(point > 0 && point <= 25)
-        return "☆";
-    else if(point > 25 && point <= 40)
-        return "★";
-    else if(point > 40 && point <= 60)
-        return "★☆";
-    else if(point > 60 && point <= 75)
-        return "★★";
-    else if(point > 75 && point <= 90)
-        return "★★☆";
-    else
-        return "★★★";
-    
-}
-
 void MainScene::showActionCategory(Ref* pSender, int type) {
 	ACTION_SIZE;
 	//int nodeMargin = 2;
@@ -1241,7 +1214,7 @@ void MainScene::showActionCategory(Ref* pSender, int type) {
                , if (logics::hInst->isValidTraining(it->first) == error_not_enough_level) continue; switch (type) { case 0: break; case 1: if (it->second.reward.strength == 0) continue; break; case 2: if (it->second.reward.intelligence == 0) continue; break; case 3: if (it->second.reward.appeal == 0) continue; break; default: break; } fontColor0 = Color3B::MAGENTA;
 		, getItemImg(it->first)
 		, CC_CALLBACK_1(MainScene::callbackAction, this, it->first)
-        , getStar((unsigned int)((float)logics::hInst->getHighScore(it->first) / (float)logics::hInst->getMaxScore(it->first) * 100.f))
+        , gui::inst()->getStar((unsigned int)((float)logics::hInst->getHighScore(it->first) / (float)logics::hInst->getMaxScore(it->first) * 100.f))
 		, wstring_to_utf8(it->second.name)
 		, COIN + to_string(it->second.cost.point)
 		, gui::inst()->EmptyString
@@ -1840,10 +1813,15 @@ void MainScene::removeDecoMenu() {
 void MainScene::createDecoMenu(Vec2 pos) {
     auto pMenu = Menu::create();
     auto item1 = MenuItemFont::create("가방", CC_CALLBACK_1(MainScene::backToInventory, this));
+    auto item2 = MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this));
+    
+    item1->setColor(Color3B::MAGENTA);
+    item2->setColor(Color3B::MAGENTA);
+    
     pMenu->addChild(item1);
     switch(ui_deco::inst()->getLastObjectSide()){
         case ui_deco::SIDE_BOTTOM:
-            pMenu->addChild(MenuItemFont::create("회전", CC_CALLBACK_1(MainScene::flip, this)));
+            pMenu->addChild(item2);
             break;
         default:
             break;
