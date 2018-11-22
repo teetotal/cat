@@ -443,10 +443,10 @@ public:
 		p->setPosition(getCenter());
 		pParent->addChild(p);
 	};
+    DrawNode * drawCircle(Node * p, Vec2 pos, float radius, Color4F color);
     DrawNode * drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color);
     DrawNode * drawRect(Node * p, Vec2 pos, Size size, Color4F color);
     DrawNode * drawRect(Node * p, Vec2 pos1, Vec2 pos2, Vec2 pos3, Vec2 pos4, Color4F color);
-
     DrawNode * drawDiamond(Node * p, Vec2 pos, Size size, Color4F color);
     float drawDiamond(Node * p, Vec2 center, float h, float degrees, Color4F color);
     float getTanLen(float h, float degrees) {

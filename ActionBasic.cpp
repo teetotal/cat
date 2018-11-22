@@ -5,6 +5,9 @@
 #include "ActionBasic.h"
 #include "ui/ui_color.h"
 #include "SimpleAudioEngine.h"
+
+#define PARTICLE "particles/particle_clink.plist"
+
 #define PLAYTIME 25.00
 #define TIMING_Y    2
 #define TIMING_X_START 0
@@ -198,6 +201,8 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
     string sz = "-1";
     Color3B fontColor = Color3B::RED;
     if(mTimingRunner[idx] && mTimingRunner[idx]->getBoundingBox().intersectsCircle(center, radius)){
+        this->addChild(gui::inst()->createParticle(PARTICLE, TIMING_X_BUTTON, getTouchYPosition(idx) - 1));
+        Device::vibrate(0.01);
         sz = "+1";
         fontColor = Color3B::BLUE;
         addTouchCnt();
@@ -221,6 +226,7 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
                                  )
                 );
 }
+
 void ActionBasic::runAction_timing(_training &t) {
     int curvePoint[3] = {3, 4, 5};
     int nRunner = _timingInfo[t.grade][0];
@@ -327,8 +333,7 @@ void ActionBasic::runAction_tap(_training &t) {
                                             , EaseOut::create(MoveBy::create(0.25, Vec2(0, -1 * jumpHeight)), ratio)
                                             , CallFunc::create([=]() {mContextTap.mIsJump = false;})
                                             , NULL));
-    }
-                               , 32, ALIGNMENT_CENTER, Color3B::BLUE);
+    }, 32, ALIGNMENT_CENTER, Color3B::BLUE);
 	
     mPreTouchCnt = 0;
     mTimerCnt = 0;
@@ -423,9 +428,18 @@ void ActionBasic::update(float delta) {
     }
     
     //hurdle
+    Vec2 position = mContextTap.mTapRunner->getPosition();
+    float scale = mContextTap.mTapRunner->getScale();
+    Size size = Size(mContextTap.mTapRunner->getContentSize().width * scale, mContextTap.mTapRunner->getContentSize().height * scale);
+    Vec2 center = Vec2(position.x - size.width / 2, position.y + size.height / 2);
+    float radius = size.height / 3;
+    
     for(int n=0; n < mContextTap.mTapHurdleVec.size(); n++){
         if(mContextTap.mTapHurdleVec[n] && mContextTap.mTapHurdleVec[n]->getPosition().x > 0){
-            if(mContextTap.mTapRunner->getBoundingBox().intersectsRect(mContextTap.mTapHurdleVec[n]->getBoundingBox())){
+            //if(mContextTap.mTapRunner->getBoundingBox().intersectsRect(mContextTap.mTapHurdleVec[n]->getBoundingBox())){
+            if(mContextTap.mTapHurdleVec[n]->getBoundingBox().intersectsCircle(center, radius)){
+                //gui::inst()->drawCircle(this, center, radius, Color4F::GRAY);
+                
                 addTouchCnt(true, TAP_DEFAULT_POINT);
                 auto bonusLabel = gui::inst()->addLabel(0, 0, "-" + to_string(TAP_DEFAULT_POINT), this, 0, ALIGNMENT_CENTER, Color3B::RED);
                 Vec2 pos = mContextTap.mTapHurdleVec[n]->getPosition();
@@ -581,7 +595,6 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
         gui::inst()->addLabelAutoDimension(3, idx++, szRewardsUTF8, layer);
 	}
     //new score
-    bool isNewScore = false;
     string szResult = getScoreStar(mActionTouchCnt, maxTimes);
     if(mActionTouchCnt <= 0){
         szResult = "T.T";
@@ -589,22 +602,19 @@ void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
     else if(logics::hInst->getHighScore(id) < mActionTouchCnt){
         logics::hInst->setHighScore(id, mActionTouchCnt, maxTimes);
         setHighScoreLabel();
-        isNewScore = true;
-        szResult = "New Score " + szResult;
+        gui::inst()->addLabelAutoDimension(4, 3, "New Record!", layer, 0, ALIGNMENT_CENTER, Color3B::MAGENTA)->runAction(Blink::create(10, 30));
     }
     
-    auto labelScore = gui::inst()->addLabelAutoDimension(4, 2, szResult, layer, 32, ALIGNMENT_CENTER, Color3B::MAGENTA);
-    if(isNewScore) {
-        labelScore->runAction(
-                              Sequence::create(
-                                               EaseIn::create(ScaleTo::create(1, 2), 0.4)
-                                               , EaseOut::create(ScaleTo::create(1, 1), 0.4)
-                                               //, DelayTime::create(10)
-                                               //, CallFunc::create([=]() { closeScene();    })
-                                               , NULL
-                                               )
-                              );
-    }
+    gui::inst()->addLabelAutoDimension(4, 2, szResult, layer, 32, ALIGNMENT_CENTER, Color3B::MAGENTA)->runAction(
+                          Sequence::create(
+                                           EaseIn::create(ScaleTo::create(0.8, 2), 0.4)
+                                           , EaseOut::create(ScaleTo::create(0.4, 1), 0.4)
+                                           //, DelayTime::create(10)
+                                           //, CallFunc::create([=]() { closeScene();    })
+                                           , NULL
+                                           )
+                          );
+    
 }
 
 void ActionBasic::addTouchCnt(bool isFail, unsigned int val) {

@@ -751,6 +751,13 @@ MenuItemImage * gui::addSpriteButtonRaw(
 	return pItem;
 }
 
+DrawNode * gui::drawCircle(Node * p, Vec2 center, float radius, Color4F color){
+    auto draw = DrawNode::create();
+    draw->drawDot(center, radius, color);
+    p->addChild(draw);
+    return draw;
+}
+
 DrawNode * gui::drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color){
     auto draw = DrawNode::create();
     draw->drawTriangle(a, b, c, color);
