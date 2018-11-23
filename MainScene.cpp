@@ -259,7 +259,7 @@ bool MainScene::initDeco() {
         }
         
         sz = (const char*)sqlite3_column_text(stmt, idx++); //wallParttern
-        if(sz)
+        if(*sz)
             ui_deco::inst()->addWallParttern(sz);
         
     }

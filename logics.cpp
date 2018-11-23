@@ -579,21 +579,20 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		//race item
 		addQuest_race_foremost(uniqueId++, n);
 		addQuest_race_front(uniqueId++, n);
-        //farm harvest
-        addQuest_farm_harvest(uniqueId++, n);
         
-		addQuest_race_speedup(uniqueId++, n);
-		addQuest_race_shield(uniqueId++, n);
 		//action accumulation
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {
 			int nCnt = n - (n - it->second.level);
 			if (nCnt < 2)
 				continue;
 
-			if (it->second.level < n && it->second.level >= n - 3) {
+			if (it->second.level < n
+                // && it->second.level >= n - 3
+                ) {
+                wstring szTitle = it->second.name + getL10N("QUEST_TITLE_ACTION", nCnt);
 				mQuest.addQuest(
 					uniqueId++
-					, it->second.name + getL10N("QUEST_TITLE_ACTION", nCnt)
+					, szTitle
 					, achievement_category_training
 					, it->first
 					, nCnt
@@ -604,6 +603,12 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		}
 		//race win
 		addQuest_race_win(uniqueId++, n);
+        
+        //farm harvest
+        addQuest_farm_harvest(uniqueId++, n);
+        
+        addQuest_race_speedup(uniqueId++, n);
+        addQuest_race_shield(uniqueId++, n);
 			
 	}
 

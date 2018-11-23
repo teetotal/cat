@@ -1,4 +1,4 @@
-﻿/*
+/*
 	Quest Class
 */
 #pragma once
@@ -82,6 +82,8 @@ public:
 
 	void addQuest(_quest * p) {
 		mQuests.push_back(p);
+        
+        //CCLOG("%d, %s", p->uniqueId, wstring_to_utf8(p->title).c_str());
 	};
 	//초기화
 	void setQuest(int uniqueId, int accumulation, bool isFinished, bool isReceived);

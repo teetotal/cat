@@ -33,7 +33,7 @@
 #define CONFIG_SQLITE3 "cat.s3db"
 
 //만랩
-#define LEVEL_MAX	12
+#define LEVEL_MAX	60
 //levelup bonus $
 #define bonusCashPerLevel 100
 //HP 추가 간격 5분?

@@ -91,6 +91,10 @@ private:
         int mTapBonusGenCounter[3]; //보너스 점수 생성 카운터
     } mContextTap;
     
+    //for timing -------------------------------------------
+    struct contextTiming {
+        unsigned int nComboCnt;
+    } mContextTiming;
     
     
 	_training mAction;

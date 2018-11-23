@@ -175,7 +175,7 @@ Sprite * ActionBasic::createRunner(){
 
 RepeatForever * ActionBasic::getRunningAnimation() {
     auto animation = Animation::create();
-    animation->setDelayPerUnit(0.015);
+    animation->setDelayPerUnit(0.02);
     
     string path;
     for (int n = 0; n <= 8; n++) {
@@ -198,12 +198,13 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
      this->addChild(draw);
     */
     
-    string sz = "-1";
+    string sz = "Fail";
     Color3B fontColor = Color3B::RED;
     if(mTimingRunner[idx] && mTimingRunner[idx]->getBoundingBox().intersectsCircle(center, radius)){
         this->addChild(gui::inst()->createParticle(PARTICLE, TIMING_X_BUTTON, getTouchYPosition(idx) - 1));
         Device::vibrate(0.01);
-        sz = "+1";
+        mContextTiming.nComboCnt++;
+        sz = to_string(mContextTiming.nComboCnt) + " COMBO";
         fontColor = Color3B::BLUE;
         addTouchCnt();
         mTimingRunner[idx]->stopAllActions();
@@ -214,13 +215,14 @@ void ActionBasic::callbackTiming(Ref* pSender, int idx){
                                                        ,NULL));
         increment(mMaxTouchCnt);
     }else{
+        mContextTiming.nComboCnt = 0;
         addTouchCnt(true);
     }
     
     gui::inst()->addLabel(TIMING_X_BUTTON, getTouchYPosition(idx) - 1, sz, this, 0, ALIGNMENT_CENTER, fontColor)
     ->runAction(
                 Sequence::create(
-                                 ScaleTo::create(0.2, 3)
+                                 ScaleTo::create(0.4, 2.5)
                                  , RemoveSelf::create()
                                  , NULL
                                  )
@@ -233,6 +235,7 @@ void ActionBasic::runAction_timing(_training &t) {
     int nCurveCnt = _timingInfo[t.grade][1];
     //int nDifficult = _timingInfo[t.grade][2];
     
+    mContextTiming.nComboCnt = 0;
     mActionCnt = 0;
     mTimingRunner[0] = NULL;
     
@@ -439,7 +442,8 @@ void ActionBasic::update(float delta) {
             //if(mContextTap.mTapRunner->getBoundingBox().intersectsRect(mContextTap.mTapHurdleVec[n]->getBoundingBox())){
             if(mContextTap.mTapHurdleVec[n]->getBoundingBox().intersectsCircle(center, radius)){
                 //gui::inst()->drawCircle(this, center, radius, Color4F::GRAY);
-                
+                Device::vibrate(0.01);
+                mContextTap.mTapRunner->runAction(Blink::create(0.5, 2));
                 addTouchCnt(true, TAP_DEFAULT_POINT);
                 auto bonusLabel = gui::inst()->addLabel(0, 0, "-" + to_string(TAP_DEFAULT_POINT), this, 0, ALIGNMENT_CENTER, Color3B::RED);
                 Vec2 pos = mContextTap.mTapHurdleVec[n]->getPosition();
