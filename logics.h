@@ -316,7 +316,7 @@ struct _race {
 //경묘 참가자
 struct _raceParticipant : _property {
 	int idx;			//경주 번호
-	int items[raceItemSlot];
+	//int items[raceItemSlot];
 	int currentLength;	//현재 이동 거리
 	int totalLength;	//전체 이동 거리
 	float ratioLength;	//전체 거리중 이동한 거리 비율 %
@@ -334,8 +334,7 @@ struct _raceParticipant : _property {
 
 	_raceParticipant() {
 		this->idx = 0;
-		for (int n = 0; n < raceItemSlot; n++)
-			this->items[n] = 0;
+		//for (int n = 0; n < raceItemSlot; n++) this->items[n] = 0;
 		this->currentLength = 0;
 		this->totalLength = 0;
 		this->ratioLength = 0;
@@ -508,7 +507,7 @@ public:
 		return &mRace;
 	};
 	//race 진행
-	raceParticipants* getNextRaceStatus(bool &ret, int itemIdx, int boost = 0);
+	raceParticipants* getNextRaceStatus(bool &ret, int itemId, int boost = 0);
 	//race 결과
 	_raceCurrent* getRaceResult() {
 		return &mRaceCurrent;
@@ -616,7 +615,7 @@ private:
 	//race 랜덤 아이템
 	int getRandomRaceItem();
 	//race 아이템 발동 by Actor
-	void invokeRaceItemByIdx(int seq, int itemIdx);
+	void invokeRaceItemById(int seq, int itemId);
 	//race 아이템 발동
 	void invokeRaceItem(int seq, itemType type, int quantity, int currentRank);
 	//race AI 아이템 발동

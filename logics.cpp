@@ -1430,12 +1430,11 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 		break;
 	}
 
-	int idx = 0;
+	//int idx = 0;
 	for (int m = 0; m < (int)items.size(); m++) {
 		for (int k = 0; k < items[m].val; k++) {
-			p.items[idx] = items[m].itemId;
-			//if (!addInventory(items[m].itemId, -1))	return error_not_enough_item;
-			idx++;
+			//p.items[idx] = items[m].itemId;
+			//idx++;
 			mQuest.push(achievement_category_race_use_item, items[m].itemId, 1);
 			mQuest.push(achievement_category_race_use_item_type, mItems[items[m].itemId].type, 1);
 		}
@@ -1520,13 +1519,11 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 	mRaceParticipants->at(seq).shootCurrentQuantity = quantity;
 }
 
-void logics::invokeRaceItemByIdx(int seq, int itemIdx) {
-	//아이템 목록에서 제거
-	int itemId = mRaceParticipants->at(seq).items[itemIdx];
+void logics::invokeRaceItemById(int seq, int itemId) {
 	int currentRank = mRaceParticipants->at(seq).currentRank;
 	int quantity = mItems[itemId].value;
-	mRaceParticipants->at(seq).items[itemIdx] = 0;
-	if (itemId < 1) {
+	
+    if (itemId < 1) {
 		return;
 	}
 
@@ -1609,7 +1606,7 @@ int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 
 	*/
 }
 
-raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
+raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 	 int lastRank = 0;	 
 	 int raceLength = (int)((float)mActor->property.total() / 2.f * 0.5f * 30.f * 5.f);
 	 //순위 산정용 벡터
@@ -1638,8 +1635,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemIdx, int boost) {
 	 }
 
 	 //내가 사용한 아이템 발동
-	 if (itemIdx > -1) {
-		 invokeRaceItemByIdx(raceParticipantNum, itemIdx);
+	 if (itemId > -1) {
+		 invokeRaceItemById(raceParticipantNum, itemId);
 	 }
 	 //AI 아이템 발동
 	 if(mRace[mRaceCurrent.id].mode != race_mode_speed)

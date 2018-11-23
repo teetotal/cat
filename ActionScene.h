@@ -155,7 +155,13 @@ private:
 	//Label * mRankLabel[raceParticipantNum + 1];
 
 	MenuItemLabel * mSelectedItem[raceItemSlot];
-	MenuItemLabel * mSkillItem[raceItemSlot];
+    struct raceItems{
+        MenuItemLabel * btns[raceItemSlot];
+        int itemIds[raceItemSlot];
+    } mRaceItems;
+    
+    vector<int> mRandomItemIds;
+    
 	Layout * mFullLayer;
 
 	void timer(float f);
@@ -178,6 +184,7 @@ private:
 	Color3B txtColors[raceParticipantNum + 1];
 	//typedef vector<Sprite*> VecSprite;
 	Sprite * mDangers[raceParticipantNum + 1][DANGER_CNT*2];
+    Sprite * mGiftBox[raceParticipantNum + 1][DANGER_CNT*2]; //아이템 박스
 
 	//play횟수
 	int mPlayCnt;

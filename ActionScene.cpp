@@ -6,12 +6,14 @@
 #include "AlertScene.h"
 #include "SimpleAudioEngine.h"
 
+#define PARTICLE "particles/particle_clink.plist"
+
 #define RACE_UPDATE_INTERVAL 0.3
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 #define RACE_GOAL_DISTANCE 3.5
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(3, 3); auto nodeSize = Size(120, 50); auto gridSize = Size(3, 4);
-#define POPUP_NODE_MARGIN  1
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(120, 60); auto gridSize = Size(3, 4);
+#define POPUP_NODE_MARGIN  5
 
 #define RUNNER_MARGIN 35
 float RUNNER_WIDTH;
@@ -30,6 +32,7 @@ bool ActionScene::init() {
     for (int idx = 0; idx <= raceParticipantNum; idx++) {
         for (int n = 0; n < DANGER_CNT * 2; n++) {
             mDangers[idx][n] = NULL;
+            mGiftBox[idx][n] = NULL;
         }
     }
 
@@ -174,13 +177,18 @@ bool ActionScene::initRace() {
 			
 	//아이템 설정
 	if (isItemMode()) {
-		for (int i = 0; i < mSelectItems.size(); i++) {
-			_item item = logics::hInst->getItem(mSelectItems[i].itemId);
-			//string sz = getRomeNumber(item.grade) + "\n" + wstring_to_utf8(item.name);
-			wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
-			string sz = wstring_to_utf8(szW);
-			mSkillItem[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
+		for (int i = 0; i < raceItemSlot; i++) {
+            string sz = "EMPTY";
+            if(i < mSelectItems.size()){
+                _item item = logics::hInst->getItem(mSelectItems[i].itemId);
+                wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
+                sz = wstring_to_utf8(szW);
+                mRaceItems.itemIds[i] = item.id;
+            }
+			
+			mRaceItems.btns[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
                                                        CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::ORANGE);
+            
 		}
 		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
 	}
@@ -213,7 +221,7 @@ void ActionScene::counter(float f) {
 		this->removeChild(mCounting);
 		unschedule(schedule_selector(ActionScene::counter));
 		this->schedule(schedule_selector(ActionScene::timer), RACE_UPDATE_INTERVAL);
-
+        //장애물과 아이템박스 배치
 		if (isItemMode()) {
 			this->scheduleUpdate();
 			//Danger
@@ -229,6 +237,13 @@ void ActionScene::counter(float f) {
 					float speed = DANGER_SPEED;
 					float time = distance / speed;
 					p->runAction(MoveTo::create(time, Vec2(-1 * p->getContentSize().width, position.y)));
+                    
+                   
+                    if(mGiftBox[idx][n] == NULL)  break;
+                    mGiftBox[idx][n]->runAction(
+                            MoveTo::create(mGiftBox[idx][n]->getPosition().x / DANGER_SPEED
+                                           , Vec2(-1 * mGiftBox[idx][n]->getContentSize().width, mGiftBox[idx][n]->getPosition().y))
+                                                );
 				}
 			}
 		}
@@ -243,12 +258,16 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 	//mSkillItem[idx]->setString("");
 	//item은 무조건 제자리에서
 	this->resetHeight(raceParticipantNum);
-    mSkillItem[idx]->setString(" ");
-    mSkillItem[idx]->setColor(Color3B::GRAY);
-	mSkillItem[idx]->setEnabled(false);
-	//아이템 사용
-	if(mSelectItems.size() > idx)
-		mInvokeItemQueue.push(idx);	
+    //아이템 사용
+    if(raceItemSlot > idx && mRaceItems.btns[idx] && mRaceItems.itemIds[idx] != -1) {
+        mRaceItems.btns[idx]->setString(" ");
+        mRaceItems.btns[idx]->setColor(Color3B::GRAY);
+        mRaceItems.btns[idx]->setEnabled(false);
+        
+        mInvokeItemQueue.push(mRaceItems.itemIds[idx]);
+        mRaceItems.itemIds[idx] = -1;
+    }
+			
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
@@ -342,9 +361,16 @@ Sprite* ActionScene::createRunner(int idx) {
 			sprite->setAnchorPoint(Vec2(0, 0));
 			float x = baseDistance * (n + 1) + getRandValue(100);
 			sprite->setPosition(x, y);
-
 			mDangers[idx][n] = sprite;
 			mFullLayer->addChild(sprite);
+            
+            auto spriteGift = Sprite::create("star.png");
+            gui::inst()->setScale(spriteGift, RUNNER_WIDTH / 5);
+            spriteGift->setAnchorPoint(Vec2(0, 0));
+            x = baseDistance * (n + 1) + 300;
+            spriteGift->setPosition(x, y);
+            mGiftBox[idx][n] = spriteGift;
+            mFullLayer->addChild(spriteGift);
 		}
 	}
 
@@ -353,11 +379,11 @@ Sprite* ActionScene::createRunner(int idx) {
 
 void ActionScene::timer(float f) {	
 	bool ret;
-	int itemIdx = -1;
+	int itemId = -1;
 	_race race = logics::hInst->getRace()->at(mRaceId);
 
 	if (mInvokeItemQueue.size() > 0) {
-		itemIdx = mInvokeItemQueue.front();
+		itemId = mInvokeItemQueue.front();
 		mInvokeItemQueue.pop();
 	}
 
@@ -379,7 +405,7 @@ void ActionScene::timer(float f) {
 	}
 	
 
-	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemIdx, boost);
+	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemId, boost);
 	if(!ret){
 		unschedule(schedule_selector(ActionScene::timer));		
 		for (int n = 0; n <= raceParticipantNum; n++) {
@@ -495,6 +521,11 @@ void ActionScene::result() {
 					mFullLayer->removeChild(mDangers[i][j]);
 					mDangers[i][j] = NULL;
 				}
+                if(mGiftBox[i][j]){
+                    mGiftBox[i][j]->stopAllActions();
+                    mFullLayer->removeChild(mGiftBox[i][j]);
+                    mGiftBox[i][j] = NULL;
+                }
 			}
 		}
 	}
@@ -599,13 +630,6 @@ void ActionScene::selectItem(Ref* pSender, int id) {
 		mSelectedItemQuantity[id] = 1;
 	}
 	else {
-		/*
-		if (!logics::hInst->getActor()->inven.checkItemQuantity(inventoryType_race, id, mSelectedItemQuantity[id] + 1))
-		{
-			//과다 입력
-			return;
-		}
-		*/
 		mSelectedItemQuantity[id]++;
 	}
 
@@ -622,9 +646,10 @@ void ActionScene::showItemSelect(errorCode err) {
 	mSelectedItemQuantity.clear();
 	mSelectItems.clear();
 	for (int n = 0; n < raceItemSlot; n++) {
-		if (mSkillItem[n] != NULL) {
-			this->removeChild(mSkillItem[n]->getParent());
-			mSkillItem[n] = NULL;
+		if (mRaceItems.btns[n] != NULL) {
+			this->removeChild(mRaceItems.btns[n]->getParent());
+			mRaceItems.btns[n] = NULL;
+            mRaceItems.itemIds[n] = -1;
 		}		
 	}
 	this->removeChild(mPopupLayerBackground);
@@ -654,7 +679,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		return;
 	}
 
-	int newLine = 3;
+	int newLine = 2;
 	
 	trade::tradeMap * m = logics::hInst->getTrade()->get();
 	
@@ -667,7 +692,8 @@ void ActionScene::showItemSelect(errorCode err) {
 		, POPUP_NODE_MARGIN
 		, nodeSize
 		, (trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it)
-		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue; if (logics::hInst->getItem(it->first).grade < logics::hInst->getRace()->at(mRaceId).level || logics::hInst->getItem(it->first).grade > logics::hInst->getRace()->at(mRaceId).level + 1) continue;
+		, if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn) continue;
+          if (logics::hInst->getItem(it->first).grade != logics::hInst->getRace()->at(mRaceId).level + 1) continue;
 		, MainScene::getItemImg(it->first)
 		, CC_CALLBACK_1(ActionScene::selectItem, this, it->first)
 		, getRomeNumber(logics::hInst->getItem(it->first).grade)
@@ -677,6 +703,15 @@ void ActionScene::showItemSelect(errorCode err) {
 		, gui::inst()->EmptyString
         , NULL
 	)
+    
+    //random 지급할 아이템 목록.
+    for(trade::tradeMap::iterator it = m->begin(); it != m->end(); ++it){
+        if (logics::hInst->getItem(it->first).type <= itemType_race || logics::hInst->getItem(it->first).type >= itemType_adorn)
+            continue;
+        if (logics::hInst->getItem(it->first).grade == logics::hInst->getRace()->at(mRaceId).level){
+            mRandomItemIds.push_back(it->first);
+        }
+    }
     
 	updatePoint();
 }
@@ -745,20 +780,27 @@ void ActionScene::update(float delta) {
 		}
 		*/
 		for (int j = 0; j < DANGER_CNT * 2; j++) {
-            if(mDangers[i][j] == NULL)
-                continue;
-            
-			if (mDangers[i][j]->getTag() != 1 && mDangers[i][j]->getBoundingBox().intersectsCircle(center, radius)) {
-				logics::hInst->invokeRaceObstacle(i, logics::hInst->getRace()->at(mRaceId).level);
-				mDangers[i][j]->runAction(Blink::create(1, 10));
-				mDangers[i][j]->setTag(1);
-			}
-			else if(i != raceParticipantNum 
-				&& mDangers[i][j]->getPosition().x - position.x < 5
-				&& mDangers[i][j]->getPosition().x - position.x > 0)
-			{ // jump
-				jumpByIdx(i);
-			}
+            if(mDangers[i][j]) {
+                if (mDangers[i][j]->getTag() != 1 && mDangers[i][j]->getBoundingBox().intersectsCircle(center, radius)) {
+                    logics::hInst->invokeRaceObstacle(i, logics::hInst->getRace()->at(mRaceId).level);
+                    mDangers[i][j]->runAction(Blink::create(1, 10));
+                    mDangers[i][j]->setTag(1);
+                }
+                else if(i != raceParticipantNum
+                        && mDangers[i][j]->getPosition().x - position.x < 5
+                        && mDangers[i][j]->getPosition().x - position.x > 0)
+                { // jump
+                    jumpByIdx(i);
+                }
+            }
+            //itembox 획득
+            if(mGiftBox[i][j] && mGiftBox[i][j]->getBoundingBox().intersectsCircle(center, radius)){
+                Vec2 pos = mGiftBox[i][j]->getPosition();
+                mGiftBox[i][j]->runAction(RemoveSelf::create());
+                mGiftBox[i][j] = NULL;
+                mFullLayer->addChild(gui::inst()->createParticle(PARTICLE, pos));
+            }
+			
 		}
 	}
 }
