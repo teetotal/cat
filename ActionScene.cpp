@@ -177,18 +177,15 @@ bool ActionScene::initRace() {
 			
 	//아이템 설정
 	if (isItemMode()) {
+        //btn
+        for (int i = 0; i < raceItemSlot; i++) {
+            mRaceItems.btns[i] = gui::inst()->addTextButton(0, 2 + i, " ", this,
+                                                            CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::ORANGE);
+        }
 		for (int i = 0; i < raceItemSlot; i++) {
-            string sz = "EMPTY";
             if(i < mSelectItems.size()){
-                _item item = logics::hInst->getItem(mSelectItems[i].itemId);
-                wstring szW = getSkillIconW(item.type) + to_wstring(item.grade);
-                sz = wstring_to_utf8(szW);
-                mRaceItems.itemIds[i] = item.id;
+                setItem(mSelectItems[i].itemId);
             }
-			
-			mRaceItems.btns[i] = gui::inst()->addTextButton(0, 2 + i, sz, this,
-                                                       CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::ORANGE);
-            
 		}
 		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
 	}
@@ -239,11 +236,15 @@ void ActionScene::counter(float f) {
 					p->runAction(MoveTo::create(time, Vec2(-1 * p->getContentSize().width, position.y)));
                     
                    
-                    if(mGiftBox[idx][n] == NULL)  break;
-                    mGiftBox[idx][n]->runAction(
-                            MoveTo::create(mGiftBox[idx][n]->getPosition().x / DANGER_SPEED
-                                           , Vec2(-1 * mGiftBox[idx][n]->getContentSize().width, mGiftBox[idx][n]->getPosition().y))
-                                                );
+                    if(mGiftBox[idx][n] == NULL)
+                        break;
+                    
+                    float duration = mGiftBox[idx][n]->getPosition().x / DANGER_SPEED;
+                    auto spawn = Spawn::create(
+                                               MoveTo::create(duration, Vec2(-1 * mGiftBox[idx][n]->getContentSize().width, mGiftBox[idx][n]->getPosition().y))
+                                               , JumpBy::create(duration, Vec2(0, 0), 20, duration * 3)
+                                               , NULL);
+                    mGiftBox[idx][n]->runAction(spawn);
 				}
 			}
 		}
@@ -259,13 +260,13 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
 	//item은 무조건 제자리에서
 	this->resetHeight(raceParticipantNum);
     //아이템 사용
-    if(raceItemSlot > idx && mRaceItems.btns[idx] && mRaceItems.itemIds[idx] != -1) {
+    if(raceItemSlot > idx && mRaceItems.btns[idx] && mRaceItems.itemIds[idx] != 0) {
         mRaceItems.btns[idx]->setString(" ");
-        mRaceItems.btns[idx]->setColor(Color3B::GRAY);
-        mRaceItems.btns[idx]->setEnabled(false);
+        //mRaceItems.btns[idx]->setColor(Color3B::GRAY);
+        //mRaceItems.btns[idx]->setEnabled(false);
         
         mInvokeItemQueue.push(mRaceItems.itemIds[idx]);
-        mRaceItems.itemIds[idx] = -1;
+        mRaceItems.itemIds[idx] = 0;
     }
 			
 }
@@ -614,6 +615,21 @@ void ActionScene::updateSelectItem() {
 	}
 }
 
+void ActionScene::setItem(int itemId) {
+    _item item = logics::hInst->getItem(itemId);
+    wstring sz = getSkillIconW(item.type) + to_wstring(item.grade);
+    
+    for(int n=0; n<raceItemSlot; n++){
+        if(mRaceItems.itemIds[n] == 0)
+        {
+            mRaceItems.itemIds[n] = itemId;
+            mRaceItems.btns[n]->setString(wstring_to_utf8(sz));
+            //mRaceItems.btns[n]->setEnabled(true);
+            break;
+        }
+    }
+}
+
 void ActionScene::removeSelectItem(Ref* pSender, int idx) {
 	if (mSelectItems.size() > idx) {
 		mSelectedItemQuantity[mSelectItems[idx].itemId]--; //맵에서 제거
@@ -649,7 +665,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		if (mRaceItems.btns[n] != NULL) {
 			this->removeChild(mRaceItems.btns[n]->getParent());
 			mRaceItems.btns[n] = NULL;
-            mRaceItems.itemIds[n] = -1;
+            mRaceItems.itemIds[n] = 0;
 		}		
 	}
 	this->removeChild(mPopupLayerBackground);
@@ -752,11 +768,12 @@ void ActionScene::jumpByIdx(int idx) {
 		auto callfuncAction = CallFunc::create([this, idx]() {
 			resetHeight(idx);
 		});
-		const float ratio = 0.2;
+		//const float ratio = 0.2;
 		mRunner[idx]->runAction(
 			Sequence::create(
-				EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), ratio)
-				, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), ratio)
+				//EaseIn::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, jumpHeight)), ratio)
+				//, EaseOut::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, -1 * jumpHeight)), ratio)
+                JumpBy::create(RACE_UPDATE_INTERVAL * 2, Vec2(0,0), jumpHeight, 1)
 				, callfuncAction
 				, NULL));
 	}
@@ -799,6 +816,14 @@ void ActionScene::update(float delta) {
                 mGiftBox[i][j]->runAction(RemoveSelf::create());
                 mGiftBox[i][j] = NULL;
                 mFullLayer->addChild(gui::inst()->createParticle(PARTICLE, pos));
+                
+                //assign random item
+                if(i == raceParticipantNum) {
+                    int randomItemId = mRandomItemIds[getRandValue((int)mRandomItemIds.size())];
+                    setItem(randomItemId);
+                } else {
+                    logics::hInst->decreaseRaceItemCountAI(i);
+                }
             }
 			
 		}

@@ -63,7 +63,7 @@
 //race 스퍼트 구간
 #define raceSpurt 50 
 //race 아이템을 처음 사용하기 시작하는 시점
-#define raceInvokeThreshold 60
+#define raceInvokeThreshold 20
 //race AI 스킬발동 랜덤 확률 1/raceAIRandom 
 #define raceAIRandom 10
 //farming 식탐 방지 지능 threshold
@@ -329,6 +329,7 @@ struct _raceParticipant : _property {
 
 	//아이템 사용 횟수
 	int shootItemCount;
+    int shootItemCountAccumul; //누적
 	itemType shootCurrentType; //현재 사용한 아이템 타입
 	int shootCurrentQuantity; //현재 사용한 아이템 수량
 
@@ -341,6 +342,7 @@ struct _raceParticipant : _property {
 		this->rank = 0;			
 		this->currentRank = 0;
 		this->shootItemCount = 0;
+        this->shootItemCountAccumul = 0;
 		this->shootCurrentType = itemType_max;
 		this->shootCurrentQuantity = 0;
 	};
@@ -538,6 +540,8 @@ public:
 	void invokeRaceObstacle(int idx, int level) {
 		invokeRaceItem(idx, itemType_race_obstacle, level);
 	}
+    //race AI 아이템 발동 횟수 줄임
+    void decreaseRaceItemCountAI(int seq);
 	RaceWin mRaceWin;
 	//-----------------------------------------------------------------------charge
 	errorCode runRecharge(int id, int quantity);	
@@ -615,7 +619,7 @@ private:
 	//race 랜덤 아이템
 	int getRandomRaceItem();
 	//race 아이템 발동 by Actor
-	void invokeRaceItemById(int seq, int itemId);
+	void invokeRaceItemById(int itemId);
 	//race 아이템 발동
 	void invokeRaceItem(int seq, itemType type, int quantity, int currentRank);
 	//race AI 아이템 발동

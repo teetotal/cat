@@ -72,6 +72,7 @@ private:
 	bool initRace();
 	void showItemSelect(errorCode err);
 	void selectItem(Ref* pSender, int id); //아이템 선택
+    void setItem(int itemId); //아이템 셋팅
 	void updateSelectItem(); //선택한 아이템 정보 갱신
 	void callback2(Ref* pSender, SCENECODE type);
 	void invokeItem(Ref* pSender, int idx);
@@ -96,24 +97,6 @@ private:
             default:
                 break;
         }
-        /*
-		switch (type) {
-		case itemType_race_shield:		//방어 쉴드
-			szImg = L"쉴드";
-			break;
-		case itemType_race_speedUp:		//속업
-			szImg = L"속업";
-			break;
-		case itemType_race_attactFront:	//전방 공격
-			szImg = L"전방";
-			break;
-		case itemType_race_attactFirst:	//1등 공격
-			szImg = L"1등";
-			break;
-		default:
-			break;
-		}
-         */
 		return szImg;
 	};
 	string getSkillIcon(itemType type) {
@@ -141,6 +124,11 @@ private:
 		}
 		return false;
 	};
+    
+    void result();
+    RepeatForever * getRunningAnimation(bool isSpeedUp = false);
+
+    
 	
 	Label * mPoint;
 
@@ -169,9 +157,7 @@ private:
 
 	raceParticipants* mRaceParticipants;
 	_raceCurrent* mRaceCurrent;
-	void result();
-	RepeatForever * getRunningAnimation(bool isSpeedUp = false);
-
+	
 	SUFFER_STATE mSufferState[raceParticipantNum + 1];
 	float mGoalLength;
 	itemsVector mSelectItems;

@@ -329,11 +329,12 @@ void ActionBasic::runAction_tap(_training &t) {
             return;
         
         mContextTap.mIsJump = true;
-        const float ratio = 0.2;
+        //const float ratio = 0.2;
         const float jumpHeight = mContextTap.mTapRunner->getContentSize().height * 0.8;
         mContextTap.mTapRunner->runAction(Sequence::create(
-                                            EaseIn::create(MoveBy::create(0.25, Vec2(0, jumpHeight)), ratio)
-                                            , EaseOut::create(MoveBy::create(0.25, Vec2(0, -1 * jumpHeight)), ratio)
+                                            //EaseIn::create(MoveBy::create(0.25, Vec2(0, jumpHeight)), ratio)
+                                            //, EaseOut::create(MoveBy::create(0.25, Vec2(0, -1 * jumpHeight)), ratio)
+                                            JumpBy::create(0.5, Vec2::ZERO, jumpHeight, 1)
                                             , CallFunc::create([=]() {mContextTap.mIsJump = false;})
                                             , NULL));
     }, 32, ALIGNMENT_CENTER, Color3B::BLUE);

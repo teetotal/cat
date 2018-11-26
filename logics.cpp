@@ -1430,15 +1430,6 @@ errorCode logics::runRaceSetItems(itemsVector &items) {
 		break;
 	}
 
-	//int idx = 0;
-	for (int m = 0; m < (int)items.size(); m++) {
-		for (int k = 0; k < items[m].val; k++) {
-			//p.items[idx] = items[m].itemId;
-			//idx++;
-			mQuest.push(achievement_category_race_use_item, items[m].itemId, 1);
-			mQuest.push(achievement_category_race_use_item_type, mItems[items[m].itemId].type, 1);
-		}
-	}
 	mRaceParticipants->push_back(p);
 	
 	return error_success;
@@ -1489,8 +1480,6 @@ void logics::invokeRaceItem(int idx, itemType type, int quantity) {
 
 
 void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRank) {
-	if (mRaceParticipants->at(seq).shootItemCount >= raceItemSlot)
-		return;
 	//아이템 대상에게 적용
 	switch (type) {
 	case itemType_race_shield:		//방어 쉴드
@@ -1515,22 +1504,33 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 		break;
 	}
 	mRaceParticipants->at(seq).shootItemCount++;
+    mRaceParticipants->at(seq).shootItemCountAccumul++;
 	mRaceParticipants->at(seq).shootCurrentType = type;
 	mRaceParticipants->at(seq).shootCurrentQuantity = quantity;
 }
 
-void logics::invokeRaceItemById(int seq, int itemId) {
-	int currentRank = mRaceParticipants->at(seq).currentRank;
+void logics::invokeRaceItemById(int itemId) {
+	int currentRank = mRaceParticipants->at(raceParticipantNum).currentRank;
 	int quantity = mItems[itemId].value;
 	
     if (itemId < 1) {
 		return;
 	}
+    
+    //업적
+    mQuest.push(achievement_category_race_use_item, itemId, 1);
+    mQuest.push(achievement_category_race_use_item_type, mItems[itemId].type, 1);
+    
+    invokeRaceItem(raceParticipantNum, mItems[itemId].type, quantity, currentRank);
+}
 
-	invokeRaceItem(seq, mItems[itemId].type, quantity, currentRank);
+void logics::decreaseRaceItemCountAI(int seq){
+    if(mRaceParticipants->at(seq).shootItemCount > 0)
+        mRaceParticipants->at(seq).shootItemCount--;
 }
 
 void logics::invokeRaceItemAI() {
+    
 	_race race = mRace[mRaceCurrent.id];
 	int level = race.level;
 	for (int i = 0; i < raceParticipantNum; i++) {
@@ -1636,7 +1636,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 
 	 //내가 사용한 아이템 발동
 	 if (itemId > -1) {
-		 invokeRaceItemById(raceParticipantNum, itemId);
+		 invokeRaceItemById(itemId);
 	 }
 	 //AI 아이템 발동
 	 if(mRace[mRaceCurrent.id].mode != race_mode_speed)
@@ -1703,6 +1703,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 		 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 			 if (mRaceParticipants->at(n).rank == 0)
 				 mRaceParticipants->at(n).rank = raceParticipantNum + 1;
+             CCLOG("%d - %d", n, mRaceParticipants->at(n).shootItemCountAccumul);
 		 }
 		 //보상 지급
 		 mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
