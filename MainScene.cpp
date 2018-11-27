@@ -1634,6 +1634,7 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
         ui_deco::inst()->addWallParttern(getItemImg(item.id));
     } else if(item.category == itemCategory_lottery) {
         Director::getInstance()->pushScene(LotteryScene::createScene(item.id));
+        isPop = false;
     }
     else {
         isPop = false;

@@ -71,10 +71,12 @@ void ui_gacha::run(Node * parent, const string img, LayerColor * contentsLayer, 
                             , FadeOut::create(mFadeoutTime)
                             , CallFunc::create([=]()
     {
-        auto p = ParticleSystemQuad::create(particleFinal);
-        p->setAnchorPoint(Vec2(0.5, 0.5));
-        p->setPosition(gui::inst()->getCenter());
-        parent->addChild(p);
+        if(particleFinal.compare("") != 0){
+            auto p = ParticleSystemQuad::create(particleFinal);
+            p->setAnchorPoint(Vec2(0.5, 0.5));
+            p->setPosition(gui::inst()->getCenter());
+            parent->addChild(p);
+        }
         contentsLayer->setVisible(true);
         
     })

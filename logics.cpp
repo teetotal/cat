@@ -1153,8 +1153,9 @@ bool logics::increaseExp(int value) {
 		
 		mActor->exp = 0;
 		setMaxHP();
-		//give $
-		mActor->point += mActor->level * bonusCashPerLevel;
+		//give lottery
+		//mActor->point += mActor->level * bonusCashPerLevel;
+        addInventory(1, mActor->level);
 		//set job title
 		setJobTitle();
 		
@@ -1166,7 +1167,7 @@ int logics::getMaxExp() {
 	return 1 << mActor->level;
 }
 int logics::getMaxHP() {
-	return (int)(defaultHP + (1.5*mActor->level));
+	return (int)(defaultHP + (1.5 * mActor->level));
 }
 void logics::setMaxHP() {	
 	mActor->hp = getMaxHP();	

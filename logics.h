@@ -678,7 +678,7 @@ private:
 
 	//quest
 	int getQuestRewardItem(int level) {
-		return (level < LEVEL_MAX / 2) ? 50 : 51;
+		return (level < LEVEL_MAX / 2) ? 1 : 2;
 	};	
 	void addQuest_property(int uniqueId, int level) {
 		//action				
