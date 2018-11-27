@@ -110,10 +110,21 @@ enum inventoryType {
 	inventoryType_max,
     inventoryType_collection
 };
+//아이템 카테고리
+enum itemCategory {
+    itemCategory_lottery = 0,
+    itemCategory_crop,
+    itemCategory_seed,
+    itemCategory_deco, //가구, 외장재, 벽 무늬, 페인트
+    itemCategory_race,
+    itemCategory_collection = 100,
+};
 //아이템 종류
 enum itemType {
 	itemType_training = 0,
-	itemType_training_material,
+	itemType_lottery_1, //복권 1
+    itemType_lottery_2, //복권 2
+    itemType_lottery_3, //복권 3
 	itemType_hp = 100,
 	itemType_hp_meal,
 	itemType_race = 200, //경묘
@@ -200,7 +211,8 @@ static mutex lockHP;
 struct _item {
 	int id;
 	wstring name;
-	itemType type; //기본, 공격, 수비
+    itemCategory category;
+	itemType type;
 	int grade;
 	int value;
 };

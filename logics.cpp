@@ -297,6 +297,7 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 	{
 		_item item;
 		item.id = p[rapidjson::SizeType(i)]["id"].GetInt();
+        item.category = (itemCategory)p[rapidjson::SizeType(i)]["category"].GetInt();
 		item.type = (itemType)p[rapidjson::SizeType(i)]["type"].GetInt();
 		item.value = p[rapidjson::SizeType(i)]["value"].GetInt();
 		item.grade = p[rapidjson::SizeType(i)]["grade"].GetInt();
@@ -311,6 +312,7 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
     for(int n=0; n < ui_color::inst()->get()->size(); n ++){
         _item item;
         item.id = id++;
+        item.category = itemCategory_deco;
         item.type = itemType_wall;
         item.value = 1;
         item.grade = 1;
@@ -323,6 +325,7 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
     for(int n=0; n < ui_color::inst()->get()->size(); n ++){
         _item item;
         item.id = id++;
+        item.category = itemCategory_deco;
         item.type = itemType_bottom;
         item.value = 1;
         item.grade = 1;
@@ -336,6 +339,7 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 		for (rapidjson::SizeType i = 0; i < pRace.Size(); i++) {
 			_item item;
 			item.id = id++;
+            item.category = itemCategory_race;
 			item.type = (itemType)pRace[rapidjson::SizeType(i)]["type"].GetInt();
 			item.value = n;
 			item.grade = n;

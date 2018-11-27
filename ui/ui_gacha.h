@@ -9,17 +9,10 @@
 
 class ui_gacha{
 public:
-    ui_gacha() : mParitclePopupLayer(NULL), mParitclePopup(NULL), mReadyImg(NULL) {
+    ui_gacha() {
         initDetails();
     };
     virtual ~ui_gacha(){
-        CCLOG("gacha released");
-        if(mParitclePopupLayer)
-            delete mParitclePopupLayer;
-        if(mParitclePopup)
-            delete mParitclePopup;
-        if(mReadyImg)
-            delete mReadyImg;
     };
 
     void initDetails(bool isAutoRelease = true
@@ -31,30 +24,11 @@ public:
             , float fadeinTime = 3
     );
 
-    LayerColor * createLayer(LayerColor * &pBG
-            , Node * pParent
-            , const string imgReady
-            , const string particleReady
-            , const string particleFinish
-            , Size bgSize = Size(300, 225)
-            , const string imgBG = ""
-            , Color4B bgColor = Color4B::BLACK
-    );
-
-    void run(const string img, LayerColor * contentsLayer);
+    void run(Node * parent, const string img, LayerColor * contentsLayer, const string particleReady, const string particle);
 private:
-    void callback(const string img, LayerColor * contentsLayer);
-    Sequence * getSequence();
-
-    LayerColor * mParitclePopupLayer, * mParitclePopup; //memory
-    Node * mParent;
-    //Sequence * mShakeSeq;
-    Sprite * mReadyImg; //memory
-    string mParticleFinish;
-    string mParticleReady;
+   
     Vec2 mPoint;
 
-    gui mGUI;
     float mMoveLength
     , mRotateAmplitude
     , mReadyEffectInterval

@@ -114,7 +114,6 @@ private:
     
 	int mLevel;
     gui mGrid;
-    ui_gacha  mGacha;
     LayerColor * layer, *layerGray;    
     //cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
     bool mIsParticleFinished;
@@ -177,9 +176,6 @@ private:
 
 
     void store();
-    //void store2();
-    void particleSample(const string sz);
-
     void dailyReward();
 
     static MainScene * hInst;

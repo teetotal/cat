@@ -10,6 +10,7 @@
 #include "FarmingScene.h"
 #include "DecoScene.h"
 #include "ActionBasic.h"
+#include "LotteryScene.h"
 #include "ui/ui_color.h"
 
 using namespace cocos2d::ui;
@@ -259,7 +260,7 @@ bool MainScene::initDeco() {
         }
         
         sz = (const char*)sqlite3_column_text(stmt, idx++); //wallParttern
-        if(*sz)
+        if(sz != NULL && strlen(sz) > 1)
             ui_deco::inst()->addWallParttern(sz);
         
     }
@@ -1257,22 +1258,6 @@ void MainScene::actionList() {
 //    gui::inst()->drawGrid(layer, layer->getContentSize(), Size(-1, -1), Size::ZERO, Size::ZERO);
 }
 
-void MainScene::particleSample(const string sz){
-
-    auto layer = LayerColor::create();
-    layer->setContentSize(Size(300, 225));
-    gui::inst()->addLabelAutoDimension(0, 0, sz, layer, 14, ALIGNMENT_CENTER, Color3B::GREEN, Size(1, 1), Size::ZERO, Size::ZERO);
-    gui::inst()->addTextButtonAutoDimension(0,5, "CLOSE"
-            , layer
-            , CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_POPUP_2)
-            , 10
-            , ALIGNMENT_CENTER
-            , Color3B::WHITE
-            , Size(1, 5)
-    );
-    mGacha.run("gem.jpg", layer);
-}
-
 void MainScene::scheduleRecharge(float f) {
 	if (logics::hInst->rechargeHP())
 		updateState(false);
@@ -1647,6 +1632,8 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
         ui_deco::inst()->addObject(obj);
     } else if(item.type == itemType_wall_pattern){
         ui_deco::inst()->addWallParttern(getItemImg(item.id));
+    } else if(item.category == itemCategory_lottery) {
+        Director::getInstance()->pushScene(LotteryScene::createScene(item.id));
     }
     else {
         isPop = false;
