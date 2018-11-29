@@ -147,7 +147,7 @@ public:
     Label * addLabel(int x
             , int y
             , const string &text
-            , Scene *p
+            , Node *p
             , int fontSize = 0
             , ALIGNMENT align = ALIGNMENT_CENTER
             , const Color3B color = Color3B::BLACK

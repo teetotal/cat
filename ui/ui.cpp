@@ -180,7 +180,7 @@ bool gui::drawPoint(Node *p) {
 Label * gui::addLabel(int x
         , int y
         , const string &text
-        , Scene *p
+        , Node *p
         , int fontSize
         , ALIGNMENT align
         , const Color3B color
