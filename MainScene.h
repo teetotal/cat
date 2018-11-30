@@ -115,7 +115,6 @@ private:
 	int mLevel;
     gui mGrid;
     LayerColor * layer, *layerGray;    
-    //cocos2d::LayerColor * mParitclePopupLayer, * mParitclePopup;
     bool mIsParticleFinished;
     LoadingBar * loadingBar;
 
@@ -132,10 +131,10 @@ private:
 
 	void quantityCallback(Ref* pSender, int value); // 수량 제어
 
-
 	SCENECODE mCurrentScene; //현재 Scene 정보
 	time_t mLastUpdateTrade; //최근 시세 업데이트 시각
 	time_t mLastUpdateQuest;
+    time_t mLastUpdatePlayBonus; //최근 플레이 보너스 지급
 	int mActionCnt; //action 진행 시간 카운트
 	int mActionTouchCnt;  //action touch 클릭 카운트
 
@@ -148,7 +147,8 @@ private:
     void callback2(Ref* pSender, SCENECODE type);
   
 	static void achievementCB(int level, int idx) {
-		noticeEffect(hInst->mAchievement);
+		//noticeEffect(hInst->mAchievement);
+        //hInst->updateQuests();
 	};
 
 	static void noticeEffect(MenuItemLabel * p) {

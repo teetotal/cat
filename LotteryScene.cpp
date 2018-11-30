@@ -95,7 +95,8 @@ void LotteryScene::gachaPoint(){
     logics::hInst->increasePoint(point);
     
     auto bg = LayerColor::create(Color4B::BLACK);
-    bg->setContentSize(Size(640,320));
+    bg->setContentSize(Director::getInstance()->getVisibleSize());
+    bg->setPosition(Director::getInstance()->getVisibleOrigin());
     this->addChild(bg);
     
     Size grid = Size(5,5);

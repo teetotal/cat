@@ -56,6 +56,8 @@ bool MainScene::init()
 		CCLOG("logics Init Failure !!!!!!!!!!!!!!");
 		return false;
 	}
+    
+    mLastUpdatePlayBonus = getNow();
 		
     //////////////////////////////
     // 1. super init first
@@ -129,7 +131,7 @@ bool MainScene::init()
 
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
-	mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
+	//mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
 
 	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
     mBuy = gui::inst()->addTextButton(8, 5, wstring_to_utf8(L"상점"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
@@ -137,26 +139,20 @@ bool MainScene::init()
     mSell = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"벼룩시장"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
     mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
 
-	//auto mail = gui::inst()->addLabel(4, 5, "message...", this, 10);
 	//quest 표시
 	updateQuests();
-    //gacha
-	/*
-    mParitclePopup = mGacha.createLayer(mParitclePopupLayer
-            , this
-            , "crystal_marvel.png"
-            , "particles/particle_magic.plist"
-            , PARTICLE_FINAL);
-	*/
-	mLevel = logics::hInst->getActor()->level;
+    
+	// mLevel = logics::hInst->getActor()->level;
 
     updateState(false);
 	this->schedule(schedule_selector(MainScene::scheduleRecharge), 1); //HP recharge schedule
+    /*
 	//퀘스트 타이머. 퀘스트 정산이 1초마다 되기 때문에 싱크가 잘 안맞아서 어쩔 수 없다.
 	this->schedule([=](float delta) {		
 		this->updateQuests();
 		mLevel = logics::hInst->getActor()->level;
 	}, 0.5, "questTimer");
+     */
 
 //    CCLOG("Init Done !!!!!!!!!!!!!!");
    
@@ -511,6 +507,7 @@ void MainScene::updateState(bool isInventoryUpdated) {
 	if(isInventoryUpdated)
 		mInventory->runAction(gui::inst()->createActionFocus());
 }
+/*
 void MainScene::callbackActionAnimation(int id, int maxTimes) {
 	closePopup();
 
@@ -561,10 +558,13 @@ void MainScene::callbackActionAnimation(int id, int maxTimes) {
 	}
 		
 }
+*/
 
 void MainScene::callbackAction(Ref* pSender, int id){
 	if (id == -1)
-		return;    
+		return;
+    
+    closePopup();
 
 	errorCode err = logics::hInst->isValidTraining(id);
 	if (err != error_success) {
@@ -613,11 +613,13 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		mSell->setScale(1);
 		showInventory(inventoryType_all, true);
 		break;
+            /*
 	case SCENECODE_ACHIEVEMENT: // 업적
 		mAchievement->stopAllActions();
 		mAchievement->setScale(1);
 		showAchievement();
 		break;
+             */
 	case SCENECODE_BUY: //구매
 		mBuy->stopAllActions();
 		mBuy->setScale(1);
@@ -654,15 +656,13 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 
 }
 
-void MainScene::callback0(){
-    CCLOG("callback0");
-
-}
+/*
 //action touch 클릭 횟수
 void MainScene::callback1(Ref* pSender){
 	mActionTouchCnt++;
     CCLOG("callback1");
 }
+ */
 
 void MainScene::onEnter(){
     Scene::onEnter();
@@ -673,6 +673,7 @@ void MainScene::onEnterTransitionDidFinish(){
     Scene::onEnterTransitionDidFinish();
     CCLOG("onEnterTransitionDidFinish!!!!!!!!!!!!!!!!!!!!!!!");
 	updateState(false);
+    updateQuests();
 	mCurrentScene = SCENECODE_MAIN;
 }
 void MainScene::onExitTransitionDidStart(){
@@ -997,6 +998,10 @@ void MainScene::showBuy(inventoryType type) {
 #define __PARAMS_BUY(STR, ID) nMenuIdx++, 0, STR, layer, CC_CALLBACK_1(MainScene::showBuyCategory, this, ID), 14, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 
 	BUY_SIZE;
+    
+    if(type == inventoryType_all)
+        type = inventoryType_interior;
+    
 	mIsSell = false;
 	mQuantityItemId = -1;
 	closePopup();
@@ -1018,11 +1023,11 @@ void MainScene::showBuy(inventoryType type) {
     //scrollview 가 먼저 눌리는건 Menu의 localZorder값이 낮아서 그럼. 보튼 생성 함수를 고쳐야 함.
     auto pMenu = Menu::create();
     
+    pMenu->addChild(MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior)));
+    pMenu->addChild(MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior)));
     pMenu->addChild(MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall)));
     pMenu->addChild(MenuItemFont::create("Parttern", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall_pattern)));
     pMenu->addChild(MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_bottom)));
-    pMenu->addChild(MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior)));
-    pMenu->addChild(MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior)));
     pMenu->addChild(MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn)));
     pMenu->addChild(MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_HP)));
     
@@ -1061,7 +1066,8 @@ void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
 	*/
 	logics::hInst->achieveReward(p);
 	updateState(true);
-	callback2(this, SCENECODE_CLOSEPOPUP);
+    updateQuests();
+	//callback2(this, SCENECODE_CLOSEPOPUP);
 }
 
 void MainScene::showAchievementCategory(Ref* pSender) {
@@ -1261,6 +1267,22 @@ void MainScene::actionList() {
 void MainScene::scheduleRecharge(float f) {
 	if (logics::hInst->rechargeHP())
 		updateState(false);
+    
+    //나중에 config로 뺴야햄.
+    int diff = (int)(getNow() - mLastUpdatePlayBonus);
+    if(diff > 5*60) {
+        logics::hInst->addInventory(1, 1);
+        auto mail = gui::inst()->addLabel(4, 5, logics::hInst->getL10N("MESSAGE_PLAY_BONUS"), this, 0, ALIGNMENT_CENTER, Color3B::ORANGE);
+        mail->runAction(
+                        Sequence::create(
+                        FadeIn::create(1)
+                        , FadeOut::create(2)
+                        , NULL)
+                        );
+        updateState(true);
+        mLastUpdatePlayBonus = getNow();
+    }
+    
 }
 
 
@@ -1475,14 +1497,17 @@ void MainScene::closePopup() {
 	layer = NULL;
 	layerGray = NULL;
 	mCurrentScene = SCENECODE_MAIN;
+    
+    updateQuests();
 }
 
 void MainScene::updateQuests() {
+    /*
 	if (mLastUpdateQuest == logics::hInst->getQuests()->mLastUpdated)
 		return;
 
 	mLastUpdateQuest = logics::hInst->getQuests()->mLastUpdated;
-
+     */
 	int cnt = 0;
 	Color3B fontColor;
 	
@@ -1494,18 +1519,28 @@ void MainScene::updateQuests() {
 	
 	for (int n = 0; n < logics::hInst->getQuests()->getQuests()->size(); n++) {
 		Quest::_quest * p = logics::hInst->getQuests()->getQuests()->at(n);
-		if (p->isFinished || p->isReceived)
+		if (p->isReceived)
 			continue;
-			
-		//wstring sz = p->title + L" " + to_wstring(p->accumulation) + L"/" + to_wstring(p->value);
+        
         string sz = " - " + wstring_to_utf8(p->title);
-        sz += " " + to_string(p->accumulation) + "/" + to_string(p->value);
-		//if (p->accumulation >= p->value) sz = L"COMPLETE";
-		Menu * pMenu = NULL;
-		auto q = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
-			, CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 12, ALIGNMENT_NONE);
-		q->setPosition(q->getPosition().x, q->getPosition().y - (cnt * 15));
-		q->setLocalZOrder(ZORDER_QUEST);
+        
+        Menu * pMenu = NULL;
+        MenuItemLabel * menuItem;
+        
+        if(p->isFinished){
+            sz += " Done";
+            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
+                                                     , CC_CALLBACK_1(MainScene::achievementCallback, this, p), 12, ALIGNMENT_NONE, Color3B::BLUE);
+            
+        } else {
+            sz += " " + to_string(p->accumulation) + "/" + to_string(p->value);
+            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
+                                                     , CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 12, ALIGNMENT_NONE);
+        }
+		
+		
+		menuItem->setPosition(menuItem->getPosition().x, menuItem->getPosition().y - (cnt * 15));
+		menuItem->setLocalZOrder(ZORDER_QUEST);
 		mQuestButtons.push_back(pMenu);
 
 		cnt++;
