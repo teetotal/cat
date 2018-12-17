@@ -11,10 +11,11 @@
 #define RACE_UPDATE_INTERVAL 0.3
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
-#define RACE_GOAL_DISTANCE 3.5
+#define RACE_GOAL_DISTANCE 6.5
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(120, 60); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  5
-
+#define RACE_BG_SIZE 7
+#define RACE_RUNNING_ACTION_SPEED 0.02
 #define RUNNER_MARGIN 35
 float RUNNER_WIDTH;
 
@@ -70,7 +71,7 @@ bool ActionScene::init() {
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
 	//background
-	for (int n = 0; n < 4; n++) {
+	for (int n = 0; n < RACE_BG_SIZE; n++) {
 		for (int i = 1; i <= 3; i++) {
 			auto s = Sprite::create("layers/race/" + to_string(i) + ".png");
 			Vec2 point = Vec2(gui::inst()->mVisibleX / 2 + gui::inst()->mOriginX + (n * gui::inst()->mVisibleX)
@@ -308,10 +309,10 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 RepeatForever * ActionScene::getRunningAnimation(bool isSpeedUp) {
 	auto animation = Animation::create();
 	if (isSpeedUp) {
-		animation->setDelayPerUnit(0.015);
+		animation->setDelayPerUnit(RACE_RUNNING_ACTION_SPEED / 3);
 	}
 	else {
-		animation->setDelayPerUnit(0.03 + (getRandValue(9) * 0.001));
+		animation->setDelayPerUnit(RACE_RUNNING_ACTION_SPEED + (getRandValue(9) * 0.001));
 	}
 
 	string path;

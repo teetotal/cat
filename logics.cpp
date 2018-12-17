@@ -2,6 +2,7 @@
 #include "ui/ui_color.h"
 #include "ui/ui_deco.h"
 
+#define LEVELUP_REWARD_ITEM_ID 1
 
 #if !defined(_WIN32) || defined(COCOS2D_DEBUG)
     #include "cocos2d.h"
@@ -1155,7 +1156,7 @@ bool logics::increaseExp(int value) {
 		setMaxHP();
 		//give lottery
 		//mActor->point += mActor->level * bonusCashPerLevel;
-        addInventory(1, mActor->level);
+        addInventory(LEVELUP_REWARD_ITEM_ID, 1);
 		//set job title
 		setJobTitle();
 		

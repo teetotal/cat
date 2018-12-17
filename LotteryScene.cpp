@@ -60,7 +60,10 @@ bool LotteryScene::init(int itemId)
 }
 
 bool LotteryScene::open() {
-    this->removeChild(mInfoLayer);
+    if(mInfoLayer)
+        this->removeChild(mInfoLayer);
+    if(mResultLayer)
+        this->removeChild(mResultLayer);
     
     bool ret = false;
     inventoryType category = logics::hInst->getInventoryType(mItemId);
@@ -102,16 +105,16 @@ void LotteryScene::gachaPoint(){
     Size grid = Size(5,5);
     string szRank = rank == -1 ? " " : to_string(rank) + wstring_to_utf8(L"등 당첨");
     string sz = point > 0 ? COIN + to_string(point) : "T.T";
-    auto layer = LayerColor::create();
-    layer->setContentSize(Size(300, 225));
-    gui::inst()->addLabelAutoDimension(2, 1, szRank, layer, 32, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
-    gui::inst()->addLabelAutoDimension(2, 2, sz, layer, 28, ALIGNMENT_CENTER, Color3B::GREEN, grid, Size::ZERO, Size::ZERO);
+    mResultLayer = LayerColor::create();
+    mResultLayer->setContentSize(Size(300, 225));
+    gui::inst()->addLabelAutoDimension(2, 1, szRank, mResultLayer, 32, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
+    gui::inst()->addLabelAutoDimension(2, 2, sz, mResultLayer, 28, ALIGNMENT_CENTER, Color3B::GREEN, grid, Size::ZERO, Size::ZERO);
     
     int x = 2;
     if(logics::hInst->getActor()->inven.checkItemQuantity(logics::hInst->getInventoryType(mItemId), mItemId, 1)){
         x++;
         gui::inst()->addTextButtonAutoDimension(1,5, "1 MORE TRY"
-                                                , layer
+                                                , mResultLayer
                                                 , [=](Ref * pRef) { gachaPoint(); }
                                                 , 20
                                                 , ALIGNMENT_CENTER
@@ -121,7 +124,7 @@ void LotteryScene::gachaPoint(){
     }
     
     gui::inst()->addTextButtonAutoDimension(x,5, "CLOSE"
-                                            , layer
+                                            , mResultLayer
                                             , CC_CALLBACK_1(LotteryScene::callbackClose, this)
                                             , 0
                                             , ALIGNMENT_CENTER
@@ -129,6 +132,6 @@ void LotteryScene::gachaPoint(){
                                             , grid
                                             );
     ui_gacha gacha;
-    gacha.run(this, "coin.png", layer, PARTICLE_MAGIC, (point > 0) ? PARTICLE_FINAL : "");
+    gacha.run(this, "coin.png", mResultLayer, PARTICLE_MAGIC, (point > 0) ? PARTICLE_FINAL : "");
 }
 

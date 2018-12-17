@@ -45,7 +45,7 @@ private:
     };
     
     int mItemId;
-    LayerColor * mInfoLayer;
+    LayerColor * mInfoLayer, * mResultLayer;
 };
 
 #endif /* LotteryScene_hpp */
