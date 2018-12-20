@@ -25,9 +25,7 @@ private:
 	virtual void onExitTransitionDidStart() override;
 	virtual void onExit() override;
 
-	bool onTouchBegan(Touch* touch, Event* event) {
-		return true;
-	};
+    bool onTouchBegan(Touch* touch, Event* event) ;
 	bool onTouchEnded(Touch* touch, Event* event);
 	void onTouchMoved(Touch *touch, Event *event) {};
 	

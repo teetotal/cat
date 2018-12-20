@@ -14,11 +14,11 @@
 #define MAXRANK 5
 //확률, 배율
 float _prize1[MAXRANK][2] = {
-    {1000, 1000}
-    , {500, 500}
-    , {12, 5}
-    , {6, 2}
-    , {2, 1.5}
+    {128, 500}
+    , {64, 10}
+    , {32, 5}
+    , {16, 3}
+    , {8, 2}
 };
 
 Scene* LotteryScene::createScene(int itemId)
@@ -48,18 +48,19 @@ bool LotteryScene::init(int itemId)
     string szPrize = "";
     for(int n=0; n < MAXRANK; n++){
         szPrize = szPrize + to_string(n+1) + ": ";
-        szPrize = szPrize + COIN + to_string((int)(logics::hInst->getTrade()->getPriceBuy(mItemId) * _prize1[n][1]));
+        szPrize = szPrize + COIN + numberFormat((int)(logics::hInst->getTrade()->getPriceBuy(mItemId) * _prize1[n][1]));
         szPrize = szPrize + "\n";
     }
     
     gui::inst()->addLabel(4, 3, szPrize, mInfoLayer, 0, ALIGNMENT_NONE);
     
-    gui::inst()->addTextButton(4, 5, "OPEN", mInfoLayer, [=](Ref* pRef){ gachaPoint(); }, 32, ALIGNMENT_CENTER, Color3B::BLUE); //->runAction(RepeatForever::create(Blink::create(1, 2)));
-    gui::inst()->addTextButton(8, 0, "CLOSE", mInfoLayer, [=](Ref* pRef){ callbackClose(this); }, 0, ALIGNMENT_CENTER, Color3B::RED);
+    gui::inst()->addTextButton(3, 5, "OPEN One", mInfoLayer, [=](Ref* pRef){ gachaPoint(); }, 20, ALIGNMENT_CENTER, Color3B::WHITE); //->runAction(RepeatForever::create(Blink::create(1, 2)));
+    gui::inst()->addTextButton(5, 5, "OPEN ALL", mInfoLayer, [=](Ref* pRef){ gachaPoint(true); }, 20, ALIGNMENT_CENTER, Color3B::ORANGE);
+    gui::inst()->addTextButton(8, 0, "CLOSE", mInfoLayer, [=](Ref* pRef){ callbackClose(this); }, 0, ALIGNMENT_CENTER, Color3B::BLUE);
     return true;
 }
 
-bool LotteryScene::open() {
+bool LotteryScene::open(int cnt) {
     if(mInfoLayer)
         this->removeChild(mInfoLayer);
     if(mResultLayer)
@@ -67,14 +68,18 @@ bool LotteryScene::open() {
     
     bool ret = false;
     inventoryType category = logics::hInst->getInventoryType(mItemId);
-    ret = logics::hInst->getActor()->inven.popItem(category, mItemId, 1);
+    ret = logics::hInst->getActor()->inven.popItem(category, mItemId, cnt);
     logics::hInst->saveActor();
     
     return ret;
 }
 
-void LotteryScene::gachaPoint(){
-    if(!open()){
+void LotteryScene::gachaPoint(bool isAll){
+    int loopCnt = 1;
+    if(isAll)
+        loopCnt = logics::hInst->getActor()->inven.getItemQuantuty(logics::hInst->getInventoryType(mItemId), mItemId);
+    
+    if(!open(loopCnt)){
         callbackClose(this);
         return;
     }
@@ -82,18 +87,23 @@ void LotteryScene::gachaPoint(){
     unsigned int point = 0;
     time_t t = getNow();
     int number;
-    int rank = -1;
-    for(int n=0; n < MAXRANK; n++) {
-        int probability = (int)_prize1[n][0];
-        number = (int)t % probability;
-        int winningNumber = getRandValue(probability);
-        
-        if(winningNumber == number){
-            point = logics::hInst->getTrade()->getPriceBuy(mItemId) * _prize1[n][1];
-            rank = n+1;
-            break;
+    
+    int arrRank[MAXRANK] = {0,};
+    
+    for(int i=0; i< loopCnt; i++) {
+        for(int n=0; n < MAXRANK; n++) {
+            int probability = (int)_prize1[n][0];
+            number = (int)t % probability;
+            int winningNumber = getRandValue(probability);
+            
+            if(winningNumber == number){
+                point += logics::hInst->getTrade()->getPriceBuy(mItemId) * _prize1[n][1];
+                arrRank[n]++;
+                break;
+            }
         }
     }
+    
     
     logics::hInst->increasePoint(point);
     
@@ -103,11 +113,16 @@ void LotteryScene::gachaPoint(){
     this->addChild(bg);
     
     Size grid = Size(5,5);
-    string szRank = rank == -1 ? " " : to_string(rank) + wstring_to_utf8(L"등 당첨");
-    string sz = point > 0 ? COIN + to_string(point) : "T.T";
+    string szRank;
+    for(int n=0; n < MAXRANK; n++) {
+        if(arrRank[n] > 0) {
+            szRank += to_string(n+1) + wstring_to_utf8(L" 등 당첨 x ") + to_string(arrRank[n]) + "\n";
+        }
+    }
+    string sz = point > 0 ? COIN + numberFormat(point) : "T.T";
     mResultLayer = LayerColor::create();
     mResultLayer->setContentSize(Size(300, 225));
-    gui::inst()->addLabelAutoDimension(2, 1, szRank, mResultLayer, 32, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
+    gui::inst()->addLabelAutoDimension(2, 1, szRank, mResultLayer, 24, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
     gui::inst()->addLabelAutoDimension(2, 2, sz, mResultLayer, 28, ALIGNMENT_CENTER, Color3B::GREEN, grid, Size::ZERO, Size::ZERO);
     
     int x = 2;
@@ -118,17 +133,26 @@ void LotteryScene::gachaPoint(){
                                                 , [=](Ref * pRef) { gachaPoint(); }
                                                 , 20
                                                 , ALIGNMENT_CENTER
+                                                , Color3B::WHITE
+                                                , grid
+                                                );
+        
+        gui::inst()->addTextButtonAutoDimension(3,5, "Open All"
+                                                , mResultLayer
+                                                , [=](Ref * pRef) { gachaPoint(true); }
+                                                , 20
+                                                , ALIGNMENT_CENTER
                                                 , Color3B::ORANGE
                                                 , grid
                                                 );
     }
     
-    gui::inst()->addTextButtonAutoDimension(x,5, "CLOSE"
+    gui::inst()->addTextButtonAutoDimension(5,0, "CLOSE"
                                             , mResultLayer
                                             , CC_CALLBACK_1(LotteryScene::callbackClose, this)
                                             , 0
                                             , ALIGNMENT_CENTER
-                                            , Color3B::WHITE
+                                            , Color3B::BLUE
                                             , grid
                                             );
     ui_gacha gacha;

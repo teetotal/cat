@@ -13,7 +13,7 @@ logics * logics::hInst = NULL;
 bool logics::hIsSync = false;
 
 bool logics::init(farmingFinshedNotiCallback farmCB, tradeUpdatedCallback tradeCB, achievementCallback achieveCB, bool isFarmingDataLoad) {
-	srand(getNow());
+    srand((unsigned int)getNow());
     string szMeta, szActor, szActions;
 #if defined(_WIN32) && !defined(COCOS2D_DEBUG)
 		szMeta = loadJsonString(CONFIG_META);
@@ -586,6 +586,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 		addQuest_race_front(uniqueId++, n);
         
 		//action accumulation
+        /*
 		for (__training::iterator it = mTraining.begin(); it != mTraining.end(); ++it) {
 			int nCnt = n - (n - it->second.level);
 			if (nCnt < 2)
@@ -606,6 +607,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 				);
 			}
 		}
+        */
 		//race win
 		addQuest_race_win(uniqueId++, n);
         

@@ -38,8 +38,8 @@ public:
     };
     
 private:
-    void gachaPoint();
-    bool open();
+    void gachaPoint(bool isAll = false);
+    bool open(int cnt = 1);
     void callbackClose(Ref * pRef) {
         Director::getInstance()->popScene();
     };

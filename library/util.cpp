@@ -149,6 +149,34 @@ string sprint(const char * format, ...) {
 	string sz = buffer;
 	return sz;
 }
+
+string numberFormat(int n) {
+    string sz = "";
+    bool isInit = true;
+    while(true){
+        if(n == 0)
+            break;
+        
+        int r = n % 1000;
+        n = n / 1000;
+        
+        if(!isInit) {
+            if(r == 0){
+                sz = "000," + sz;
+            } else {
+                sz = to_string(r) + "," + sz;
+            }
+        }
+        else {
+            if(r == 0)
+                sz = "000";
+            else
+                sz = to_string(r);
+            isInit = false;
+        }
+    }
+    return sz;
+}
 /*
 char* intToChar(int n) {
 	char *buf = new char[10];

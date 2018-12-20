@@ -464,10 +464,15 @@ void ActionBasic::update(float delta) {
     }
 }
 
-bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
+bool ActionBasic::onTouchBegan(Touch* touch, Event* event) {
     if(mAction.type == trainingType_touch){
         checkTouch(touch);
-    } else {
+    }
+    return true;
+}
+
+bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
+    if(mAction.type == trainingType_tap) {
         addTouchCnt();
     }
     return true;
@@ -604,6 +609,7 @@ void ActionBasic::checkTouch(Touch * touch) {
             sprite->runAction(
                               Sequence::create(Blink::create(1, 5), RemoveSelf::create(), NULL)
                               );
+            Device::vibrate(0.01);
             mContextTouch.mWhiteRatVec[n] = NULL;
             return;
         }
@@ -615,7 +621,7 @@ void ActionBasic::checkTouch(Touch * touch) {
             addTouchCnt();
             sprite->stopAllActions();
             sprite->runAction(
-                              Sequence::create(FadeOut::create(1), RemoveSelf::create(), NULL)
+                              Sequence::create(ScaleBy::create(0.2, 2), ScaleBy::create(0.2, 0.5), RemoveSelf::create(), NULL)
                               );
             mContextTouch.mBlackRatVec[n] = NULL;
             return;

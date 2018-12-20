@@ -497,7 +497,8 @@ void MainScene::updateState(bool isInventoryUpdated) {
     mHP->setString(szHP);
 
     string szPoint = COIN;
-    szPoint += to_string(logics::hInst->getActor()->point);
+    //szPoint += to_string(logics::hInst->getActor()->point);
+    szPoint += numberFormat(logics::hInst->getActor()->point);
     //szPoint += " +";
     if(szPoint.compare(mPoint->getString()) != 0 ){
         mPoint->runAction(gui::inst()->createActionFocus());
@@ -1268,9 +1269,9 @@ void MainScene::scheduleRecharge(float f) {
 	if (logics::hInst->rechargeHP())
 		updateState(false);
     
-    //나중에 config로 뺴야햄.
+    //복권 지급. 나중에 config로 뺴야햄.
     int diff = (int)(getNow() - mLastUpdatePlayBonus);
-    if(diff > 5*60) {
+    if(diff > 25 * 60) {
         logics::hInst->addInventory(1, 1);
         auto mail = gui::inst()->addLabel(4, 5, logics::hInst->getL10N("MESSAGE_PLAY_BONUS"), this, 0, ALIGNMENT_CENTER, Color3B::ORANGE);
         mail->runAction(

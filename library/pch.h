@@ -33,5 +33,6 @@ void saveFile(const char* path, string sz);
 string getRomeNumber(int n);
 wstring sprint(const wstring format, int val);
 string sprint(const char * format, ...);
+string numberFormat(int n);
 
 
