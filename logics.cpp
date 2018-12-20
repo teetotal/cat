@@ -1348,11 +1348,11 @@ errorCode logics::runRaceSetRunners(int id) {
 	//내 능력치랑 비슷하게 구성
 	int sum = min(race.max, mActor->property.total()); //경묘 능력 최대치랑 유저 능력치 중 낮은 값으로 설정
 	if (race.mode == race_mode_speed) {
-		sum += (int)((float)sum * raceAIAdvantageRatio * (float)max(1, getRandValue(4))); // raceAIAdvantageRatio * 1 ~ 3 올림
+        sum += (int)((float)sum * raceAIAdvantageRatio * (float)max(1, getRandValue(4))); // raceAIAdvantageRatio * 1 ~ 3 올림
 	}
-	else {
-		sum += (int)((float)sum * raceAIAdvantageRatio); // raceAIAdvantageRatio만 올림
-	}
+//    else {
+//        sum += (int)((float)sum * raceAIAdvantageRatio); // raceAIAdvantageRatio만 올림
+//    }
 
 	
     //참가자 목록
@@ -1587,12 +1587,12 @@ void logics::invokeRaceItemAI() {
 }
 
 int logics::getBaseSpeed(int s, int i, int a, float ranPercent /* 달린 거리 */, int boost) {
-	
+    float halfA = a / 2;
 	int boostLength = (int)((float)(s + i + a) * raceTouchBoostRatio * (float)boost / 100.f);//최대 raceTouchBoostRatio까지만 부스트	
 	/* 전반은 I:S = 7: 3 후반은 S:I 7:3 */
 	int s1 = (int)((ranPercent <= 50.f) ? s * 0.3 : s * 0.7);
 	int i1 = (int)((ranPercent <= 50.f) ? i * 0.7 : i * 0.3);
-	int a1 = getRandValue(a); //raceAppealRatio
+	int a1 = halfA + getRandValue(halfA); //raceAppealRatio
 	return (s1 + i1 + a1) + boostLength;
 	
 	/*
@@ -1709,7 +1709,7 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 		 for (int n = 0; n < (int)mRaceParticipants->size(); n++) {
 			 if (mRaceParticipants->at(n).rank == 0)
 				 mRaceParticipants->at(n).rank = raceParticipantNum + 1;
-             CCLOG("%d - %d", n, mRaceParticipants->at(n).shootItemCountAccumul);
+//             CCLOG("%d - %d", n, mRaceParticipants->at(n).shootItemCountAccumul);
 		 }
 		 //보상 지급
 		 mRaceCurrent.rank = mRaceParticipants->at(raceParticipantNum).rank;
@@ -1733,6 +1733,8 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
                  break;
 		 }
 		 mQuest.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
+         //경험치
+         increaseExp();
 		 
 		 //업적 및 연승 기록
 		 switch (mRaceCurrent.rank) {
@@ -1887,6 +1889,8 @@ bool logics::farmingQuestDone(int idx) {
 		}
 		mActor->point += money;
 		mFarming.clearQuest(idx);
+        //경험치
+        increaseExp();
 	}
 	return true;
 };

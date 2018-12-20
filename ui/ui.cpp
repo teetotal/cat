@@ -9,7 +9,9 @@ gui * gui::hInstance = NULL;
 void gui::init(const char* font, int fontSize, Color4F bgColor) {
 
     auto visibleSize = Director::getInstance()->getVisibleSize();
+    mVisibleSize = visibleSize;
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
+    mOrigin = origin;
     mResolution = Director::getInstance()->getWinSizeInPixels();
 
 

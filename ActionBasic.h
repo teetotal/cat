@@ -36,6 +36,8 @@ private:
 	void runAction_touch(_training &t);
 	void runAction_tap(_training &t);
     void runAction_timing(_training &t);
+    
+    void checkTouch(Touch * touch);
 
 	Sprite * createAnimate(_training &t);
     RepeatForever * getRunningAnimation();
@@ -76,6 +78,12 @@ private:
 	int mActionCnt, mActionTouchCnt, mMaxTouchCnt;
     int mPreTouchCnt; //이전 점수를 비교하기 위한 변수
     int mTimerCnt; //타이머 호출 카운터
+    //for rat -------------------------------------------
+    struct contextRat {
+        vector<Sprite *> mBlackRatVec;
+        vector<Sprite *> mWhiteRatVec;
+    } mContextTouch;
+    
     //for tap -------------------------------------------
     struct tapBonus{
         Sprite * sprite;

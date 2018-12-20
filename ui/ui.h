@@ -512,6 +512,8 @@ public:
 	float mWidth;
 	float mHeight;
 
+    Vec2 mOrigin;
+    Vec2 mVisibleSize;
 	Size mResolution;
 private:
     const char* mDefaultFont;

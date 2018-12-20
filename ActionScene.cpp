@@ -11,10 +11,11 @@
 #define RACE_UPDATE_INTERVAL 0.3
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
-#define RACE_GOAL_DISTANCE 6.5
+
 #define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(120, 60); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  5
-#define RACE_BG_SIZE 7
+#define RACE_BG_SIZE 8
+#define RACE_GOAL_DISTANCE 7.5
 #define RACE_RUNNING_ACTION_SPEED 0.02
 #define RUNNER_MARGIN 35
 float RUNNER_WIDTH;

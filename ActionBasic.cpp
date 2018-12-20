@@ -465,7 +465,11 @@ void ActionBasic::update(float delta) {
 }
 
 bool ActionBasic::onTouchEnded(Touch* touch, Event* event) {
-    addTouchCnt();
+    if(mAction.type == trainingType_touch){
+        checkTouch(touch);
+    } else {
+        addTouchCnt();
+    }
     return true;
 }
 
@@ -497,46 +501,130 @@ int ActionBasic::getTouchYPosition(int idx){
  TOUCH
  
  ================================================================================ */
-void ActionBasic::runAction_touch(_training &t) {	
-	auto size = Size(400, 150);
-	Layout * l = gui::inst()->createLayout(size);
-	gui::inst()->addToCenter(l, this);
-	
-	//touch
-	Menu * pTouchButton = NULL;
-	auto item = gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
-    gui::inst()->setScale(item, 70);
+//void ActionBasic::runAction_touch(_training &t) {
+//    auto size = Size(400, 150);
+//    Layout * l = gui::inst()->createLayout(size);
+//    gui::inst()->addToCenter(l, this);
+//
+//    //touch
+//    Menu * pTouchButton = NULL;
+//    auto item = gui::inst()->addSpriteButtonRaw(pTouchButton, 0, 0, "rat1.png", "rat2.png", l, CC_CALLBACK_1(ActionBasic::callbackTouch, this), ALIGNMENT_NONE);
+//    gui::inst()->setScale(item, 70);
+//
+//    this->schedule([=](float delta) {
+//        //touch 이동
+//        if (mActionCnt % 10 < 3) {
+//            Vec2 position = Vec2(getRandValue(l->getContentSize().width), getRandValue(l->getContentSize().height));
+//            float marginX = pTouchButton->getChildren().at(0)->getContentSize().width;
+//            float marginY = pTouchButton->getChildren().at(0)->getContentSize().height;
+//
+//            if (position.x > l->getContentSize().width - marginX)
+//                position.x = l->getContentSize().width - marginX;
+//
+//            if (position.y > l->getContentSize().height - marginY)
+//                position.y = l->getContentSize().height - marginY;
+//
+//            //pTouchButton->setPosition(position);
+//            pTouchButton->runAction(MoveTo::create(animationDelay, position));
+//        }
+//
+//        setTime(animationDelay);
+//        mActionCnt++;
+//
+//        if (mTime <= 0) {
+//            this->unschedule("updateLoadingBar");
+//            //pMan->stopAllActions();
+//            callbackActionAnimation(t.id, mMaxTouchCnt);
+//        }
+//    }, animationDelay, "updateLoadingBar");
+//
+//    return;
+//}
+void ActionBasic::runAction_touch(_training &t) {
+    auto listener = EventListenerTouchOneByOne::create();
+    listener->setSwallowTouches(true);
+    listener->onTouchBegan = CC_CALLBACK_2(ActionBasic::onTouchBegan, this);
+    listener->onTouchEnded = CC_CALLBACK_2(ActionBasic::onTouchEnded, this);
+    listener->onTouchMoved = CC_CALLBACK_2(ActionBasic::onTouchMoved, this);
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
     
-	this->schedule([=](float delta) {
-		//touch 이동
-		if (mActionCnt % 10 < 3) {
-			Vec2 position = Vec2(getRandValue(l->getContentSize().width), getRandValue(l->getContentSize().height));
-			float marginX = pTouchButton->getChildren().at(0)->getContentSize().width;
-			float marginY = pTouchButton->getChildren().at(0)->getContentSize().height;
-
-			if (position.x > l->getContentSize().width - marginX)
-				position.x = l->getContentSize().width - marginX;
-
-			if (position.y > l->getContentSize().height - marginY)
-				position.y = l->getContentSize().height - marginY;
-
-			//pTouchButton->setPosition(position);
-			pTouchButton->runAction(MoveTo::create(animationDelay, position));
-		}
-
-		setTime(animationDelay);
-		mActionCnt++;
-		
-		if (mTime <= 0) {
-			this->unschedule("updateLoadingBar");
-			//pMan->stopAllActions();
-			callbackActionAnimation(t.id, mMaxTouchCnt);
-		}
-	}, animationDelay, "updateLoadingBar");
-	
-	return;
+    auto size = gui::inst()->mVisibleSize;
+    Layout * l = gui::inst()->createLayout(Size(size.x, size.y));
+    l->setPosition(gui::inst()->mOrigin);
+    this->addChild(l);
+    mMaxTouchCnt = 0;
+    
+    this->schedule([=](float delta) {
+        //touch 이동
+        if (mActionCnt % 5 == 0) {
+            const float imgSize = 50;
+            bool isBlack = getRandValue(2) == 0;
+            auto img = gui::inst()->addSprite(getRandValue(8), 0, isBlack ? "rat1.png" : "rat2.png", l);
+            if(isBlack) {
+                mContextTouch.mBlackRatVec.push_back(img);
+                increment(mMaxTouchCnt);
+            } else {
+                mContextTouch.mWhiteRatVec.push_back(img);
+            }
+            Vec2 pos = img->getPosition();
+            pos.y = gui::inst()->mVisibleY;
+            img->setPosition(pos);
+            gui::inst()->setScale(img, imgSize);
+            const float speed =((float)getRandValueOverZero(10) / 10.f) + 0.5;
+            img->runAction(MoveTo::create(speed, Vec2(pos.x, -1 * imgSize)));
+            
+        }
+        
+        setTime(animationDelay);
+        mActionCnt++;
+        
+        if (mTime <= 0) {
+            this->unschedule("updateLoadingBar");
+            //pMan->stopAllActions();
+            callbackActionAnimation(t.id, mMaxTouchCnt);
+        }
+    }, animationDelay, "updateLoadingBar");
+    
+    return;
 }
-//결과
+
+void ActionBasic::checkTouch(Touch * touch) {
+    Vec2 pos = touch->getLocation();
+    pos.x -= gui::inst()->mOrigin.x;
+    pos.y -= gui::inst()->mOrigin.y;
+//    CCLOG("checkTouch %f, %f", touch->getLocation().x, touch->getLocation().y);
+    
+    for(int n=0; n < mContextTouch.mWhiteRatVec.size(); n++){
+        Sprite * sprite = mContextTouch.mWhiteRatVec[n];
+        if(sprite && sprite->getBoundingBox().containsPoint(pos)) {
+//            CCLOG("rect white %f, %f, %f, %f", sprite->getBoundingBox().getMinX(), sprite->getBoundingBox().getMinY(), sprite->getBoundingBox().getMaxX(), sprite->getBoundingBox().getMaxY());
+            
+            addTouchCnt(true);
+            sprite->stopAllActions();
+            sprite->runAction(
+                              Sequence::create(Blink::create(1, 5), RemoveSelf::create(), NULL)
+                              );
+            mContextTouch.mWhiteRatVec[n] = NULL;
+            return;
+        }
+    }
+    
+    for(int n=0; n < mContextTouch.mBlackRatVec.size(); n++){
+        Sprite * sprite = mContextTouch.mBlackRatVec[n];
+        if(sprite && sprite->getBoundingBox().containsPoint(pos)){
+            addTouchCnt();
+            sprite->stopAllActions();
+            sprite->runAction(
+                              Sequence::create(FadeOut::create(1), RemoveSelf::create(), NULL)
+                              );
+            mContextTouch.mBlackRatVec[n] = NULL;
+            return;
+        }
+    }
+
+    
+}
+//결과 =============================================================
 void ActionBasic::callbackActionAnimation(int id, int maxTimes) {
 	mIsStop = true;
 	vector<_itemPair> rewards;
