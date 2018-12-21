@@ -110,7 +110,7 @@ void ui_cultivation::update(float percent, int remain, const string comment){
     }
 
 	if (isDone)
-		mCurrentIdx = mVec.size() - 1;
+		mCurrentIdx = (int)mVec.size() - 1;
 
 	mImg->setTexture(mVec[mCurrentIdx].img);
 	mLabel->setString(mVec[mCurrentIdx].text);

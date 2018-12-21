@@ -573,7 +573,7 @@ bool logics::initAchievement(rapidjson::Value & v) {
 					, it->first
 					, 1
 					, getQuestRewardItem(n)
-					, 1
+					, 0
 				);
 			}
 		}
@@ -1118,6 +1118,8 @@ errorCode logics::runRecharge(int id, int quantity) {
 
 //add inventory
 bool logics::addInventory(int itemId, int quantity) {
+    if(quantity == 0)
+        return false;
 	inventoryType type = getInventoryType(itemId);
 	if (type == inventoryType_max)
 		return false;

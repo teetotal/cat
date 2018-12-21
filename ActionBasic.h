@@ -41,7 +41,8 @@ private:
     RepeatForever * getRunningAnimation();
     Sprite * createRunner();
     Sprite * createRunner(float width, Vec2 pos, Vec2 anchor = Vec2(0.5, 0.5));
-
+    Sprite * createDancer(float width, Vec2 pos, Vec2 anchor = Vec2(0.5, 0.5));
+    
 	void callbackTouch(Ref* pSender);
 	void callbackActionAnimation(int id, int maxTimes);
 

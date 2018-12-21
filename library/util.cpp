@@ -143,7 +143,8 @@ string sprint(const char * format, ...) {
 	char buffer[512] = { 0, };
 	va_list args;
 	va_start(args, format);
-	int len = vsnprintf(buffer, 512, format, args);
+	//int len =
+    vsnprintf(buffer, 512, format, args);
 	//fputws(buffer, stdout);
 	va_end(args);
 	string sz = buffer;
@@ -161,15 +162,23 @@ string numberFormat(int n) {
         n = n / 1000;
         
         if(!isInit) {
-            if(r == 0){
+            if(r == 0 && n > 0)
                 sz = "000," + sz;
-            } else {
+            else if(r < 10 && n > 0)
+                sz = "00" + to_string(r) + "," + sz;
+            else if(r < 100 && n > 0)
+                sz = "0" + to_string(r) + "," + sz;
+            else {
                 sz = to_string(r) + "," + sz;
             }
         }
         else {
-            if(r == 0)
+            if(r == 0 && n > 0)
                 sz = "000";
+            else if(r < 10 && n > 0)
+                sz = "00" + to_string(r);
+            else if(r < 100 && n > 0)
+                sz = "0" + to_string(r);
             else
                 sz = to_string(r);
             isInit = false;

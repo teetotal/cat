@@ -686,7 +686,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_PROPERTY", val)
 			, achievement_category_property
 			, achievement_property_id_total
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
 	void addQuest_race_win(int uniqueId, int level) {
 		//race				
@@ -694,7 +694,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_RACE_WIN", val)
 			, achievement_category_race
 			, achievement_race_id_first
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
 	void addQuest_race_foremost(int uniqueId, int level) {
 		//QUEST_TITLE_RACE_ITEM_FOREMOST				
@@ -702,7 +702,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_RACE_ITEM_FOREMOST", val)
 			, achievement_category_race_use_item_type
 			, 204
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
 	void addQuest_race_front(int uniqueId, int level) {
 		//QUEST_TITLE_RACE_ITEM_FRONT				
@@ -710,7 +710,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_RACE_ITEM_FRONT", val)
 			, achievement_category_race_use_item_type
 			, 203
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
 	void addQuest_race_speedup(int uniqueId, int level) {
 		//QUEST_TITLE_RACE_ITEM_SPEEDUP				
@@ -718,7 +718,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_RACE_ITEM_SPEEDUP", val)
 			, achievement_category_race_use_item_type
 			, 202
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
 	void addQuest_race_shield(int uniqueId, int level) {
 		//QUEST_TITLE_RACE_ITEM_SHIELD				
@@ -726,7 +726,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_RACE_ITEM_SHIELD", val)
 			, achievement_category_race_use_item_type
 			, 201
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};	
 	
 	void addQuest_farm_seed(int uniqueId, int level) {
@@ -735,7 +735,7 @@ private:
 		mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_FARM_SEED", val)
 			, achievement_category_farming
 			, achievement_farming_id_plant
-			, val, getQuestRewardItem(level), level);
+			, val, getQuestRewardItem(level), 0);
 	};
     
     void addQuest_farm_harvest(int uniqueId, int level) {
@@ -744,7 +744,7 @@ private:
         mQuest.addQuest(uniqueId, getL10N("QUEST_TITLE_FARM_HARVEST", val)
                         , achievement_category_farming
                         , achievement_farming_id_harvest
-                        , val, getQuestRewardItem(level), level);
+                        , val, getQuestRewardItem(level), 0);
     };
 
 

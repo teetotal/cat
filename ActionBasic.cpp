@@ -188,6 +188,26 @@ RepeatForever * ActionBasic::getRunningAnimation() {
 /* ================================================================================
     TIMING
  ================================================================================ */
+Sprite * ActionBasic::createDancer(float width, Vec2 pos, Vec2 anchor) {
+    auto p = gui::inst()->addSprite(0, 0, "action/97/0.png", this);
+    p->setAnchorPoint(anchor);
+    p->setPosition(pos);
+    
+    auto animation = Animation::create();
+    animation->setDelayPerUnit(0.12);
+    
+    string path;
+    for (int n = 0; n <= 5; n++) {
+        path = "action/97/" + to_string(n) + ".png";
+        animation->addSpriteFrameWithFile(path);
+    }
+    
+    p->runAction(RepeatForever::create(Animate::create(animation)));
+    gui::inst()->setScale(p, width);
+    
+    return p;
+}
+
 void ActionBasic::callbackTiming(Ref* pSender, int idx){
     Vec2 center = gui::inst()->getPointVec2(TIMING_X_BUTTON, getTouchYPosition(idx));
     float radius = TIMING_RADIUS;
@@ -246,6 +266,7 @@ void ActionBasic::runAction_timing(_training &t) {
     
     this->schedule([=](float delta) {
         for(int n=0; n < nRunner; n++){
+            
             if(mTimingRunner[n] == NULL){
                 mTimingRunner[n] = this->createRunner();
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
@@ -276,9 +297,21 @@ void ActionBasic::runAction_timing(_training &t) {
                 
                 mTimingRunner[n]->runAction(Sequence::create(vec));
             }
+            
+            //dancer
+            if(mActionCnt % 7 == 0) {
+                auto dancer = createDancer(TIMING_RADIUS * 2, gui::inst()->getPointVec2(0, getTouchYPosition(n)));
+                float speedDancer = (float)getRandValue(10) / 10.f + 1.5f;
+                dancer->runAction(Sequence::create(
+                                  MoveTo::create(speedDancer, Vec2(gui::inst()->getPointVec2(TIMING_X_END + 1, getTouchYPosition(n))))
+                                                   , RemoveSelf::create()
+                                                   , NULL)
+                                                   );
+            }
         }
 
         setTime(animationDelay);
+        mActionCnt++;
         
         if (mTime <= 0) {
             this->unschedule("updateLoadingBar");
@@ -350,7 +383,7 @@ void ActionBasic::runAction_tap(_training &t) {
         
         if(mTimerCnt % nGenBonus == 0 && mTime > 2.5) { //2초 이상 남았을 때만 생성
             auto pBonus = gui::inst()->addSprite(9, 4, "star.png", this);
-            pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 35 + mContextTap.mTapRunner->getContentSize().height);
+            pBonus->setPosition(Director::getInstance()->getVisibleSize().width * 1.2, 20 + mContextTap.mTapRunner->getContentSize().height);
             tapBonus p;
             p.sprite = pBonus;
             
@@ -365,7 +398,13 @@ void ActionBasic::runAction_tap(_training &t) {
                 }
             }
             float duration = (float)getRandValueMinMax(150, 250) / 100.f;
-            pBonus->runAction(MoveTo::create(duration, Vec2(-40, pBonus->getPosition().y)));
+            pBonus->runAction( JumpTo::create(duration, Vec2(-40, pBonus->getPosition().y), 120, 3)
+//                              Spawn::create(MoveTo::create(duration, Vec2(-40, pBonus->getPosition().y))
+//                                            ,
+//                                            , NULL
+//                                            )
+                              
+                              );
             mContextTap.mTapBonusVec.push_back(p);
         }
         
