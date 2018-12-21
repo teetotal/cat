@@ -12,7 +12,7 @@
 //#define RACE_MAX_TOUCH 200.f //초당 max 터치
 #define RACE_DEFAULT_IMG "race/0.png"
 
-#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(120, 60); auto gridSize = Size(3, 4);
+#define RACE_SIZE 	auto size = DEFAULT_LAYER_SIZE; auto margin = Size(10, 10); auto nodeSize = Size(120, 45); auto gridSize = Size(3, 4);
 #define POPUP_NODE_MARGIN  5
 #define RACE_BG_SIZE 8
 #define RACE_GOAL_DISTANCE 7.5
@@ -57,18 +57,16 @@ bool ActionScene::init() {
 	}
 
 	int idx = 0;
+    txtColors[idx] = Color3B::YELLOW;
 	names[idx++] = L"꼴등이";
-	txtColors[idx] = Color3B::YELLOW;
+    txtColors[idx] = Color3B::GRAY;
 	names[idx++] = L"시그";
-	txtColors[idx] = Color3B::GRAY;
+    txtColors[idx] = Color3B::MAGENTA;
 	names[idx++] = L"김밥이";
-	txtColors[idx] = Color3B::MAGENTA;
+    txtColors[idx] = Color3B::ORANGE;
 	names[idx++] = L"인절미";
-	txtColors[idx] = Color3B::ORANGE;
-	//names[idx++] = logics::hInst->getActor()->name;	
+	txtColors[idx] = Color3B::BLUE;
 	names[idx++] = utf8_to_utf16(logics::hInst->getActor()->name);
-
-	txtColors[idx] = Color3B::WHITE;
 
 	mFullLayer = gui::inst()->createLayout(Size(Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height));
 	//background
@@ -117,18 +115,36 @@ bool ActionScene::init() {
 	layerItem->setOpacity(128);
 	layerItem->setPosition(start);
 	this->addChild(layerItem);
+    
+    //mini map layer
+    start = gui::inst()->getPointVec2(6, 1, ALIGNMENT_NONE);
+    end = gui::inst()->getPointVec2(9, 0, ALIGNMENT_NONE);
+    mLayerMiniMap = gui::inst()->createLayout(Size(end.x - start.x, end.y - start.y), "", true);
+    mLayerMiniMap->setOpacity(64);
+    mLayerMiniMap->setPosition(start);
+    this->addChild(mLayerMiniMap);
+    
+    mMinimapRunnerRadius = (mLayerMiniMap->getContentSize().height / (raceParticipantNum + 1)) / 2;
+    
+    for(int n=0; n < raceParticipantNum; n++) {
+        Color4F color = Color4F(txtColors[n]);
+        color.a = 0.8;
+        float y = mLayerMiniMap->getContentSize().height;
+        y -= (n == 0) ? mMinimapRunnerRadius : n * mMinimapRunnerRadius * 2 + mMinimapRunnerRadius;
+        mMiniMapRunner[n] = gui::inst()->drawCircle(mLayerMiniMap, Vec2(mMinimapRunnerRadius, y), mMinimapRunnerRadius, color);
+    }
+    Color4F color = Color4F(txtColors[raceParticipantNum]);
+    color.a = 0.5;
+    mMiniMapRunner[raceParticipantNum] = gui::inst()->drawDiamond(mLayerMiniMap, Vec2(mMinimapRunnerRadius, mMinimapRunnerRadius), Size(mMinimapRunnerRadius * 2, mMinimapRunnerRadius * 2), color);
+    
+    //순위 표시
+    mMyRank = gui::inst()->addLabel(0, 0, "1st", this, 28, ALIGNMENT_CENTER, Color3B::GRAY);
 
 	//boost label
 	if (mRaceMode == race_mode_speed) {
-		mBoostPercent = gui::inst()->addLabel(0, 0, " ", this);
+		mBoostPercent = gui::inst()->addLabel(0, 1, " ", this);
 		mBoostPercent->setColor(Color3B::GRAY);
 	}
-
-	//point
-	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
-
-	//title	
-	gui::inst()->addLabel(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), this, 12);
 
 	//Race 초기 상태	
 	errorCode err = logics::hInst->runRaceValidate(mRaceId);
@@ -169,9 +185,11 @@ bool ActionScene::initRace() {
 		if (race.mode == race_mode_1vs1 && n != 0)
 			continue;
 		mRunner[n] = createRunner(n);
+        mMiniMapRunner[n]->setPosition(Vec2(mMinimapRunnerRadius, mMiniMapRunner[n]->getPosition().y));
 	}
 	//나는 무조건 있어야 하니까.
 	mRunner[raceParticipantNum] = createRunner(raceParticipantNum);
+    mMiniMapRunner[raceParticipantNum]->setPosition(Vec2(mMinimapRunnerRadius, mMiniMapRunner[raceParticipantNum]->getPosition().y));
 
 	mFullLayer->runAction(Follow::create(mRunner[raceParticipantNum]
 		, Rect(0, 0, Director::getInstance()->getVisibleSize().width * RACE_GOAL_DISTANCE, Director::getInstance()->getVisibleSize().height * 2)
@@ -182,14 +200,14 @@ bool ActionScene::initRace() {
         //btn
         for (int i = 0; i < raceItemSlot; i++) {
             mRaceItems.btns[i] = gui::inst()->addTextButton(0, 2 + i, " ", this,
-                                                            CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::ORANGE);
+                                                            CC_CALLBACK_1(ActionScene::invokeItem, this, i), 24, ALIGNMENT_CENTER, Color3B::BLUE);
         }
 		for (int i = 0; i < raceItemSlot; i++) {
             if(i < mSelectItems.size()){
                 setItem(mSelectItems[i].itemId);
             }
 		}
-		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 20, ALIGNMENT_CENTER, Color3B::BLUE);
+		gui::inst()->addTextButton(8, 6, "JUMP", this, CC_CALLBACK_1(ActionScene::jump, this), 24, ALIGNMENT_CENTER, Color3B::BLUE);
 	}
 	
 	counting();
@@ -280,7 +298,7 @@ void ActionScene::callback2(Ref* pSender, SCENECODE type){
 	case SCENECODE_RACE_RUN:		
 		if(initRace())
 			this->removeChild(mPopupLayerBackground);
-		updatePoint();
+//        updatePoint();
 		break;
 	case SCENECODE_CLOSEPOPUP: //cancel hp와 참가비 재입금
 		logics::hInst->increaseHP(1);
@@ -356,7 +374,7 @@ Sprite* ActionScene::createRunner(int idx) {
         if(mRaceMode == race_mode_1vs1)
             nDanger *= 2;
         
-		const float baseDistance = (mFullLayer->getContentSize().width * 1.5 / nDanger);
+		const float baseDistance = (mFullLayer->getContentSize().width * 1.2 / nDanger);
 		for (int n = 0; n < nDanger; n++) {
 			float y = mRunnerInitPosition[idx].y + 10/*magin*/;
 			auto sprite = Sprite::create("danger.png");
@@ -397,16 +415,11 @@ void ActionScene::timer(float f) {
 	
 	float boost = 0.f;
 	if (mRaceMode == race_mode_speed) {
-		//boost = (float)mTouchCnt / (RACE_MAX_TOUCH * RACE_UPDATE_INTERVAL) * 100.f;
 		float ratio = getTouchRatio(RACE_UPDATE_INTERVAL, mTouchCnt);
 		boost = min(ratio * 100.f, 100.f);
-		//CCLOG("boost %d", boost);
-		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "%");
-		//mRunnerLabel[raceParticipantNum]->setString(to_string(boost) + "," + to_string(mTouchCnt));
 		mBoostPercent->setString(to_string(boost).substr(0, 4));
 		mTouchCnt = 0;
 	}
-	
 
 	mRaceParticipants = logics::hInst->getNextRaceStatus(ret, itemId, boost);
 	if(!ret){
@@ -415,7 +428,6 @@ void ActionScene::timer(float f) {
 			if (mRunner[n]) {
 				mRunner[n]->stopAllActions();
 				mRunner[n]->runAction(getRunningAnimation());
-				//mRunner[n]->setPosition(Vec2(0, mRunner[n]->getPosition().y));
 				mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, Vec2(0, mRunner[n]->getPosition().y)));
 			}
 		}
@@ -423,18 +435,30 @@ void ActionScene::timer(float f) {
 		result();
 		return;
 	}
+    
+    int finishCnt = 0;
 	
 	for (int n = 0; n <= raceParticipantNum; n++) {
 		_raceParticipant p = mRaceParticipants->at(n);
 
 		if (race.mode == race_mode_1vs1 && n > 0 && n < raceParticipantNum)
 			continue;
-		//rank
+        
+        float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
 		
+        //rank
 		if (p.ratioLength >= 100.f) {	//결승점에서는 순위		
 			mRunner[n]->stopAllActions();
-			mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
+            mRunner[n]->runAction(getRunningAnimation());
+            mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, Vec2(x, mRunnerInitPosition[n].y)));
+			//mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
+            
+            if(n == raceParticipantNum) {
+                setRankInfo(p.rank);
+            }
 			mRunnerLabel[n]->setString(to_string(p.rank));
+            
+            finishCnt++;
 			continue;
 		}
 		else { //순위 전에는 겪고있는 아이템 
@@ -489,8 +513,9 @@ void ActionScene::timer(float f) {
 						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");		
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_ATTACK;
-					
-				}				
+				}
+                //minimap
+                mMiniMapRunner[n]->runAction(Blink::create(RACE_UPDATE_INTERVAL, 2));
 				break;
 			}
 		}
@@ -504,13 +529,38 @@ void ActionScene::timer(float f) {
 
 			}
 		}	
-		float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
+		
 		Vec2 position = mRunner[n]->getPosition();
 		position.x = x;
 		mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, position));
+        
+        //minimap
+        x = (mLayerMiniMap->getContentSize().width  - mMinimapRunnerRadius * 2) * mRaceParticipants->at(n).ratioLength / 100;
+        mMiniMapRunner[n]->setPosition(Vec2(x, mMiniMapRunner[n]->getPosition().y));
+        
+        //순위
+        if(n == raceParticipantNum) {
+            setRankInfo(finishCnt + p.currentRank);
+        }
 		
 		//mRunnerLabel[n]->setString(to_string(p.currentLength) + "-" + to_string(p.sufferItems.size()) + "," + to_string(p.currentSuffer));
 	}
+}
+
+void ActionScene::setRankInfo(int rank) {
+    string postfix;
+    switch(rank) {
+        case 1: postfix = "st";
+            break;
+        case 2: postfix = "nd";
+            break;
+        case 3: postfix = "rd";
+            break;
+        default: postfix = "th";
+            break;
+    }
+    const string sz = to_string(rank) + postfix;
+    mMyRank->setString(sz);
 }
 
 void ActionScene::result() {
@@ -601,7 +651,7 @@ void ActionScene::result() {
 		, CC_CALLBACK_1(ActionScene::callback2, this, SCENECODE_RACE_FINISH), 24, ALIGNMENT_CENTER, Color3B::BLUE
 		, grid, Size::ZERO, Size::ZERO);
 
-	updatePoint();
+//    updatePoint();
 }
 
 void ActionScene::updateSelectItem() {
@@ -672,6 +722,16 @@ void ActionScene::showItemSelect(errorCode err) {
 	}
 	this->removeChild(mPopupLayerBackground);
 	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, size, BG_RACE, Color4B::WHITE);
+    
+    //point
+    //mPoint =
+    gui::inst()->addLabelAutoDimension(8, 0, COIN + numberFormat(logics::hInst->getActor()->point), mPopupLayer
+                                       , 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+    
+    //title
+    _race race = logics::hInst->getRace()->at(mRaceId);
+    gui::inst()->addLabelAutoDimension(4, 0, getRomeNumber(race.level) + ". " + wstring_to_utf8(race.title), mPopupLayer
+                                       , 0, ALIGNMENT_CENTER, Color3B::BLACK, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
 
 	//Go!
 	gui::inst()->addTextButtonAutoDimension(3, 6, "GO!", mPopupLayer
@@ -705,7 +765,7 @@ void ActionScene::showItemSelect(errorCode err) {
 		, gridSize
 		, newLine
 		, Vec2(0, 5)
-		, Vec2(9, 0)
+		, Vec2(9, 1)
 		, margin
 		, POPUP_NODE_MARGIN
 		, nodeSize
@@ -731,7 +791,7 @@ void ActionScene::showItemSelect(errorCode err) {
         }
     }
     
-	updatePoint();
+//    updatePoint();
 }
 
 bool ActionScene::onTouchEnded(Touch* touch, Event* event)
@@ -752,13 +812,13 @@ bool ActionScene::onTouchEnded(Touch* touch, Event* event)
 }
 
 
-void ActionScene::updatePoint() {
-	string sz = COIN + to_string(logics::hInst->getActor()->point);
-	if (sz.compare(mPoint->getString()) != 0) {
-		mPoint->setString(sz);
-		mPoint->runAction(gui::inst()->createActionFocus());
-	}
-}
+//void ActionScene::updatePoint() {
+//    string sz = COIN + to_string(logics::hInst->getActor()->point);
+//    if (sz.compare(mPoint->getString()) != 0) {
+//        mPoint->setString(sz);
+//        mPoint->runAction(gui::inst()->createActionFocus());
+//    }
+//}
 
 void ActionScene::jump(Ref* pSender) {	
 	jumpByIdx(raceParticipantNum);
@@ -834,7 +894,7 @@ void ActionScene::update(float delta) {
 
 void ActionScene::onEnter() {
 	Scene::onEnter();
-	updatePoint();
+//    updatePoint();
 }
 void ActionScene::onEnterTransitionDidFinish() {
 	Scene::onEnterTransitionDidFinish();

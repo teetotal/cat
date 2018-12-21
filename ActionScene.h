@@ -128,9 +128,10 @@ private:
     void result();
     RepeatForever * getRunningAnimation(bool isSpeedUp = false);
 
-    
+    void setRankInfo(int rank);
 	
 	Label * mPoint;
+    Label * mMyRank;
 
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
@@ -151,6 +152,7 @@ private:
     vector<int> mRandomItemIds;
     
 	Layout * mFullLayer;
+    Layout * mLayerMiniMap;
 
 	void timer(float f);
 	void counter(float f);
@@ -175,6 +177,10 @@ private:
 	//play횟수
 	int mPlayCnt;
     float mScale;
+    
+    //minimap 주자
+    DrawNode * mMiniMapRunner[raceParticipantNum + 1];
+    float mMinimapRunnerRadius;
 };
 
 
