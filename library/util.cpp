@@ -186,6 +186,22 @@ string numberFormat(int n) {
     }
     return sz;
 }
+
+string getRankString(int rank) {
+    string postfix;
+    switch(rank) {
+        case 1: postfix = "st";
+            break;
+        case 2: postfix = "nd";
+            break;
+        case 3: postfix = "rd";
+            break;
+        default: postfix = "th";
+            break;
+    }
+    const string sz = to_string(rank) + postfix;
+    return sz;
+}
 /*
 char* intToChar(int n) {
 	char *buf = new char[10];

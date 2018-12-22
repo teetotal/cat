@@ -303,6 +303,8 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
 		item.value = p[rapidjson::SizeType(i)]["value"].GetInt();
 		item.grade = p[rapidjson::SizeType(i)]["grade"].GetInt();
 		string sz = p[rapidjson::SizeType(i)]["name"].GetString();
+        if(p[rapidjson::SizeType(i)].HasMember("isAdvertisementPayment"))
+            item.isAdvertisementPayment = p[rapidjson::SizeType(i)]["isAdvertisementPayment"].GetBool();
 		item.name = utf8_to_utf16(sz);
 		insertItem(item);
 	}
@@ -315,26 +317,31 @@ bool logics::initItems(rapidjson::Value & p, rapidjson::Value &pRace)
         item.id = id++;
         item.category = itemCategory_deco;
         item.type = itemType_wall;
-        item.value = 1;
+        item.value = n;
         item.grade = 1;
         string sz = ui_color::inst()->getColor(n).name;
         
         item.name = mL10NMap["ITEM_COLOR_WALL"] + utf8_to_utf16(sz);
         insertItem(item);
     }
+    //bottom
     id = 20000;
     for(int n=0; n < ui_color::inst()->get()->size(); n ++){
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(n);
+        if(color.R[1] == -1 && color.G[1] == -1 && color.B[1] == -1) {
+            continue;
+        }
         _item item;
         item.id = id++;
         item.category = itemCategory_deco;
         item.type = itemType_bottom;
-        item.value = 1;
+        item.value = n;
         item.grade = 1;
-        string sz = ui_color::inst()->getColor(n).name;
+        string sz = color.name;
         item.name = mL10NMap["ITEM_COLOR_BOTTOM"] + utf8_to_utf16(sz);
         insertItem(item);
     }
-    
+    //race
     id = 30000;
 	for (int n = 1; n <= LEVEL_MAX + 2; n++) {
 		for (rapidjson::SizeType i = 0; i < pRace.Size(); i++) {
@@ -1160,7 +1167,7 @@ bool logics::increaseExp(int value) {
 		setMaxHP();
 		//give lottery
 		//mActor->point += mActor->level * bonusCashPerLevel;
-        addInventory(LEVELUP_REWARD_ITEM_ID, 1);
+        addInventory(LEVELUP_REWARD_ITEM_ID, mActor->level);
 		//set job title
 		setJobTitle();
 		
@@ -1737,8 +1744,6 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
                  break;
 		 }
 		 mQuest.push(ac, achievement_race_id_try, 1); //모드별 플레이 횟수
-         //경험치
-         increaseExp();
 		 
 		 //업적 및 연승 기록
 		 switch (mRaceCurrent.rank) {
@@ -1747,14 +1752,17 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 			 mQuest.push(ac, achievement_race_id_first, 1);
 
 			 mRaceWin.winCnt++;
-
+             //경험치 1,2등 레벨 만큼 경험치 증가
+             increaseExp(mRace[mRaceCurrent.id].level);
 			 break;
 		 case 2:
 			 mQuest.push(achievement_category_race, achievement_race_id_second, 1);
 			 mQuest.push(ac, achievement_race_id_second, 1);
-
+             //경험치 1,2등 레벨 만큼 경험치 증가
+             increaseExp(mRace[mRaceCurrent.id].level);
 		 default:
 			 mRaceWin.winCnt = 0;
+             increaseExp();
 			 break;
 		 }
 
@@ -1893,8 +1901,8 @@ bool logics::farmingQuestDone(int idx) {
 		}
 		mActor->point += money;
 		mFarming.clearQuest(idx);
-        //경험치
-        increaseExp();
+        //경험치 레벨 만큼
+        increaseExp(mActor->level);
 	}
 	return true;
 };
@@ -1932,9 +1940,58 @@ inventoryType logics::getInventoryType(int itemId) {
 	_item item = mItems[itemId];
 	inventoryType t;
     
-    if (item.type >= itemType_training && item.type < itemType_hp) {
-		t = inventoryType_growth;
-	}
+    /*
+     itemCategory_lottery = 0,
+     itemCategory_crop,
+     itemCategory_seed,
+     itemCategory_deco, //가구, 외장재, 벽 무늬, 페인트
+     itemCategory_race,
+     itemCategory_collection = 100,
+     */
+    switch(item.category) {
+        case itemCategory_lottery:
+            t = inventoryType_lottery;
+            break;
+        case itemCategory_crop:
+            t = inventoryType_HP;
+            break;
+        case itemCategory_collection:
+            t = inventoryType_collection;
+            break;
+        case itemCategory_race:
+            t = inventoryType_race;
+            break;
+        case itemCategory_deco:
+            switch(item.type) {
+                case itemType_wall:
+                    t = inventoryType_wall;
+                    break;
+                case itemType_bottom:
+                    t = inventoryType_bottom;
+                    break;
+                case itemType_interior:
+                    t = inventoryType_interior;
+                    break;
+                case itemType_exterior:
+                    t = inventoryType_exterior;
+                    break;
+                case itemType_wall_pattern:
+                    t = inventoryType_wall_pattern;
+                    break;
+                default:
+                    break;
+            }
+            break;
+        default:
+            break;
+    }
+    /*
+    if (item.category == itemCategory_lottery) {
+        t = inventoryType_lottery;
+    }
+    else if (item.type >= itemType_training && item.type < itemType_hp) {
+        t = inventoryType_growth;
+    }
 	else if (item.type >= itemType_hp && item.type < itemType_race) {
 		t = inventoryType_HP;
 	}
@@ -1964,7 +2021,7 @@ inventoryType logics::getInventoryType(int itemId) {
 	else {
 		t = inventoryType_collection;
 	}
-
+     */
 	return t;
 }
 void logics::saveActorInventory(rapidjson::Document &d, rapidjson::Value &v, inventoryType type) {

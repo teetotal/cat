@@ -107,6 +107,7 @@ enum inventoryType {
     inventoryType_interior,
 	inventoryType_exterior,
     inventoryType_wall_pattern,
+    inventoryType_lottery,
 	inventoryType_max,
     inventoryType_collection
 };
@@ -215,6 +216,10 @@ struct _item {
 	itemType type;
 	int grade;
 	int value;
+    bool isAdvertisementPayment;
+    _item() : isAdvertisementPayment(false) {
+        
+    };
 };
 
 //meta

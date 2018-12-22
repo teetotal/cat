@@ -179,6 +179,18 @@ bool gui::drawPoint(Node *p) {
     }
     return true;
 }
+
+Sprite * gui::addBG(const string bgImg, Node * parent) {
+    auto bg = Sprite::create(bgImg);
+    bg->setContentSize(Director::getInstance()->getVisibleSize());
+    bg->setPosition(getCenter());
+    //bg->setAnchorPoint(Vec2(0, 0));
+    //bg->setPosition(Director::getInstance()->getVisibleOrigin());
+    parent->addChild(bg);
+    
+    return bg;
+}
+
 Label * gui::addLabel(int x
         , int y
         , const string &text

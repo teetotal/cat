@@ -33,11 +33,7 @@ bool LotteryScene::init(int itemId)
     
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
     
-    auto bg = Sprite::create("bg_temp.png");
-    bg->setContentSize(Director::getInstance()->getVisibleSize());
-    bg->setAnchorPoint(Vec2(0, 0));
-    bg->setPosition(Director::getInstance()->getVisibleOrigin());
-    this->addChild(bg);
+    gui::inst()->addBG("bg_temp.png", this);
     
     mInfoLayer = LayerColor::create();
     mInfoLayer->setContentSize(Director::getInstance()->getVisibleSize());
@@ -47,15 +43,17 @@ bool LotteryScene::init(int itemId)
     gui::inst()->addLabel(4, 1, "- Prizes -", mInfoLayer);
     string szPrize = "";
     for(int n=0; n < MAXRANK; n++){
-        szPrize = szPrize + to_string(n+1) + ": ";
+        szPrize = szPrize + getRankString(n+1) + ": ";
         szPrize = szPrize + COIN + numberFormat((int)(logics::hInst->getTrade()->getPriceBuy(mItemId) * _prize1[n][1]));
         szPrize = szPrize + "\n";
     }
     
+    int remain = logics::hInst->getActor()->inven.getItemQuantuty(logics::hInst->getInventoryType(mItemId), mItemId);
+    
     gui::inst()->addLabel(4, 3, szPrize, mInfoLayer, 0, ALIGNMENT_NONE);
     
     gui::inst()->addTextButton(3, 5, "OPEN One", mInfoLayer, [=](Ref* pRef){ gachaPoint(); }, 20, ALIGNMENT_CENTER, Color3B::WHITE); //->runAction(RepeatForever::create(Blink::create(1, 2)));
-    gui::inst()->addTextButton(5, 5, "OPEN ALL", mInfoLayer, [=](Ref* pRef){ gachaPoint(true); }, 20, ALIGNMENT_CENTER, Color3B::ORANGE);
+    gui::inst()->addTextButton(5, 5, "OPEN ALL(" + to_string(remain) + ")", mInfoLayer, [=](Ref* pRef){ gachaPoint(true); }, 20, ALIGNMENT_CENTER, Color3B::ORANGE);
     gui::inst()->addTextButton(8, 0, "CLOSE", mInfoLayer, [=](Ref* pRef){ callbackClose(this); }, 0, ALIGNMENT_CENTER, Color3B::BLUE);
     return true;
 }
@@ -128,6 +126,7 @@ void LotteryScene::gachaPoint(bool isAll){
     int x = 2;
     if(logics::hInst->getActor()->inven.checkItemQuantity(logics::hInst->getInventoryType(mItemId), mItemId, 1)){
         x++;
+        int remain = logics::hInst->getActor()->inven.getItemQuantuty(logics::hInst->getInventoryType(mItemId), mItemId);
         gui::inst()->addTextButtonAutoDimension(1,5, "1 MORE TRY"
                                                 , mResultLayer
                                                 , [=](Ref * pRef) { gachaPoint(); }
@@ -137,7 +136,7 @@ void LotteryScene::gachaPoint(bool isAll){
                                                 , grid
                                                 );
         
-        gui::inst()->addTextButtonAutoDimension(3,5, "Open All"
+        gui::inst()->addTextButtonAutoDimension(3,5, "Open All(" + to_string(remain) + ")"
                                                 , mResultLayer
                                                 , [=](Ref * pRef) { gachaPoint(true); }
                                                 , 20

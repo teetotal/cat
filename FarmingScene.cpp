@@ -40,12 +40,9 @@ bool FarmingScene::init()
 	mGridSize.width = a2.x - a1.x;
 	mGridSize.height = a1.y - a2.y;
 
-	auto bg = Sprite::create(BG_HOME);
-	bg->setContentSize(Director::getInstance()->getVisibleSize());
-	bg->setAnchorPoint(Vec2(0, 0));
+    
+	auto bg = gui::inst()->addBG(BG_HOME, this);
 	bg->setOpacity(192);
-	bg->setPosition(Director::getInstance()->getVisibleOrigin());
-	this->addChild(bg);
 
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
 	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
@@ -114,7 +111,7 @@ bool FarmingScene::init()
 }
 
 void FarmingScene::updatePoint() {	
-	string sz = COIN + to_string(logics::hInst->getActor()->point);
+	string sz = COIN + numberFormat(logics::hInst->getActor()->point);
 	if (sz.compare(mPoint->getString()) != 0) {
 		mPoint->setString(sz);
 		mPoint->runAction(gui::inst()->createActionFocus());

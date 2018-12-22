@@ -11,6 +11,7 @@
 #include "DecoScene.h"
 #include "ActionBasic.h"
 #include "LotteryScene.h"
+#include "AdvertisementScene.h"
 #include "ui/ui_color.h"
 
 using namespace cocos2d::ui;
@@ -119,10 +120,10 @@ bool MainScene::init()
 
 	mJobTitle->setPosition(Vec2(mJobTitle->getPosition().x, mJobTitle->getPosition().y + 15));
 
-    gui::inst()->addTextButton(0, 5, "꾸미기", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_DECORATION), 0, ALIGNMENT_CENTER, fontColor);
-	gui::inst()->addTextButton(0, 6, "Action", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
-	gui::inst()->addTextButton(1, 6, "Race", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
-    mFarming = gui::inst()->addTextButton(2,6, "Farm", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
+//    gui::inst()->addTextButton(0, 5, "꾸미기", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_DECORATION), 0, ALIGNMENT_CENTER, fontColor);
+    gui::inst()->addTextButton(0, 6, logics::hInst->getL10N("MAINMENU_ACTION"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
+	gui::inst()->addTextButton(1, 6, logics::hInst->getL10N("MAINMENU_RACE"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
+    mFarming = gui::inst()->addTextButton(2,6, logics::hInst->getL10N("MAINMENU_FARM"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
 	
 
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	    
@@ -132,12 +133,11 @@ bool MainScene::init()
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
 	//mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
-
-	gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
-    mBuy = gui::inst()->addTextButton(8, 5, wstring_to_utf8(L"상점"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
+//    gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
+    mBuy = gui::inst()->addTextButton(8, 5, logics::hInst->getL10N("MAINMENU_BUY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
     
-    mSell = gui::inst()->addTextButton(7, 6, wstring_to_utf8(L"벼룩시장"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
-    mInventory = gui::inst()->addTextButton(8, 6, wstring_to_utf8(L"가방"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
+    mSell = gui::inst()->addTextButton(7, 6, logics::hInst->getL10N("MAINMENU_SELL"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
+    mInventory = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("MAINMENU_INVENTORY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
 
 	//quest 표시
 	updateQuests();
@@ -853,6 +853,25 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 		, 12, ALIGNMENT_CENTER, Color3B::RED, Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin
 	);
 	int nMenuIdx = 0;
+    //tab
+    //scrollview 가 먼저 눌리는건 Menu의 localZorder값이 낮아서 그럼. 보튼 생성 함수를 고쳐야 함.
+    auto pMenu = Menu::create();
+    pMenu->addChild(MenuItemFont::create("ALL", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_all, isSell)));
+    pMenu->addChild(MenuItemFont::create("Lottery", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_lottery, isSell)));
+    pMenu->addChild(MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_interior, isSell)));
+    pMenu->addChild(MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_exterior, isSell)));
+    pMenu->addChild(MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_wall, isSell)));
+    pMenu->addChild(MenuItemFont::create("Pattern", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_wall_pattern, isSell)));
+    pMenu->addChild(MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_bottom, isSell)));
+    //    pMenu->addChild(MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_adorn, isSell)));
+    pMenu->addChild(MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showInventoryCategory, this, inventoryType_HP, isSell)));
+    
+    pMenu->alignItemsHorizontally();
+    Vec2 pos = gui::inst()->getPointVec2(4, 0, ALIGNMENT_CENTER, layer->getContentSize(), Size(GRID_INVALID_VALUE, GRID_INVALID_VALUE), Size::ZERO, margin);
+    pMenu->setPosition(pos);
+    pMenu->setLocalZOrder(100);
+    layer->addChild(pMenu);
+    /*
 	//tab
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("ALL", inventoryType_all));
 	//gui::inst()->addTextButtonAutoDimension(__PARAMS("Race", inventoryType_race));
@@ -863,7 +882,7 @@ void MainScene::showInventory(inventoryType type, bool isSell) {
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Exterior", inventoryType_exterior));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("Beauty", inventoryType_adorn));
 	gui::inst()->addTextButtonAutoDimension(__PARAMS("HP", inventoryType_HP));
-	
+	*/
 	if (isSell) {
 		mIsSell = true;
 		mQuantityItemId = -1;
@@ -929,9 +948,19 @@ void MainScene::buyCallback(Ref* pSender) {
 }
 
 void MainScene::selectCallback(Ref* pSender, int id) {
+    _item item = logics::hInst->getItem(id);
+    
+    //광고 상품
+    if(item.isAdvertisementPayment) {
+        closePopup();
+        Director::getInstance()->pushScene(AdvertisementScene::createScene(item.id, 1));
+        return;
+    }
+    
+    //인게임캐시 상품
 	mQuantity = 1;
     mQuantityItemId = id;
-    _item item = logics::hInst->getItem(mQuantityItemId);
+    
     
     mQuantityLayout->removeChildByTag(CHILD_ID_QUANTITY_COLOR);
     mQuantityImg->setTexture("blank.png");
@@ -986,7 +1015,7 @@ void MainScene::showBuyCategory(Ref* pSender, inventoryType type) {
 		, CC_CALLBACK_1(MainScene::selectCallback, this, logics::hInst->getItem(it->first).id)
 		, "Lv." + to_string(logics::hInst->getItem(it->first).grade)
 		, wstring_to_utf8(logics::hInst->getItem(it->first).name)
-		, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->first))
+        , logics::hInst->getItem(it->first).isAdvertisementPayment ? logics::hInst->getL10N("ADVERTISEMENT_WATCH") : COIN + numberFormat(logics::hInst->getTrade()->getPriceBuy(it->first))
 		, gui::inst()->EmptyString
 		, gui::inst()->EmptyString
         , getItemColor(logics::hInst->getItem(it->first).id)
@@ -1001,7 +1030,7 @@ void MainScene::showBuy(inventoryType type) {
 	BUY_SIZE;
     
     if(type == inventoryType_all)
-        type = inventoryType_interior;
+        type = inventoryType_lottery;
     
 	mIsSell = false;
 	mQuantityItemId = -1;
@@ -1016,20 +1045,15 @@ void MainScene::showBuy(inventoryType type) {
 	);
 	int nMenuIdx = 0;
 	//tab
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("ALL", inventoryType_all));
-	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Race", inventoryType_race));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Grow", inventoryType_growth));
-	//gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Farm", inventoryType_farming));
-    
     //scrollview 가 먼저 눌리는건 Menu의 localZorder값이 낮아서 그럼. 보튼 생성 함수를 고쳐야 함.
     auto pMenu = Menu::create();
-    
+    pMenu->addChild(MenuItemFont::create("Lottery", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_lottery)));
     pMenu->addChild(MenuItemFont::create("Interior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_interior)));
     pMenu->addChild(MenuItemFont::create("Exterior", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_exterior)));
     pMenu->addChild(MenuItemFont::create("Wall", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall)));
-    pMenu->addChild(MenuItemFont::create("Parttern", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall_pattern)));
+    pMenu->addChild(MenuItemFont::create("Pattern", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_wall_pattern)));
     pMenu->addChild(MenuItemFont::create("Bottom", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_bottom)));
-    pMenu->addChild(MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn)));
+//    pMenu->addChild(MenuItemFont::create("Beauty", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_adorn)));
     pMenu->addChild(MenuItemFont::create("HP", CC_CALLBACK_1(MainScene::showBuyCategory, this, inventoryType_HP)));
     
     pMenu->alignItemsHorizontally();
@@ -1038,14 +1062,6 @@ void MainScene::showBuy(inventoryType type) {
     pMenu->setLocalZOrder(100);
     layer->addChild(pMenu);
     
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Wall", inventoryType_wall));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Bottom", inventoryType_bottom));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Interior", inventoryType_interior));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Exterior", inventoryType_exterior));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("Beauty", inventoryType_adorn));
-//    gui::inst()->addTextButtonAutoDimension(__PARAMS_BUY("HP", inventoryType_HP));
-//
-	
 	mQuantityLayout = gui::inst()->addQuantityLayer(layer, layer->getContentSize(), margin, mQuantityImg, mQuantityTitle, mQuantityLabel, mQuantityPrice
 		, wstring_to_utf8(L"구매")
 		, CC_CALLBACK_1(MainScene::quantityCallback, this, -1)
@@ -1068,7 +1084,6 @@ void MainScene::achievementCallback(Ref* pSender, Quest::_quest * p){
 	logics::hInst->achieveReward(p);
 	updateState(true);
     updateQuests();
-	//callback2(this, SCENECODE_CLOSEPOPUP);
 }
 
 void MainScene::showAchievementCategory(Ref* pSender) {
@@ -1571,29 +1586,23 @@ string MainScene::getItemImg(int id) {
 
 LayerColor * MainScene::getItemColor(int id) {
     _item item = logics::hInst->getItem(id);
-    int minId = -1;
-    if(item.type == itemType_wall){
-        minId = 10000;
-    } else if(item.type == itemType_bottom){
-        minId = 20000;
-    }
     
-    if(minId != -1){
+   if(item.type == itemType_wall || item.type == itemType_bottom) {
         LayerColor * layer = LayerColor::create();
-        ui_color::COLOR_RGB color = ui_color::inst()->getColor(id - minId);
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(item.value);
         layer->setContentSize(Size(20, 20));
         if(color.R[1] == -1){
-            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 0)));
+            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(item.value, 0)));
             l1->setContentSize(Size(layer->getContentSize().width, layer->getContentSize().height));
             
             layer->addChild(l1);
         }else{
-            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 0)));
+            auto l1 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(item.value, 0)));
             l1->setContentSize(Size(layer->getContentSize().width / 2, layer->getContentSize().height));
             
             layer->addChild(l1);
             
-            auto l2 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(id - minId, 1)));
+            auto l2 = LayerColor::create(Color4B(ui_color::inst()->getColor3B(item.value, 1)));
             l2->setContentSize(Size(layer->getContentSize().width / 2, layer->getContentSize().height));
             l2->setPosition(Vec2(layer->getContentSize().width / 2, 0));
             layer->addChild(l2);
@@ -1644,18 +1653,18 @@ void MainScene::applyInventory(Ref* pSender, int itemId){
     _item item = logics::hInst->getItem(itemId);
     bool isPop = true;
     if(item.type == itemType_wall){
-        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 10000);
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(item.value);
         if(color.R[1] == -1){
-            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0));
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(item.value, 0));
         }else{
-            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(itemId - 10000, 0), ui_color::inst()->getColor4F(itemId - 10000, 1));
+            ui_deco::inst()->changeColorWall(ui_color::inst()->getColor4F(item.value, 0), ui_color::inst()->getColor4F(item.value, 1));
         }
     } else if(item.type == itemType_bottom){
-        ui_color::COLOR_RGB color = ui_color::inst()->getColor(itemId - 20000);
+        ui_color::COLOR_RGB color = ui_color::inst()->getColor(item.value);
         if(color.R[1] == -1){
-            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0));
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(item.value, 0));
         }else{
-            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(itemId - 20000, 0), ui_color::inst()->getColor4F(itemId - 20000, 1));
+            ui_deco::inst()->changeColorBottom(ui_color::inst()->getColor4F(item.value, 0), ui_color::inst()->getColor4F(item.value, 1));
         }
     } else if(item.type == itemType_interior){
         auto img = Sprite::create(getItemImg(item.id));

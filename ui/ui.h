@@ -144,6 +144,9 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
     );
     bool drawPoint(Node * p);
+    
+    Sprite * addBG(const string bgImg, Node * parent);
+    
     Label * addLabel(int x
             , int y
             , const string &text

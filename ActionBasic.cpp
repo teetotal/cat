@@ -77,12 +77,7 @@ Scene* ActionBasic::createScene()
 
 bool ActionBasic::init()
 {	
-    //    auto visibleSize = Director::getInstance()->getVisibleSize();
-    Vec2 origin = Director::getInstance()->getVisibleOrigin();
-    
-    auto bg = Sprite::create("bg_temp.png");
-    bg->setContentSize(Director::getInstance()->getVisibleSize());
-    gui::inst()->addToCenter(bg, this);
+    gui::inst()->addBG("bg_temp.png", this);
 	return true;
 }
 

@@ -548,19 +548,7 @@ void ActionScene::timer(float f) {
 }
 
 void ActionScene::setRankInfo(int rank) {
-    string postfix;
-    switch(rank) {
-        case 1: postfix = "st";
-            break;
-        case 2: postfix = "nd";
-            break;
-        case 3: postfix = "rd";
-            break;
-        default: postfix = "th";
-            break;
-    }
-    const string sz = to_string(rank) + postfix;
-    mMyRank->setString(sz);
+    mMyRank->setString(getRankString(rank));
 }
 
 void ActionScene::result() {

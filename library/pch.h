@@ -34,5 +34,6 @@ string getRomeNumber(int n);
 wstring sprint(const wstring format, int val);
 string sprint(const char * format, ...);
 string numberFormat(int n);
+string getRankString(int rank);
 
 

@@ -21,12 +21,7 @@ bool AlertScene::init(errorCode err)
 	auto visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
 	
-	auto bg = Sprite::create("bg_temp.png");
-	bg->setContentSize(Director::getInstance()->getVisibleSize());
-	bg->setAnchorPoint(Vec2(0, 0));
-	//bg->setOpacity(200);
-	bg->setPosition(Director::getInstance()->getVisibleOrigin());
-	this->addChild(bg);
+	gui::inst()->addBG("bg_temp.png", this);
 	
 	//gui::inst()->addTextButton(8, 0, "BACK", this, CC_CALLBACK_1(AlertScene::callback, this, SCENECODE_CLOSESCENE), 0, ALIGNMENT_CENTER, Color3B::RED);
 
