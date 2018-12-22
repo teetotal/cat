@@ -282,13 +282,9 @@ void ActionScene::invokeItem(Ref* pSender, int idx) {
     //아이템 사용
     if(raceItemSlot > idx && mRaceItems.btns[idx] && mRaceItems.itemIds[idx] != 0) {
         mRaceItems.btns[idx]->setString(" ");
-        //mRaceItems.btns[idx]->setColor(Color3B::GRAY);
-        //mRaceItems.btns[idx]->setEnabled(false);
-        
         mInvokeItemQueue.push(mRaceItems.itemIds[idx]);
         mRaceItems.itemIds[idx] = 0;
     }
-			
 }
 
 void ActionScene::callback2(Ref* pSender, SCENECODE type){
@@ -360,10 +356,10 @@ Sprite* ActionScene::createRunner(int idx) {
 	p->runAction(getRunningAnimation());
 
     Color3B color = txtColors[idx];
-	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 14, ALIGNMENT_CENTER, color);
-	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 10);
+	auto label = gui::inst()->addLabelAutoDimension(9, 0, wstring_to_utf8(names[idx]), p, 20, ALIGNMENT_CENTER, color);
+	label->setPosition(p->getContentSize().width / 2, p->getContentSize().height - 20);
 
-	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 14, ALIGNMENT_CENTER, color);
+	mRunnerLabel[idx] = gui::inst()->addLabelAutoDimension(9, 0, " ", p, 28, ALIGNMENT_CENTER, color);
 	mRunnerLabel[idx]->setPosition(p->getContentSize().width / 2, p->getContentSize().height);
 	mRunnerInitPosition[idx] = p->getPosition();
 
@@ -447,27 +443,34 @@ void ActionScene::timer(float f) {
         float x = mRaceParticipants->at(n).ratioLength / 100 * mGoalLength;
 		
         //rank
-		if (p.ratioLength >= 100.f) {	//결승점에서는 순위		
+        if (p.ratioLength >= 100.f) {	//결승점에서는 순위
 			mRunner[n]->stopAllActions();
             mRunner[n]->runAction(getRunningAnimation());
-            mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL, Vec2(x, mRunnerInitPosition[n].y)));
+            mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL * 4, Vec2(mFullLayer->getContentSize().width + mRunner[n]->getContentSize().width
+                                                                            , mRunnerInitPosition[n].y)));
 			//mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
+            
+            
+			//mRunnerLabel[n]->setString(to_string(p.rank));
             
             if(n == raceParticipantNum) {
                 setRankInfo(p.rank);
             }
-			mRunnerLabel[n]->setString(to_string(p.rank));
-            
             finishCnt++;
-			continue;
+            continue;
+			
 		}
-		else { //순위 전에는 겪고있는 아이템 
-			mRunnerLabel[n]->setString(getSkillIcon(p.currentSuffer));
+		else { //순위 전
+            //공격 아이템 사용시 효과
+            if(p.shootCurrentType == itemType_race_attactFront || p.shootCurrentType == itemType_race_attactFirst) {
+                mRunnerLabel[n]->setString(getSkillIcon(p.shootCurrentType));
+            }
+            else{
+                mRunnerLabel[n]->setString(" ");
+            }
 		}
 
 		if (p.currentSuffer != itemType_max) {
-            
-            
 			switch (p.currentSuffer)
 			{
 			case itemType_race_speedUp:
@@ -482,20 +485,20 @@ void ActionScene::timer(float f) {
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
-					for(int n=0; n < 8; n++)
-						animation->addSpriteFrameWithFile("action/98/"+ to_string(n) +".png");
+					for(int i=0; i < 8; i++)
+						animation->addSpriteFrameWithFile("action/98/"+ to_string(i) +".png");
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_SHIELD;
 				}
 				break;
 			case itemType_race_obstacle:
 				if (mSufferState[n] != SUFFER_STATE_OBSTACLE) {
-					
+					resetHeight(n);
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
-					for (int n = 0; n < 6; n++)
-						animation->addSpriteFrameWithFile("action/97/" + to_string(n) + ".png");
+					for (int i = 0; i < 6; i++)
+						animation->addSpriteFrameWithFile("action/97/" + to_string(i) + ".png");
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_OBSTACLE;
 
@@ -504,12 +507,12 @@ void ActionScene::timer(float f) {
 				
 			default:				
 				if (mSufferState[n] != SUFFER_STATE_ATTACK) {
-					
+					resetHeight(n);
 					mRunner[n]->stopAllActions();
 					auto animation = Animation::create();
 					animation->setDelayPerUnit(0.1);
-					for (int n = 0; n < 8; n++)
-						animation->addSpriteFrameWithFile("action/99/"+ to_string(n) +".png");		
+					for (int i = 0; i < 8; i++)
+						animation->addSpriteFrameWithFile("action/99/"+ to_string(i) +".png");
 					mRunner[n]->runAction(RepeatForever::create(Animate::create(animation)));
 					mSufferState[n] = SUFFER_STATE_ATTACK;
 				}

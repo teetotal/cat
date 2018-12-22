@@ -1750,8 +1750,6 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 		 case 1:
 			 mQuest.push(achievement_category_race, achievement_race_id_first, 1);
 			 mQuest.push(ac, achievement_race_id_first, 1);
-
-			 mRaceWin.winCnt++;
              //경험치 1,2등 레벨 만큼 경험치 증가
              increaseExp(mRace[mRaceCurrent.id].level);
 			 break;
@@ -1760,11 +1758,19 @@ raceParticipants* logics::getNextRaceStatus(bool &ret, int itemId, int boost) {
 			 mQuest.push(ac, achievement_race_id_second, 1);
              //경험치 1,2등 레벨 만큼 경험치 증가
              increaseExp(mRace[mRaceCurrent.id].level);
-		 default:
-			 mRaceWin.winCnt = 0;
+             break;
+         case 3:
+         case 4:
              increaseExp();
+             break;
+		 default:
 			 break;
 		 }
+         
+         if(mRaceCurrent.rank == 1)
+             mRaceWin.winCnt++;
+         else
+             mRaceWin.winCnt = 0;
 
 		 for (int n = 0; n < (int)mRace[mRaceCurrent.id].rewards.size(); n++) {
 			 if (mRaceParticipants->at(raceParticipantNum).rank - 1 == n) {
