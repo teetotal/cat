@@ -134,10 +134,11 @@ bool MainScene::init()
 	   
 	//mAchievement = gui::inst()->addTextButton(0, 2, wstring_to_utf8(L"업적"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACHIEVEMENT), 0, ALIGNMENT_CENTER, fontColor);
 //    gui::inst()->addTextButton(8, 4, wstring_to_utf8(L"도감"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_COLLECTION), 0, ALIGNMENT_CENTER, fontColor);
-    mBuy = gui::inst()->addTextButton(8, 5, logics::hInst->getL10N("MAINMENU_BUY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
     
-    mSell = gui::inst()->addTextButton(7, 6, logics::hInst->getL10N("MAINMENU_SELL"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
-    mInventory = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("MAINMENU_INVENTORY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
+    mSell = gui::inst()->addTextButton(6, 6, logics::hInst->getL10N("MAINMENU_SELL"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_SELL), 0, ALIGNMENT_CENTER, fontColor);
+    mInventory = gui::inst()->addTextButton(7, 6, logics::hInst->getL10N("MAINMENU_INVENTORY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_INVENTORY), 0, ALIGNMENT_CENTER, fontColor);
+    mBuy = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("MAINMENU_BUY"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_BUY), 0, ALIGNMENT_CENTER, fontColor);
+    
 
 	//quest 표시
 	updateQuests();
@@ -468,11 +469,11 @@ void MainScene::updateState(bool isInventoryUpdated) {
     loadingBar->setPercent(logics::hInst->getExpRatio());
 
     string properties;
-    properties += "S: ";
+    properties += logics::hInst->getL10N("PROPERTY_S") + " ";
     properties += to_string(logics::hInst->getActor()->property.strength);
-    properties += "\nI: ";
+    properties += "\n" + logics::hInst->getL10N("PROPERTY_I") + " ";
     properties += to_string(logics::hInst->getActor()->property.intelligence);
-    properties += "\nA: ";
+    properties += "\n" + logics::hInst->getL10N("PROPERTY_A") + " ";
     properties += to_string(logics::hInst->getActor()->property.appeal);
     if(properties.compare(mProperties->getString()) != 0 ){
         mProperties->runAction(gui::inst()->createActionFocus());
@@ -1545,12 +1546,12 @@ void MainScene::updateQuests() {
         
         if(p->isFinished){
             sz += " Done";
-            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
+            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 2, sz, this
                                                      , CC_CALLBACK_1(MainScene::achievementCallback, this, p), 12, ALIGNMENT_NONE, Color3B::BLUE);
             
         } else {
             sz += " " + to_string(p->accumulation) + "/" + to_string(p->value);
-            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 3, sz, this
+            menuItem = gui::inst()->addTextButtonRaw(pMenu, 0, 2, sz, this
                                                      , CC_CALLBACK_1(MainScene::callback2, this, getSceneCodeFromQuestCategory(p->category)), 12, ALIGNMENT_NONE);
         }
 		

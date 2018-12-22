@@ -466,8 +466,7 @@ void ActionScene::timer(float f) {
 		}
 
 		if (p.currentSuffer != itemType_max) {
-            //제자리로
-            resetHeight(n);
+            
             
 			switch (p.currentSuffer)
 			{

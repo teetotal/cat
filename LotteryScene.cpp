@@ -120,8 +120,8 @@ void LotteryScene::gachaPoint(bool isAll){
     string sz = point > 0 ? COIN + numberFormat(point) : "T.T";
     mResultLayer = LayerColor::create();
     mResultLayer->setContentSize(Size(300, 225));
-    gui::inst()->addLabelAutoDimension(2, 1, szRank, mResultLayer, 24, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
-    gui::inst()->addLabelAutoDimension(2, 2, sz, mResultLayer, 28, ALIGNMENT_CENTER, Color3B::GREEN, grid, Size::ZERO, Size::ZERO);
+    gui::inst()->addLabelAutoDimension(2, 1, szRank, mResultLayer, 20, ALIGNMENT_CENTER, Color3B::WHITE, grid, Size::ZERO, Size::ZERO);
+    gui::inst()->addLabelAutoDimension(2, 2, sz, mResultLayer, 24, ALIGNMENT_CENTER, Color3B::GREEN, grid, Size::ZERO, Size::ZERO);
     
     int x = 2;
     if(logics::hInst->getActor()->inven.checkItemQuantity(logics::hInst->getInventoryType(mItemId), mItemId, 1)){
