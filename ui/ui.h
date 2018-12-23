@@ -507,6 +507,10 @@ public:
         
     };
     
+    Size getVisibleSize() {
+        return Size(mVisibleSize.x, mVisibleSize.y);
+    };
+    
 	int mModalTouchCnt;
 	string EmptyString;
 

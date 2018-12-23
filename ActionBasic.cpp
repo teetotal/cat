@@ -25,7 +25,7 @@ int cntAnimationMotion = 6;
 int loopAnimation = 4 * 3;
 //float step = 100.f / (loopAnimation * cntAnimationMotion); //한 이미지 당 증가하는 양
 float step = 100.0f / PLAYTIME * animationDelay;
-int _timingInfo[10][3] =  //runner, curveCnt, difficult
+int _timingInfo[][3] =  //runner, curveCnt, difficult
 {{0, 0, 0}
     , {1, 2, 120}
     , {1, 3, 80}
@@ -38,6 +38,22 @@ int _timingInfo[10][3] =  //runner, curveCnt, difficult
     , {3, 2, 120}
     , {3, 3, 80}
     , {3, 4, 40}
+};
+
+int _catchRatInfo[][3] = //slot, 등장 주기, 시작 슬롯idx
+{{0,0}
+    , {4, 5, 3}
+    , {5, 5, 2}
+    , {6, 5, 1}
+    
+    , {6, 4, 1}
+    , {6, 3, 1}
+    , {6, 2, 1}
+    
+    , {9, 4, 0}
+    , {9, 3, 0}
+    , {9, 2, 0}
+    
 };
 
 int _tapInfo[][3] = //enable tap, hurdle level. 보너스 점수 종류
@@ -259,11 +275,20 @@ void ActionBasic::runAction_timing(_training &t) {
         gui::inst()->setScale(btn, TIMING_RADIUS * 2);
     }
     
+    //blink bg
+//    auto blackBG = LayerColor::create(Color4B::BLACK);
+//    blackBG->setContentSize(gui::inst()->getVisibleSize());
+//    blackBG->setPosition(gui::inst()->mOrigin);
+//    blackBG->runAction(RepeatForever::create(Blink::create(1, 4)));
+//    addChild(blackBG, 2);
+    
+    
     this->schedule([=](float delta) {
         for(int n=0; n < nRunner; n++){
             
             if(mTimingRunner[n] == NULL){
                 mTimingRunner[n] = this->createRunner();
+//                mTimingRunner[n]->setLocalZOrder(1);
                 mTimingRunner[n]->setPosition(gui::inst()->getPointVec2(0, getTouchYPosition(n)));
                 
                 Vector<FiniteTimeAction *> vec;
@@ -293,16 +318,16 @@ void ActionBasic::runAction_timing(_training &t) {
                 mTimingRunner[n]->runAction(Sequence::create(vec));
             }
             
-            //dancer
-            if(mActionCnt % 7 == 0) {
-                auto dancer = createDancer(TIMING_RADIUS * 2, gui::inst()->getPointVec2(0, getTouchYPosition(n)));
-                float speedDancer = (float)getRandValue(10) / 10.f + 1.5f;
-                dancer->runAction(Sequence::create(
-                                  MoveTo::create(speedDancer, Vec2(gui::inst()->getPointVec2(TIMING_X_END + 1, getTouchYPosition(n))))
-                                                   , RemoveSelf::create()
-                                                   , NULL)
-                                                   );
-            }
+//            //dancer
+//            if(mActionCnt % 7 == 0) {
+//                auto dancer = createDancer(TIMING_RADIUS * 2, gui::inst()->getPointVec2(0, getTouchYPosition(n)));
+//                float speedDancer = (float)getRandValue(10) / 10.f + 1.5f;
+//                dancer->runAction(Sequence::create(
+//                                  MoveTo::create(speedDancer, Vec2(gui::inst()->getPointVec2(TIMING_X_END + 1, getTouchYPosition(n))))
+//                                                   , RemoveSelf::create()
+//                                                   , NULL)
+//                                                   );
+//            }
         }
 
         setTime(animationDelay);
@@ -538,6 +563,7 @@ int ActionBasic::getTouchYPosition(int idx){
 /* ================================================================================
  
  TOUCH
+ 쥐를 잡자
  
  ================================================================================ */
 //void ActionBasic::runAction_touch(_training &t) {
@@ -595,10 +621,11 @@ void ActionBasic::runAction_touch(_training &t) {
     
     this->schedule([=](float delta) {
         //touch 이동
-        if (mActionCnt % 5 == 0) {
+        if (mActionCnt % _catchRatInfo[mAction.grade][1] == 0) {
             const float imgSize = 50;
             bool isBlack = getRandValue(2) == 0;
-            auto img = gui::inst()->addSprite(getRandValue(8), 0, isBlack ? "rat1.png" : "rat2.png", l);
+            int slotIdx = _catchRatInfo[mAction.grade][2] + getRandValue(_catchRatInfo[mAction.grade][0]);
+            auto img = gui::inst()->addSprite(slotIdx, 0, isBlack ? "rat1.png" : "rat2.png", l);
             if(isBlack) {
                 mContextTouch.mBlackRatVec.push_back(img);
                 increment(mMaxTouchCnt);
