@@ -58,10 +58,10 @@ void ui_deco::addBottom(int posDiv, int drawDiv, Color4F color1, Color4F color2)
     mDrawBottomDivCnt = drawDiv;
     mBottomColor1 = color1;
     mBottomColor2 = color2;
-    
-    createBottom(false, mBottomDivCnt, mBottomVec);
+//    CCLOG("Add bottom %d", mBottomDivCnt);
+    createBottom(true, mBottomDivCnt, mBottomVec);
     std::sort (mBottomVec.begin(), mBottomVec.end(), ui_deco::sortTouchVec);
-
+//    CCLOG("Draw bottom %d", mDrawBottomDivCnt);
     drawBottom(mDrawBottomDivCnt, mBottomColor1, mBottomColor2);
     mBottomGridSize = getBottomGridSize();
 
@@ -522,4 +522,11 @@ Rect ui_deco::getPosRect(Size gridSize, Vec2 posStart){
     pos.y -= gridSize.height / 2;
     Rect rect = Rect(pos, gridSize);
     return rect;
+}
+
+Vec2 ui_deco::getBottomPos(int idx, bool isCenterPos){
+    if(isCenterPos)
+        return mBottomVec[idx];
+    else
+        return Vec2(mBottomVec[idx].x - (mBottomGridSize.width / 2), mBottomVec[idx].y - (mBottomGridSize.height / 2));
 }

@@ -246,7 +246,7 @@ private:
     Vec2 mTouchStart;
     Size mTouchGrid;
     float mInteriorScale;
-    vector<Vec2> mTouchPosVec;
+//    vector<Vec2> mTouchPosVec;
     
     vector<Touch*> mTouchVec;
     //아이템 적용

@@ -114,7 +114,6 @@ bool MainScene::init()
 
     mName = gui::inst()->addLabel(0, 0, name, this, 12, ALIGNMENT_NONE, fontColor);
 
-    //mGrid.addLabel(0, 0, "abc", this, 12, ALIGNMENT_NONE);
     //mJobTitle = gui::inst()->addLabel(4,0,wstring_to_utf8(logics::hInst->getActor()->jobTitle, true), this, 12, ALIGNMENT_CENTER, fontColor);
 	mJobTitle = gui::inst()->addLabel(4, 0, logics::hInst->getActor()->jobTitle, this, 12, ALIGNMENT_CENTER, fontColor);
 
@@ -276,7 +275,7 @@ bool MainScene::initDeco() {
 bool MainScene::initFarm() {
 	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
 	Vec2 a2 = gui::inst()->getPointVec2(1, 1, ALIGNMENT_NONE);
-	Size gridSize = Size(a2.x - a1.x, a1.y - a2.y);
+//    Size gridSize = Size(a2.x - a1.x, a1.y - a2.y);
 	int id = 0;
 	//farm init or load	
 	sqlite3_stmt * stmt = Sql::inst()->select("select * from farm");
@@ -322,20 +321,6 @@ bool MainScene::initFarm() {
 			break;
 	}
 
-	if (logics::hInst->getFarm()->countField() == 0) {
-		for (int x = 2; x < 7; x++) {
-			for (int y = 2; y < 6; y++) {
-				field * node = new field(x, y - 1);
-				//node->sprite = NULL;
-				//node->l = gui::inst()->createLayout(gridSize, "", true, c[rand() % 5]);
-				node->id = id;
-				//node->label = gui::inst()->addLabelAutoDimension(0, 2, "", node->l, 8, ALIGNMENT_NONE, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
-				//node->l->setPosition(gui::inst()->getPointVec2(x, y, ALIGNMENT_NONE));
-				logics::hInst->farmingAddField(node);
-				id++;
-			}
-		}
-	}
 	return true;
 }
 
@@ -615,13 +600,6 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 		mSell->setScale(1);
 		showInventory(inventoryType_all, true);
 		break;
-            /*
-	case SCENECODE_ACHIEVEMENT: // 업적
-		mAchievement->stopAllActions();
-		mAchievement->setScale(1);
-		showAchievement();
-		break;
-             */
 	case SCENECODE_BUY: //구매
 		mBuy->stopAllActions();
 		mBuy->setScale(1);

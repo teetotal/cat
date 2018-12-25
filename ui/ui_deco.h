@@ -135,6 +135,7 @@ public:
         addObject(obj, mRightVec, mRightSpriteVec);
     };
     
+    Vec2 getBottomPos(int idx, bool isCenterPos);
     
     struct TOUCHED_INFO{
         SIDE side;
@@ -153,6 +154,9 @@ public:
     
     
     //utils
+    int getBottomVecSize() {
+        return (int)mBottomVec.size();
+    };
     Size getBottomGridSize(){
         float fH =  mMainLayoput->getContentSize().height / (float)mBottomDivCnt;
         return Size(gui::inst()->getTanLen(fH, mDegrees) * 2, fH * 2);

@@ -844,7 +844,7 @@ void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, floa
 //    if((debugPos2.x == -1 && debugPos2.y == -37)){
 //        CCLOG("Parent x= (%f, %f)", debugPos.x, debugPos.y);
 //    }
-
+    
     if(!isExistVec2(vec, start)){
         if(isBGColor){
             drawDiamond(p, start, Size(len * 2, h * 2 ), color1);

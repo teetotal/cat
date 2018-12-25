@@ -67,6 +67,20 @@ private:
 	seedVector mSeedVector;
 
 	int mCurrentNodeId;
+    
+    Layout * mMainLayoput;
+    ui_deco mUIDeco;
+    
+    //funcs
+    void initDeco();
+    Vec2 getSpritePos(MainScene::field * p) {
+        return Vec2(p->l->getPosition().x + (p->l->getContentSize().width / 2)
+                             , p->l->getPosition().y + (p->l->getContentSize().height / 2));
+    };
+    float getScaleRatio(MainScene::field * p){
+        return (p->l->getContentSize().height / p->sprite->getContentSize().height) * 0.8;
+    };
+    void setLabel(string sz, MainScene::field * p);
 	
 	void levelUp(MainScene::field * p);
 	void clear(MainScene::field * p);

@@ -92,13 +92,21 @@ Scene* ActionBasic::createScene()
 
 
 bool ActionBasic::init()
-{	
+{
+    //////////////////////////////
+    // 1. super init first
+    if ( !Scene::init() )
+    {
+        return false;
+    }
+    
     gui::inst()->addBG("bg_temp.png", this);
 	return true;
 }
 
 
 void ActionBasic::initUI() {
+
     //bg
     if(mAction.type == trainingType_tap)
         gui::inst()->addBGScrolling("bg_action_tap_" + to_string(_tapInfo[mAction.grade][2]) + ".png", this, 1.5);

@@ -28,6 +28,13 @@ Scene* LotteryScene::createScene(int itemId)
 
 bool LotteryScene::init(int itemId)
 {
+    //////////////////////////////
+    // 1. super init first
+    if ( !Scene::init() )
+    {
+        return false;
+    }
+
     mItemId = itemId;
     _item item = logics::hInst->getItem(mItemId);
     

@@ -26,7 +26,14 @@ Scene* ActionScene::createScene(int id)
 	return ActionScene::create(id);
 }
 
-bool ActionScene::init() {		
+bool ActionScene::init() {
+    //////////////////////////////
+    // 1. super init first
+    if ( !Scene::init() )
+    {
+        return false;
+    }
+
 	mPlayCnt = 0;
     mScale = -1;
     RUNNER_WIDTH = 75 * gui::inst()->mVisibleY / 270;

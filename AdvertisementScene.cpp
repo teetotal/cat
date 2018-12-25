@@ -34,6 +34,14 @@ void AdvertisementScene::callback(float f) {
 }
 
 bool AdvertisementScene::init(int itemId, int quantity) {
+    
+    //////////////////////////////
+    // 1. super init first
+    if ( !Scene::init() )
+    {
+        return false;
+    }
+
     mItemId = itemId;
     mQuantity = quantity;
     
