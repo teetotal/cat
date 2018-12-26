@@ -70,6 +70,7 @@ private:
     
     Layout * mMainLayoput;
     ui_deco mUIDeco;
+    float mMainLayerHeight;
     
     //funcs
     void initDeco();

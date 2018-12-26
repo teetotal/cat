@@ -836,8 +836,19 @@ float gui::drawDiamond(cocos2d::Node *p, Vec2 center, float h, float degrees, co
 
 
 
-void gui::addTiles(Node * p, Rect dimension, vector<Vec2> &vec, Vec2 start, float h, float degrees
-                   , bool isBGColor, Color4F color1, Color4F color2, bool isLeft, bool isRight, Vec2 debugPos, Vec2 debugPos2){
+void gui::addTiles(Node * p
+                   , Rect dimension
+                   , vector<Vec2> &vec
+                   , Vec2 start
+                   , float h
+                   , float degrees
+                   , bool isBGColor
+                   , Color4F color1
+                   , Color4F color2
+                   , bool isLeft
+                   , bool isRight
+                   , Vec2 debugPos
+                   , Vec2 debugPos2){
     
     double len = getTanLen(h, degrees);
     

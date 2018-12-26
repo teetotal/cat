@@ -40,8 +40,8 @@ bool FarmingScene::init()
 	mGridSize.height = a1.y - a2.y;
 
     
-    auto bg = gui::inst()->addBG("bg_race.png", this);
-    bg->setOpacity(192);
+//    auto bg = gui::inst()->addBG("layers/dark_forest/rocks.png", this);
+//    bg->setOpacity(192);
     
     initDeco();
 
@@ -67,6 +67,13 @@ bool FarmingScene::init()
 //        label->setColor(Color3B::BLACK);
 //        mMainLayoput->addChild(label);
         p->l->setPosition(mUIDeco.getBottomPos(p->id, false));
+        //bg
+        string szImg = (n % 3 == 0) ? "field.png" : "rock.png";
+        Sprite * img = gui::inst()->getfittedSprite(szImg, p->l);
+        img->setScale(0.5);
+        img->setFlippedX(getRandValue(2) == 0 ? true : false);
+        p->l->addChild(img);
+        
 		p->isHarvestAction = false;
 
 		if (p->seedId != 0) {
@@ -126,15 +133,28 @@ bool FarmingScene::init()
 
 void FarmingScene::initDeco() {
     const float degrees = 27.f;
-    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
-    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
-    const float _div = 10;
+    const float _div = 40;
+    
+//    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
+//    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
+
+    mMainLayerHeight = Director::getInstance()->getVisibleSize().height * 3;
+    const float layerWidth = gui::inst()->getTanLen(mMainLayerHeight / 2, degrees) * 2;
+    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mMainLayerHeight), "", false, Color3B::GRAY);
+    //wall bg
+    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/sky.png", mMainLayoput));
+    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/clouds_2.png", mMainLayoput));
+//    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/rocks.png", mMainLayoput));
+//    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_1.png", mMainLayoput));
+//    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_2.png", mMainLayoput));
+//    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_3.png", mMainLayoput));
+    
     mUIDeco.init(mMainLayoput, degrees, false, false);
     
 //    mUIDeco.addWall(_div/ 8, Color4F::WHITE, Color4F::BLACK);
     mUIDeco.addBottom(_div, _div, Color4F(Color3B(135, 118, 38)), Color4F(Color3B(123, 108, 5)));
 //    mUIDeco.addBottom(_div, _div, Color4F::GRAY, Color4F::YELLOW);
-    mUIDeco.drawGuidLine();
+//    mUIDeco.drawGuidLine();
     
     Vec2 posMainLayer = gui::inst()->getCenter();
     posMainLayer.y  += mMainLayoput->getContentSize().height / 2;
@@ -233,7 +253,7 @@ void FarmingScene::questCallback(cocos2d::Ref* pSender, int idx) {
 void FarmingScene::updateFarming(float fTimer) {
 	int n = 0;
 	farming::field * f;
-	MainScene::field * pThiefField = NULL;
+//    MainScene::field * pThiefField = NULL;
 	while (logics::hInst->getFarm()->getField(n, f)) {
 		MainScene::field * p = (MainScene::field*)f;
 
@@ -476,12 +496,12 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
                   , movedPoint.y
                   );
             
-            if((movedPoint.x < mMainLayoput->getContentSize().width * -0.5)
-               || movedPoint.y < mMainLayoput->getContentSize().height * 0.5
-               || movedPoint.x > mMainLayoput->getContentSize().width
-               || movedPoint.y > mMainLayoput->getContentSize().height * 1.5
-               )
-                break;
+//            if((movedPoint.x < mMainLayoput->getContentSize().width * -0.5)
+//               || movedPoint.y < mMainLayoput->getContentSize().height * -0.5
+//               || movedPoint.x > mMainLayoput->getContentSize().width
+//               || movedPoint.y > mMainLayoput->getContentSize().height * 1.5
+//               )
+//                break;
             
             mMainLayoput->setPosition(movedPoint);
             mTouchDownPosition = touch->getLocation();
@@ -524,7 +544,8 @@ void FarmingScene::swap(MainScene::field* a, MainScene::field * b) {
 
 void FarmingScene::levelUp(MainScene::field * p) {
 	logics::hInst->getFarm()->levelup(p->id);
-	p->label->setString(to_string(p->level));
+	//p->label->setString(to_string(p->level));
+    setLabel(to_string(p->level), p);
 	p->isHarvestAction = false;
 	stopAction(p->sprite);
 	//float ratio = mGridSize.height / p->sprite->getContentSize().height;
@@ -621,6 +642,7 @@ void FarmingScene::createSeedMenu()
 }
 
 void FarmingScene::addSprite(MainScene::field * p, int seedId) {
+    p->l->removeAllChildren();
 	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
 	//Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
     p->sprite->setPosition(getSpritePos(p));

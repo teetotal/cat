@@ -312,6 +312,13 @@ public:
             , Size origin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
     );
+    
+    Sprite * getfittedSprite(const string sz, Node * node) {
+        Sprite * sprite = Sprite::create(sz);
+        sprite->setPosition(Vec2(node->getContentSize().width / 2, node->getContentSize().height / 2));
+        sprite->setContentSize(node->getContentSize());
+        return sprite;
+    };
 
     LayerColor * addPopup(LayerColor * &pBG
             , Node * p
