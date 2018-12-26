@@ -42,64 +42,14 @@ bool FarmingScene::init()
     
 //    auto bg = gui::inst()->addBG("layers/dark_forest/rocks.png", this);
 //    bg->setOpacity(192);
-    
-    initDeco();
-
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
+    gui::inst()->addTextButton(0, 1, "Extend", this, [=](Ref * pSender) {
+        this->removeChild(mMainLayoput);
+        mMainLayerHeightRatio++;
+        initDeco();
+    }, 0, ALIGNMENT_CENTER, Color3B::RED);
 	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
 		
-	int n = 0;
-	farming::field * f = NULL;
-	Color3B c[] = { Color3B(135, 118, 38), Color3B(123, 108, 5), Color3B(180, 164, 43), Color3B(72, 63, 4), Color3B(128, 104, 32) };
-
-	while (logics::hInst->getFarm()->getField(n, f)) {
-		MainScene::field * p = (MainScene::field*)f;
-		//p->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
-        p->l = gui::inst()->createLayout(mUIDeco.getBottomGridSize(), "", false, c[n % 5]);
-//        p->l->setOpacity(64);
-		string sz = p->level > 0 ? to_string(p->level) : "";
-//        p->label = gui::inst()->addLabelAutoDimension(0, 2, sz, p->l, 6, ALIGNMENT_CENTER, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
-        
-		//p->l->setPosition(gui::inst()->getPointVec2(p->x, p->y + 1, ALIGNMENT_NONE));
-//        auto label = Label::create();
-//        label->setString(to_string(p->id));
-//        label->setPosition(mUIDeco.getBottomPos(p->id, true));
-//        label->setColor(Color3B::BLACK);
-//        mMainLayoput->addChild(label);
-        p->l->setPosition(mUIDeco.getBottomPos(p->id, false));
-        //bg
-        string szImg = (n % 3 == 0) ? "field.png" : "rock.png";
-        Sprite * img = gui::inst()->getfittedSprite(szImg, p->l);
-        img->setScale(0.5);
-        img->setFlippedX(getRandValue(2) == 0 ? true : false);
-        p->l->addChild(img);
-        
-		p->isHarvestAction = false;
-
-		if (p->seedId != 0) {
-			if (p->seedId > 0 && p->seedId < 400)
-				CCLOG("init error. id = %d, seedId = %d", p->id, p->seedId);
-
-			p->sprite = Sprite::create(MainScene::getItemImg(p->seedId));
-//            Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
-            Vec2 position = getSpritePos(p);
-			p->sprite->setPosition(position);
-			//float ratio = mGridSize.height / p->sprite->getContentSize().height;
-			p->sprite->setScale(getScaleRatio(p));
-            //label
-            setLabel(sz, p);
-		}
-		else {
-			p->sprite = NULL;
-		}
-
-        //this->addChild(p->l, 0);
-        mMainLayoput->addChild(p->l);
-        if (p->sprite)
-            mMainLayoput->addChild(p->sprite, 1);
-        n++;
-	}
-	
 	//seed Menu
 	createSeedMenu();
 
@@ -124,6 +74,9 @@ bool FarmingScene::init()
     //gui::inst()->setScale(mCharacter, 50);
     onActionFinished();
 	this->addChild(mCharacter, 99);
+    
+    mMainLayerHeightRatio = 1;
+    initDeco();
 
 	updateFarming(0);
 	this->schedule(schedule_selector(FarmingScene::updateFarming), 1.f);
@@ -133,14 +86,14 @@ bool FarmingScene::init()
 
 void FarmingScene::initDeco() {
     const float degrees = 27.f;
-    const float _div = 40;
+    const float _div = (mMainLayerHeightRatio + 1) * 10;
     
 //    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
 //    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
 
-    mMainLayerHeight = Director::getInstance()->getVisibleSize().height * 3;
-    const float layerWidth = gui::inst()->getTanLen(mMainLayerHeight / 2, degrees) * 2;
-    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mMainLayerHeight), "", false, Color3B::GRAY);
+    float mainLayerHeight = Director::getInstance()->getVisibleSize().height * mMainLayerHeightRatio;
+    const float layerWidth = gui::inst()->getTanLen(mainLayerHeight / 2, degrees) * 2;
+    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mainLayerHeight), "", false, Color3B::GRAY);
     //wall bg
     mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/sky.png", mMainLayoput));
     mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/clouds_2.png", mMainLayoput));
@@ -148,7 +101,7 @@ void FarmingScene::initDeco() {
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_1.png", mMainLayoput));
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_2.png", mMainLayoput));
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_3.png", mMainLayoput));
-    
+    mUIDeco.finalize();
     mUIDeco.init(mMainLayoput, degrees, false, false);
     
 //    mUIDeco.addWall(_div/ 8, Color4F::WHITE, Color4F::BLACK);
@@ -163,14 +116,67 @@ void FarmingScene::initDeco() {
     
 //    mMainLayoput->setScale(2);
     
-    this->addChild(mMainLayoput);
+    this->addChild(mMainLayoput, -1);
     
-    if (logics::hInst->getFarm()->countField() == 0) {
-        for (int n = 0; n < mUIDeco.getBottomVecSize(); n++) {
-            MainScene::field * node = new MainScene::field();
-            node->id = n;
-            logics::hInst->farmingAddField(node);
+    
+    for (int n = (int)logics::hInst->getFarm()->getFields()->size(); n < mUIDeco.getBottomVecSize(); n++) {
+        MainScene::field * node = new MainScene::field();
+        node->id = n;
+        logics::hInst->farmingAddField(node);
+    }
+    
+//    if (logics::hInst->getFarm()->countField() == 0) {
+//    }
+    
+    int n = 0;
+    farming::field * f = NULL;
+    Color3B c[] = { Color3B(135, 118, 38), Color3B(123, 108, 5), Color3B(180, 164, 43), Color3B(72, 63, 4), Color3B(128, 104, 32) };
+    
+    while (logics::hInst->getFarm()->getField(n, f)) {
+        MainScene::field * p = (MainScene::field*)f;
+        //p->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
+        p->l = gui::inst()->createLayout(mUIDeco.getBottomGridSize(), "", false, c[n % 5]);
+        //        p->l->setOpacity(64);
+        string sz = p->level > 0 ? to_string(p->level) : "";
+        //        p->label = gui::inst()->addLabelAutoDimension(0, 2, sz, p->l, 6, ALIGNMENT_CENTER, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
+        
+        //p->l->setPosition(gui::inst()->getPointVec2(p->x, p->y + 1, ALIGNMENT_NONE));
+        //        auto label = Label::create();
+        //        label->setString(to_string(p->id));
+        //        label->setPosition(mUIDeco.getBottomPos(p->id, true));
+        //        label->setColor(Color3B::BLACK);
+        //        mMainLayoput->addChild(label);
+        p->l->setPosition(mUIDeco.getBottomPos(p->id, false));
+        p->isHarvestAction = false;
+        
+        if (p->seedId != 0) {
+            if (p->seedId > 0 && p->seedId < 400)
+                CCLOG("init error. id = %d, seedId = %d", p->id, p->seedId);
+            
+            p->sprite = Sprite::create(MainScene::getItemImg(p->seedId));
+            //            Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
+            Vec2 position = getSpritePos(p);
+            p->sprite->setPosition(position);
+            //float ratio = mGridSize.height / p->sprite->getContentSize().height;
+            p->sprite->setScale(getScaleRatio(p));
+            //label
+            setLabel(sz, p);
         }
+        else {
+            p->sprite = NULL;
+            //bg
+            string szImg = (n % 3 == 0) ? "field.png" : "rock.png";
+            Sprite * img = gui::inst()->getfittedSprite(szImg, p->l);
+            img->setScale(0.5);
+            img->setFlippedX(n % 2 == 0 ? true : false);
+            p->l->addChild(img);
+        }
+        
+        //this->addChild(p->l, 0);
+        mMainLayoput->addChild(p->l);
+        if (p->sprite)
+            mMainLayoput->addChild(p->sprite, 1);
+        n++;
     }
 }
 
@@ -271,6 +277,8 @@ void FarmingScene::updateFarming(float fTimer) {
 		case farming::farming_status_harvest:
 			if (p->isHarvestAction == false) {
 				//float ratio = mGridSize.height / p->sprite->getContentSize().height;
+                addSprite(p, p->seedId);
+                setLabel(to_string(p->level), p);
                 float ratio = p->sprite->getScale();
 				p->sprite->runAction(RepeatForever::create(Sequence::create(ScaleTo::create(0.2, ratio * 1.1), ScaleTo::create(0.4, ratio), NULL)));
 				p->isHarvestAction = true;
@@ -643,7 +651,13 @@ void FarmingScene::createSeedMenu()
 
 void FarmingScene::addSprite(MainScene::field * p, int seedId) {
     p->l->removeAllChildren();
-	p->sprite = Sprite::create(MainScene::getItemImg(seedId));
+    if(seedId == 0) {
+        p->sprite = Sprite::create("sprout.png");
+    } else {
+        mMainLayoput->removeChild(p->sprite);
+        p->sprite = Sprite::create(MainScene::getItemImg(seedId));
+    }
+    
 	//Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
     p->sprite->setPosition(getSpritePos(p));
     
@@ -673,7 +687,7 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 			return;
 		}
 		
-		addSprite(p, seedId);
+		addSprite(p, 0);
         setLabel(to_string(p->level), p);
 
 		//s->itemQuantity--;

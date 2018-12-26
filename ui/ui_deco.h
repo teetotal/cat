@@ -51,6 +51,15 @@ public:
     };
     
     void init(Node * p, float degrees, bool isDebugModeBottom = false, bool isDebugModeWall = false);
+    void finalize() {
+        mTempVec.clear();
+        mBottomVec.clear();
+        mLeftVec.clear();
+        mRightVec.clear();
+        mBottomSpriteVec.clear();
+        mLeftSpriteVec.clear();
+        mRightSpriteVec.clear();
+    };
     string getWallLeftJson(){
         return getJson(&mLeftSpriteVec);
     };
