@@ -290,6 +290,7 @@ struct _actor {
 	int hp;				//피로도
 	int exp;			//경험치
 	int level;			//레벨
+    int farmExtendCnt;  //농사 밭 확장 횟수
 	_property property;		//속성	
 	inventory inven;
 	keyBoolMap collection;	//도감

@@ -969,3 +969,13 @@ bool gui::vectorCross(Vec2 a, Vec2 b, Vec2 c, Vec2 x){
     
     return true;
 }
+
+Rect gui::getResizedRect(const Rect rect, float scale, bool isAlignToCenter) {
+    float width = (rect.getMaxX() - rect.getMinX()) * scale;
+    float height = (rect.getMaxY() - rect.getMinY()) * scale;
+    if(isAlignToCenter) {
+        return Rect(rect.getMidX() - (width / 2), rect.getMidY() - (height / 2), width, height);
+    } else {
+        return Rect(rect.getMinX(), rect.getMinY(), width, height);
+    }
+}

@@ -67,13 +67,16 @@ private:
 	seedVector mSeedVector;
 
 	int mCurrentNodeId;
+    MainScene::field * mSelectedField;
+    DrawNode * mSelectedFieldLayer;
     
     Layout * mMainLayoput;
     ui_deco mUIDeco;
-    float mMainLayerHeightRatio;
     
     //funcs
     void initDeco();
+    bool resetMode(bool isClearSelectedLayer = true);
+    void selectField(MainScene::field * p);
     Vec2 getSpritePos(MainScene::field * p) {
         return Vec2(p->l->getPosition().x + (p->l->getContentSize().width / 2)
                              , p->l->getPosition().y + (p->l->getContentSize().height / 2));

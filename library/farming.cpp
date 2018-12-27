@@ -71,7 +71,11 @@ void farming::setStatus(int fieldIdx) {
 	time_t finishedTime = mFields[fieldIdx]->finishTime;
 	mFields[fieldIdx]->percent = (float)currentGrown / (float)maxGrown * 100.0f;
 
-	if (finishedTime + s->maxOvertime < now) {
+    if(s->isDeco) {
+        if(mFields[fieldIdx]->status != farming_status_deco)
+            mFields[fieldIdx]->status = farming_status_deco;
+    }
+	else if (finishedTime + s->maxOvertime < now) {
 		if(mFields[fieldIdx]->status != farming_status_decay)
 			mFields[fieldIdx]->status = farming_status_decay;
 	}	

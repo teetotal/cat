@@ -517,6 +517,8 @@ public:
     Size getVisibleSize() {
         return Size(mVisibleSize.x, mVisibleSize.y);
     };
+    //tile 영역 체크에서 사용
+    Rect getResizedRect(const Rect rect, float scale, bool isAlignToCenter = true);
     
 	int mModalTouchCnt;
 	string EmptyString;

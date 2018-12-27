@@ -16,6 +16,9 @@ bool FarmingScene::init()
 	//init variable
 	mPopupBackground = NULL;
 	mPopupLayer = NULL;
+    mSelectedField = NULL;
+    mSelectedFieldLayer = NULL;
+    mCurrentNodeId = -1;
 	mThiefCnt = 0;
 	mMode = Mode_Max;
     //////////////////////////////
@@ -43,9 +46,9 @@ bool FarmingScene::init()
 //    auto bg = gui::inst()->addBG("layers/dark_forest/rocks.png", this);
 //    bg->setOpacity(192);
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
-    gui::inst()->addTextButton(0, 1, "Extend", this, [=](Ref * pSender) {
+    gui::inst()->addTextButton(8, 6, "Extend", this, [=](Ref * pSender) {
         this->removeChild(mMainLayoput);
-        mMainLayerHeightRatio++;
+        logics::hInst->getActor()->farmExtendCnt = min(logics::hInst->getActor()->farmExtendCnt + 1, 6);
         initDeco();
     }, 0, ALIGNMENT_CENTER, Color3B::RED);
 	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
@@ -75,7 +78,6 @@ bool FarmingScene::init()
     onActionFinished();
 	this->addChild(mCharacter, 99);
     
-    mMainLayerHeightRatio = 1;
     initDeco();
 
 	updateFarming(0);
@@ -86,12 +88,12 @@ bool FarmingScene::init()
 
 void FarmingScene::initDeco() {
     const float degrees = 27.f;
-    const float _div = (mMainLayerHeightRatio + 1) * 10;
+    const float _div = logics::hInst->getActor()->farmExtendCnt * 6;
     
 //    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
 //    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
 
-    float mainLayerHeight = Director::getInstance()->getVisibleSize().height * mMainLayerHeightRatio;
+    float mainLayerHeight = (Director::getInstance()->getVisibleSize().height / 2) * logics::hInst->getActor()->farmExtendCnt;
     const float layerWidth = gui::inst()->getTanLen(mainLayerHeight / 2, degrees) * 2;
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mainLayerHeight), "", false, Color3B::GRAY);
     //wall bg
@@ -125,23 +127,17 @@ void FarmingScene::initDeco() {
         logics::hInst->farmingAddField(node);
     }
     
-//    if (logics::hInst->getFarm()->countField() == 0) {
-//    }
-    
     int n = 0;
     farming::field * f = NULL;
+    MainScene::field * p = NULL;
     Color3B c[] = { Color3B(135, 118, 38), Color3B(123, 108, 5), Color3B(180, 164, 43), Color3B(72, 63, 4), Color3B(128, 104, 32) };
     
     while (logics::hInst->getFarm()->getField(n, f)) {
-        MainScene::field * p = (MainScene::field*)f;
-        //p->l = gui::inst()->createLayout(mGridSize, "", true, c[rand() % 5]);
+        p = (MainScene::field*)f;
         p->l = gui::inst()->createLayout(mUIDeco.getBottomGridSize(), "", false, c[n % 5]);
-        //        p->l->setOpacity(64);
         string sz = p->level > 0 ? to_string(p->level) : "";
-        //        p->label = gui::inst()->addLabelAutoDimension(0, 2, sz, p->l, 6, ALIGNMENT_CENTER, Color3B::WHITE, Size(1, 3), Size::ZERO, Size::ZERO);
         
-        //p->l->setPosition(gui::inst()->getPointVec2(p->x, p->y + 1, ALIGNMENT_NONE));
-        //        auto label = Label::create();
+         //        auto label = Label::create();
         //        label->setString(to_string(p->id));
         //        label->setPosition(mUIDeco.getBottomPos(p->id, true));
         //        label->setColor(Color3B::BLACK);
@@ -154,13 +150,12 @@ void FarmingScene::initDeco() {
                 CCLOG("init error. id = %d, seedId = %d", p->id, p->seedId);
             
             p->sprite = Sprite::create(MainScene::getItemImg(p->seedId));
-            //            Vec2 position = gui::inst()->getPointVec2(p->x, p->y);
             Vec2 position = getSpritePos(p);
             p->sprite->setPosition(position);
-            //float ratio = mGridSize.height / p->sprite->getContentSize().height;
             p->sprite->setScale(getScaleRatio(p));
             //label
-            setLabel(sz, p);
+            if(!logics::hInst->getFarm()->getSeed(p->seedId)->isDeco)
+                setLabel(sz, p);
         }
         else {
             p->sprite = NULL;
@@ -302,6 +297,12 @@ void FarmingScene::updateFarming(float fTimer) {
                  */
 			}
 			break;
+        case farming::farming_status_deco:
+                if (p->isHarvestAction == false) {
+                    addSprite(p, p->seedId);
+                    p->isHarvestAction = true;
+                }
+            break;
 		default:
 			break;
 		}
@@ -318,6 +319,29 @@ void FarmingScene::updateFarming(float fTimer) {
 	}
      */
 }
+void FarmingScene::selectField(MainScene::field * p) {
+    mSelectedField = p;
+    if(mSelectedFieldLayer)
+        mMainLayoput->removeChild(mSelectedFieldLayer);
+    
+    if(p) {
+        mScrollView->setVisible(true);
+        //Create select Layer
+        Color4F color = Color4F::WHITE;
+        color.a = 0.5;
+        mSelectedFieldLayer = gui::inst()->drawDiamond(mMainLayoput, getSpritePos(p), p->l->getContentSize(), color);
+    } else {
+        mScrollView->setVisible(false);
+        
+    }
+}
+
+bool FarmingScene::resetMode(bool isClearSelectedLayer) {
+    if(isClearSelectedLayer)
+        selectField(NULL);
+    mMode = Mode_Max;
+    return true;
+}
 
 bool FarmingScene::onTouchBegan(Touch* touch, Event* event) {
 	mTouchDownPosition = touch->getLocation();
@@ -333,23 +357,29 @@ bool FarmingScene::onTouchBegan(Touch* touch, Event* event) {
 	farming::field * f;
 	while (logics::hInst->getFarm()->getField(n, f)) {
 		MainScene::field * p = (MainScene::field*)f;
-//        if (p->sprite != NULL && p->sprite->getBoundingBox().containsPoint(touch->getLocation())) {
-        if (p->sprite != NULL && p->sprite->getBoundingBox().containsPoint(mMainLayoput->convertToNodeSpace(touch->getLocation()))) {
-			//mCurrentNodeId = n-1;
-            mCurrentNodeId = n;
-			p->sprite->setAnchorPoint(Vec2(0.5, 0.5));
-			p->sprite->setLocalZOrder(2);
-			setOpacity();
-			mMode = Mode_Seed;
+        
+        if (gui::inst()->getResizedRect(p->l->getBoundingBox(), 0.5).containsPoint(mMainLayoput->convertToNodeSpace(touch->getLocation()))) {
+            if(p->sprite != NULL) {
+                mCurrentNodeId = n;
+                p->sprite->setAnchorPoint(Vec2(0.5, 0.5));
+                p->sprite->setLocalZOrder(2);
+                setOpacity();
+                mMode = Mode_Seed;
+            } else {
+                mCurrentNodeId = -1;
+//                  for debug
+//                Rect rect = gui::inst()->getResizedRect(p->l->getBoundingBox(), 0.5);
+//                auto draw = DrawNode::create();
+//                draw->drawRect(rect.origin, Vec2(rect.getMaxX(), rect.getMaxY()), Color4F::RED);
+//                mMainLayoput->addChild(draw);
+                
+                selectField(p);
+            }
 			return true;
 		}
         n++;
 	}
-	mMode = Mode_Max;
-	mCurrentNodeId = -1;
-	
-//    mUIDeco.touchBegan(touch->getLocation());
-	return true;
+	return resetMode();
 }
 
 bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
@@ -357,34 +387,31 @@ bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
 	if (mMode == Mode_Farming) {
 		onActionFinished();
 		setQuest();
-		mMode = Mode_Max;
-		return true;
+        return resetMode();
 	}
 
 	if (mCurrentNodeId == -1) {
-		mMode = Mode_Max;
-        
-//        mUIDeco.touchEnded(touch->getLocation());
-		return true;
+        return resetMode(false);
 	}
 
 	clearOpacity();
 	//클릭
-	farming::field * f;
-	logics::hInst->getFarm()->getField(mCurrentNodeId, f);
-	MainScene::field * p = (MainScene::field*)f;
-//    if (abs(mTouchDownPosition.x - touch->getLocation().x) < (mGridSize.width / 2) && abs(mTouchDownPosition.y - touch->getLocation().y) < (mGridSize.height / 2)) {
-    if (abs(mTouchDownPosition.x - touch->getLocation().x) < (p->l->getContentSize().width / 2) && abs(mTouchDownPosition.y - touch->getLocation().y) < (p->l->getContentSize().height / 2)) {
-		//p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
-        p->sprite->setPosition(getSpritePos(p));
-		showInfo(p);
-
-		mMode = Mode_Max;
-		return true;
+    farming::field * f = NULL;
+    if(!logics::hInst->getFarm()->getField(mCurrentNodeId, f))
+        return resetMode();
+    
+    MainScene::field * p = (MainScene::field*)f;
+    if (abs(mTouchDownPosition.x - touch->getLocation().x) < (p->l->getContentSize().width / 2)
+        && abs(mTouchDownPosition.y - touch->getLocation().y) < (p->l->getContentSize().height / 2)) {
+        if(p->sprite) {
+            p->sprite->setPosition(getSpritePos(p));
+            showInfo(p);
+        }
+        return resetMode();
 	}
-		
-	//swap
-	int n = 0;	
+    
+	//swap or levelup
+	int n = 0;
 	while (logics::hInst->getFarm()->getField(n, f)) {
 		MainScene::field * pField = (MainScene::field*)f;
         if (pField->id == p->id) {
@@ -394,30 +421,27 @@ bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
 		
 		if (pField->sprite && pField->sprite->getBoundingBox().intersectsRect(p->sprite->getBoundingBox())
             && p->seedId == pField->seedId && p->level == pField->level
+            && logics::hInst->getFarm()->getSeed(p->seedId)->isDeco == false
             ) {
             //merge
             levelUp(pField);
             //current clear
             clear(p);
-            mMode = Mode_Max;
-            return true;
-        } else if(pField->l->getBoundingBox().containsPoint(p->sprite->getPosition())){
+            return resetMode();
+        } else if(gui::inst()->getResizedRect(pField->l->getBoundingBox(), 0.5).containsPoint(p->sprite->getPosition())){
 //            auto t = Label::create();
 //            t->setString(to_string(pField->id));
 //            t->setPosition(p->sprite->getPosition());
 //            mMainLayoput->addChild(t);
             //swap
             swap(p, pField);
-            mMode = Mode_Max;
-            return true;
+            return resetMode();
         }
         n++;
 	}
 
-//    p->sprite->setPosition(gui::inst()->getPointVec2(p->x, p->y, ALIGNMENT_CENTER));
     p->sprite->setPosition(getSpritePos(p));
-	mMode = Mode_Max;
-	return true;
+    return resetMode();
 }
 
 void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
@@ -468,8 +492,7 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
                 default:
 					break;
 				}
-
-				
+                
 				if(isRemove)
 					clear(pField);
 
@@ -483,26 +506,25 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 			logics::hInst->getFarm()->getField(mCurrentNodeId, f);
 			MainScene::field * pField = (MainScene::field *)f;
             if(pField->sprite) {
-//                pField->sprite->setPosition(touch->getLocation());
                 pField->sprite->setPosition(mMainLayoput->convertToNodeSpace(touch->getLocation()));
             }
             
 		}			
 		break;
 	default:
-//        mUIDeco.touchMoved(touch->getLocation());
             //지도 이동
             Vec2 current = mMainLayoput->getPosition();
             Vec2 move = Vec2((mTouchDownPosition.x - touch->getLocation().x)
                              , (mTouchDownPosition.y - touch->getLocation().y)
                              );
             Vec2 movedPoint = Vec2(current.x - move.x, current.y - move.y);
-            CCLOG("Farm current %f, %f (width: %f, height: %f) %f, %f"
-                  , current.x, current.y
-                  , mMainLayoput->getContentSize().width, mMainLayoput->getContentSize().height
-                  , movedPoint.x
-                  , movedPoint.y
-                  );
+            
+//            CCLOG("Farm current %f, %f (width: %f, height: %f) %f, %f"
+//                  , current.x, current.y
+//                  , mMainLayoput->getContentSize().width, mMainLayoput->getContentSize().height
+//                  , movedPoint.x
+//                  , movedPoint.y
+//                  );
             
 //            if((movedPoint.x < mMainLayoput->getContentSize().width * -0.5)
 //               || movedPoint.y < mMainLayoput->getContentSize().height * -0.5
@@ -527,19 +549,15 @@ void FarmingScene::swap(MainScene::field* a, MainScene::field * b) {
 
 	logics::hInst->getFarm()->swap(a, b);
 
-//    if (a->sprite)
-//        a->sprite->setPosition(gui::inst()->getPointVec2(a->x, a->y, ALIGNMENT_CENTER));
-//    if (b->sprite)
-//        b->sprite->setPosition(gui::inst()->getPointVec2(b->x, b->y, ALIGNMENT_CENTER));
     if (a->sprite) 
         a->sprite->setPosition(getSpritePos(a));
     if (b->sprite)
         b->sprite->setPosition(getSpritePos(b));
 
-    if(a->level > 0) {
+    if(a->level > 0 && !logics::hInst->getFarm()->getSeed(a->seedId)->isDeco) {
         setLabel(to_string(a->level), a);
     }
-    if(b->level > 0) {
+    if(b->level > 0 && !logics::hInst->getFarm()->getSeed(b->seedId)->isDeco) {
         setLabel(to_string(b->level), a);
     }
 
@@ -562,6 +580,7 @@ void FarmingScene::levelUp(MainScene::field * p) {
 
 	p->sprite->setLocalZOrder(1);
 }
+
 void FarmingScene::clear(MainScene::field * p) {
 	//p->label->setString("");
 	p->isHarvestAction = false;
@@ -646,7 +665,7 @@ void FarmingScene::createSeedMenu()
 
 		gui::inst()->addLayoutToScrollView(mScrollView, layout, margin, 0);
 	}
-	
+    mScrollView->setVisible(false);
 }
 
 void FarmingScene::addSprite(MainScene::field * p, int seedId) {
@@ -669,6 +688,7 @@ void FarmingScene::addSprite(MainScene::field * p, int seedId) {
 
 void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 {
+    /*
 	//seed * s = mSeedVector[seedIdx];		
 	int n = 0;
 	farming::field *f;
@@ -694,6 +714,23 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 		updatePoint();
 		break;
 	}
+     */
+    if(mSelectedField->sprite)
+        return;
+    
+    int idx = logics::hInst->getFarm()->getIdx(mSelectedField->id);
+    errorCode err = logics::hInst->farmingPlant(idx, seedId);
+    if (err != error_success) {
+        //에러 팝업
+        Director::getInstance()->pushScene(AlertScene::createScene(err));
+        return;
+    }
+    
+    addSprite(mSelectedField, 0);
+    setLabel(to_string(mSelectedField->level), mSelectedField);
+    updatePoint();
+    
+    selectField(NULL);
 }
 
 RepeatForever * FarmingScene::getFarmingAnimation() {

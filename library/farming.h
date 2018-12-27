@@ -21,6 +21,7 @@ public:
 		farming_status_decay,	 //썩음
 		farming_status_grown,	//수확할게 있음
 		farming_status_harvest,	//다 자람
+        farming_status_deco,    //장식용
 		farming_status_max
 	};
 
@@ -32,6 +33,7 @@ public:
 		int timeGrow;	//성장에 필요한 시간 (초)		
 		int cares;		//필요한 돌봄 회수
 		int maxOvertime;	//완료 이후 상하지 않고 버틸 수 있는 시간
+        bool isDeco;    //장식
 	};
 
 	struct crop { //작물		
@@ -61,6 +63,17 @@ public:
 			level = 0;
 			accumulation = 0;
 		}
+        void copy(crop * src) {
+            seedId = src->seedId;
+            status = src->status;
+            timePlant = src->timePlant;
+            cntCare = src->cntCare;
+            timeLastGrow = src->timeLastGrow;
+            boost = src->boost;
+            percent = src->percent;
+            level = src->level;
+            accumulation = src->accumulation;
+        }
 		void plant(int seedId) {
 			this->seedId = seedId;
 			level = 1;
@@ -145,18 +158,40 @@ public:
 	//추가	
 	void swap(field * f1, field * f2) {
 		crop temp;
-		::memcpy(&temp, (crop*)f1, sizeof(temp));		
-		::memcpy((crop*)f1, (crop*)f2, sizeof(crop));		
-		::memcpy((crop*)f2, &temp, sizeof(temp));
+        temp.copy((crop*)f1);
+        f1->copy((crop*)f2);
+        f2->copy(&temp);
+        
+//        ::memcpy(&temp, (crop*)f1, sizeof(crop));
+//        ::memcpy((crop*)f1, (crop*)f2, sizeof(crop));        
+//        ::memcpy((crop*)f2, &temp, sizeof(crop));
 	};
+    int getIdx(int id) {
+        int ret = -1;
+        mLock.lock();
+        for (int n = 0; n < mFields.size(); n++) {
+            if (mFields[n]->id == id) {
+                ret = n;
+                break;
+            }
+        }
+        mLock.unlock();
+        return ret;
+    };
 	void levelup(int id) {
+        int idx = getIdx(id);
+        if(idx == -1)
+            return;
 		mLock.lock();
+        /*
 		for (int n = 0; n < mFields.size(); n++) {
 			if (mFields[n]->id == id) {
 				mFields[n]->level++;
 				break;
 			}
-		}		
+		}
+         */
+        mFields[idx]->level++;
 		mLock.unlock();
 	};
 	void clear(int id) {

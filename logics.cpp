@@ -107,7 +107,7 @@ bool logics::initActor(bool isFarmingDataLoad)
 	
 	//actor
 	{
-		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal FROM actor WHERE idx = 1");
+		sqlite3_stmt * stmt = Sql::inst()->select("SELECT userId, userName, id, name, lastLoginLoginTime, lastLoginLogoutTime, lastHPUpdateTime, jobTitle, point, hp, exp, level, strength, intelligence, appeal, farmExtendCnt FROM actor WHERE idx = 1");
 		if (stmt == NULL)
 			return false;
 
@@ -138,6 +138,8 @@ bool logics::initActor(bool isFarmingDataLoad)
 			actor->property.strength = sqlite3_column_int(stmt, idx++);
 			actor->property.intelligence = sqlite3_column_int(stmt, idx++);
 			actor->property.appeal = sqlite3_column_int(stmt, idx++);
+            
+            actor->farmExtendCnt = sqlite3_column_int(stmt, idx++);
 
 		}
 			
@@ -373,6 +375,7 @@ bool logics::initSeed(rapidjson::Value & farming, rapidjson::Value & p)
 		seed->timeGrow = p[rapidjson::SizeType(i)]["timeGrow"].GetInt();
 		seed->cares = p[rapidjson::SizeType(i)]["cares"].GetInt();
 		seed->maxOvertime = p[rapidjson::SizeType(i)]["maxOvertime"].GetInt();
+        seed->isDeco = p[rapidjson::SizeType(i)]["isDeco"].GetBool();
 		addSeed(seed);
 	}
 	return true;
@@ -2083,7 +2086,7 @@ void logics::saveActor() {
 
 	char bufActor[1024] = { 0 };
 	sprintf(bufActor
-		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallParttern='%s' WHERE idx = 1;"
+		, "UPDATE actor SET userId='%s', userName='%s', id='%s', name='%s', lastLoginLoginTime = %lld, lastLoginLogoutTime= %lld, lastHPUpdateTime=%lld, jobTitle= '%s', point = %d, hp = %d, exp = %d, level = %d, strength= %d, intelligence = %d, appeal= %d, wallParttern='%s', farmExtendCnt = %d WHERE idx = 1;"
 		, mActor->userId.c_str()
 		, mActor->userName.c_str()
 		, mActor->id.c_str()
@@ -2100,6 +2103,7 @@ void logics::saveActor() {
 		, mActor->property.intelligence
 		, mActor->property.appeal
         , ui_deco::inst()->mWallPartternImg.c_str()
+        , mActor->farmExtendCnt
 	);
     
     rc = Sql::inst()->exec(bufActor);
