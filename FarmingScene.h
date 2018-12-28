@@ -60,6 +60,7 @@ private:
 	ScrollView * mScrollView;
 	Layout * mQuestLayer[QUEST_CNT];
 	LayerColor * mPopupBackground, * mPopupLayer;
+    MenuItemLabel * mExtendBtn;
 
 	int mThiefCnt;
 	
@@ -67,6 +68,7 @@ private:
 	seedVector mSeedVector;
 
 	int mCurrentNodeId;
+    int mCurrentFarmLevel;
     MainScene::field * mSelectedField;
     DrawNode * mSelectedFieldLayer;
     
@@ -126,6 +128,7 @@ private:
 
 	//show info
 	void showInfo(MainScene::field * p);
+    void showExtend(Ref * pSender);
 	void closePopup(Ref * pSender);
 
 	//thief

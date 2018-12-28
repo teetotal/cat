@@ -238,7 +238,8 @@ public:
 	int countField() {
 		return (int)mFields.size();
 	};
-	void setStatus();				//농작물 상태 설정		
+	void setStatus();				//농작물 상태 설정
+    int getLevel();
 	bool harvest(int fieldIdx, int &farmProductId, int &output); //수확
     void remove(int fieldId); //제거
 	bool plant(int fieldIdx, int seedId);	//심기		

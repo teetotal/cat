@@ -19,6 +19,7 @@ bool FarmingScene::init()
     mSelectedField = NULL;
     mSelectedFieldLayer = NULL;
     mCurrentNodeId = -1;
+    mCurrentFarmLevel = -1;
 	mThiefCnt = 0;
 	mMode = Mode_Max;
     //////////////////////////////
@@ -47,13 +48,12 @@ bool FarmingScene::init()
 //    bg->setLocalZOrder(-2);
 //    bg->setOpacity(192);
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
-    gui::inst()->addTextButton(8, 6, "Extend", this, [=](Ref * pSender) {
-        this->removeChild(mMainLayoput);
-        logics::hInst->getActor()->farmExtendCnt = min(logics::hInst->getActor()->farmExtendCnt + 1, 6);
-        initDeco();
-    }, 0, ALIGNMENT_CENTER, Color3B::RED);
+    mExtendBtn = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("EXTEND"), this, CC_CALLBACK_1(FarmingScene::showExtend, this), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
 	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
-		
+    
+    if(logics::hInst->getActor()->farmExtendCnt >= 6){
+        mExtendBtn->setEnabled(false);
+    }
 	//seed Menu
 	createSeedMenu();
 
@@ -201,6 +201,7 @@ void FarmingScene::updatePoint() {
 
 void FarmingScene::setQuest() {
 	//init
+    createSeedMenu();
 	for (int n = 0; n < QUEST_CNT; n++) 
 		mQuestLayer[n]->removeAllChildren();
 
@@ -643,6 +644,14 @@ void FarmingScene::clearOpacity() {
 
 void FarmingScene::createSeedMenu()
 {
+    if(mCurrentFarmLevel == logics::hInst->getFarm()->getLevel())
+        return;
+    
+    mCurrentFarmLevel = logics::hInst->getFarm()->getLevel();
+    
+    if(mScrollView)
+        this->removeChild(mScrollView);
+    
 	Vec2 start, end;
 	start = Vec2(1, 7);
 	end = Vec2(start.x + 7, start.y -1);
@@ -661,21 +670,38 @@ void FarmingScene::createSeedMenu()
 	
     farming::seeds * seeds = logics::hInst->getFarm()->getSeeds();
     CC_ASSERT(seeds);
-	for (farming::seeds::iterator it = seeds->begin(); it != seeds->end(); ++it) {
 
+    int n = 0;
+	for (farming::seeds::iterator it = seeds->begin(); it != seeds->end(); ++it) {
+        if(!it->second->isDeco && mCurrentFarmLevel < n)
+            continue;
+        
+        n++;
+        
 		auto layout = gui::inst()->createLayout(Size(layerSize, layerSize));
 		auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
 		sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
 		sprite->setOpacity(192);
+        
+        if(it->second->isDeco)
+            gui::inst()->addLabelAutoDimension(0, 0
+                                               , logics::hInst->getL10N("FARM_DECO")
+                                                    , layout
+                                                    , 8
+                                                    , ALIGNMENT_CENTER
+                                                    , Color3B::BLACK
+                                                    , Size(1, 2)
+                                                    , Size::ZERO, Size::ZERO);
 
-		gui::inst()->addTextButtonAutoDimension(0, 0
+
+		gui::inst()->addTextButtonAutoDimension(0, 1
 			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
 			, layout
 			, CC_CALLBACK_1(FarmingScene::seedCallback, this, it->second->id)
-			, 0
+			, 10
 			, ALIGNMENT_CENTER
 			, Color3B::BLUE
-			, Size(1, 1)
+			, Size(1, 2)
 			, Size::ZERO, Size::ZERO);
 
 		gui::inst()->addLayoutToScrollView(mScrollView, layout, margin, 0);
@@ -740,11 +766,14 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
         Director::getInstance()->pushScene(AlertScene::createScene(err));
         return;
     }
+    if(logics::hInst->getFarm()->getSeed(mSelectedField->seedId)->isDeco)
+        addSprite(mSelectedField, mSelectedField->seedId);
+    else {
+        addSprite(mSelectedField, 0);
+        setLabel(to_string(mSelectedField->level), mSelectedField);
+    }
     
-    addSprite(mSelectedField, 0);
-    setLabel(to_string(mSelectedField->level), mSelectedField);
     updatePoint();
-    
     selectField(NULL);
 }
 
@@ -766,6 +795,51 @@ void FarmingScene::tillageCallback(Ref * pSender, MainScene::field * p){
     logics::hInst->getFarm()->remove(p->id);
     clear(p);
     closePopup(pSender);
+}
+
+void FarmingScene::showExtend(Ref * pSender) {
+    Size size = Size(150, 150);
+    Size grid = Size(5, 5);
+    
+    if (mPopupBackground == NULL) {
+        mPopupLayer = gui::inst()->createModalLayer(mPopupBackground, size);
+        mPopupLayer->setOpacity(192);
+        this->addChild(mPopupBackground, 99);
+    }
+    int price = 250;
+    for(int n=1; n < logics::hInst->getActor()->farmExtendCnt + 1; n++) {
+        price *= 2;
+    }
+    
+    string sz = COIN + numberFormat(price) + logics::hInst->getL10N("FARM_EXTEND");
+    
+    gui::inst()->addLabelAutoDimension(2, 1, sz, mPopupLayer, 0, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+ 
+    if(logics::hInst->getActor()->point - price < 0){
+        gui::inst()->addLabelAutoDimension(2, 2, logics::hInst->getL10N("FARM_EXTEND_FAILURE"), mPopupLayer, 0, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
+        gui::inst()->addTextButtonAutoDimension(2, 3, logics::hInst->getL10N("CANCEL"), mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
+                                                , 0, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+        
+    }else {
+        gui::inst()->addTextButtonAutoDimension(1, 3, logics::hInst->getL10N("EXTEND"), mPopupLayer, [=](Ref * pSender) {
+            if(logics::hInst->increasePoint(price * -1)){
+                this->removeChild(mMainLayoput);
+                logics::hInst->getActor()->farmExtendCnt = logics::hInst->getActor()->farmExtendCnt + 1;
+                initDeco();
+                closePopup(this);
+                updatePoint();
+                if(logics::hInst->getActor()->farmExtendCnt >= 6){
+                    mExtendBtn->setEnabled(false);
+                }
+            }
+        }, 0, ALIGNMENT_CENTER, Color3B::BLUE, grid, Size::ZERO, Size::ZERO);
+        
+        gui::inst()->addTextButtonAutoDimension(3, 3, logics::hInst->getL10N("CANCEL"), mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
+                                                , 0, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
+        
+    }
+   
+    
 }
 
 void FarmingScene::showInfo(MainScene::field * p) {
@@ -822,9 +896,9 @@ void FarmingScene::showInfo(MainScene::field * p) {
 		gui::inst()->addLabelAutoDimension(2, idx++, szRemain, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
 
     gui::inst()->addTextButtonAutoDimension(1, 6, logics::hInst->getL10N("FARM_TILLAGE"), mPopupLayer, CC_CALLBACK_1(FarmingScene::tillageCallback, this, p)
-                                            , 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
-	gui::inst()->addTextButtonAutoDimension(3, 6, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
-		, 12, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
+                                            , 12, ALIGNMENT_CENTER, Color3B::BLUE, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(3, 6, logics::hInst->getL10N("CLOSE"), mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
+		, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
 	
 }
 

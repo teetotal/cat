@@ -442,8 +442,11 @@ public:
 	//increment HP
 	bool increaseHP(int);
 	//increment Point
-	void increasePoint(int amount) {
+	bool increasePoint(int amount) {
+        if(getActor()->point + amount < 0)
+            return false;
 		getActor()->point += amount;
+        return true;
 	};
 
     float getExpRatio(){

@@ -181,26 +181,48 @@ bool farming::care(int fieldIdx, int boost) {
 	return true;
 }
 
+int farming::getLevel() {
+    //level
+    int threshold = 0;
+    int i = 1;
+    int level = 0;
+    
+    while (true) {
+        if (i >= 0xFF)
+            break;
+        
+        threshold += FARM_LEVEL_PER_HARVEST * i++;
+        if (mCntHarvest < threshold) {
+            break;
+        }
+        else {
+            level++;
+        }
+    }
+    
+    return level;
+}
+
 void farming::makeQuest(int cnt) {
 	int nMax = (int)(cnt - mQuestVector.size());
 	//level 
-	int threshold = 0;
-	int i = 1;
-	int level = 0;
-
-	while (true) {
-		if (i >= 0xFF)
-			break;
-
-		threshold += FARM_LEVEL_PER_HARVEST * i++;
-		if (mCntHarvest < threshold) {			
-			break;
-		}
-		else {
-			level++;
-		}
-	}
-	//int level = min((int)(mSeedProducts.size() - 1), (int)(mCntHarvest / FARM_LEVEL_PER_HARVEST));
+//    int threshold = 0;
+//    int i = 1;
+//    int level = 0;
+//
+//    while (true) {
+//        if (i >= 0xFF)
+//            break;
+//
+//        threshold += FARM_LEVEL_PER_HARVEST * i++;
+//        if (mCntHarvest < threshold) {
+//            break;
+//        }
+//        else {
+//            level++;
+//        }
+//    }
+    int level = getLevel();
 	float expRatio = (float)((mCntHarvest % FARM_LEVEL_PER_HARVEST) +1 ) / (float)FARM_LEVEL_PER_HARVEST;
 
 	for (int n = 0; n < nMax; n++) {
