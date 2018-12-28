@@ -136,6 +136,7 @@ private:
 	Sprite * mRunner[raceParticipantNum + 1];
 	Label * mRunnerLabel[raceParticipantNum + 1];
 	Vec2 mRunnerInitPosition[raceParticipantNum + 1];
+    bool mFinalFlags[raceParticipantNum + 1];
 	//Start Count
 	Label * mCounting;
 	Label * mBoostPercent;

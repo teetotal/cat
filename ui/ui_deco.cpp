@@ -207,7 +207,7 @@ void ui_deco::createWall( bool isDraw
     }
 }
 
-void ui_deco::drawGuidLine(){
+void ui_deco::drawGuideLine(bool isBottom, bool isLine){
     //guide line
     const float margin = 15;
     float xLen = gui::inst()->getTanLen(mH, mDegrees);
@@ -217,34 +217,37 @@ void ui_deco::drawGuidLine(){
     Vec2 right2 = Vec2(mCenter.x + xLen, mH);
     
     Color4F color = Color4F::GRAY;
-    auto draw = DrawNode::create();
-    draw->setLineWidth(3);
-//    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), Vec2(mCenter.x, mH), color);
-    draw->drawLine(Vec2(mCenter.x, mH), left, color);
-    draw->drawLine(Vec2(mCenter.x, mH), right, color);
+    if(isLine) {
+        auto draw = DrawNode::create();
+        draw->setLineWidth(3);
+    //    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), Vec2(mCenter.x, mH), color);
+        draw->drawLine(Vec2(mCenter.x, mH), left, color);
+        draw->drawLine(Vec2(mCenter.x, mH), right, color);
+        
+        draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), left2, color);
+        draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), right2, color);
+        
+        draw->drawLine(Vec2(0, -1 * margin), Vec2(0, mH), color);
+        draw->drawLine(Vec2(right.x, -1 * margin), Vec2(right.x, mH), color);
+        
+        mLayout[LAYER_GUIDELINE]->addChild(draw);
+    }
+    if(isBottom) {
+        gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
+                                       , mWallPostions.rightBottom
+                                       , Vec2(mCenter.x, -1 * mH)
+                                       , Vec2(mWallPostions.rightBottom.x, mWallPostions.rightBottom.y - margin)
+                                       , Vec2(mCenter.x, -1 * mH - margin)
+                                       , Color4F::GRAY);
+        
+        gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
+                                       , mWallPostions.leftBottom
+                                       , Vec2(mCenter.x, -1 * mH)
+                                       , Vec2(mWallPostions.leftBottom.x, mWallPostions.leftBottom.y - margin)
+                                       , Vec2(mCenter.x, -1 * mH - margin)
+                                       , Color4F::GRAY);
+    }
     
-    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), left2, color);
-    draw->drawLine(Vec2(mCenter.x, mMainLayoput->getContentSize().height), right2, color);
-    
-    draw->drawLine(Vec2(0, -1 * margin), Vec2(0, mH), color);
-    draw->drawLine(Vec2(right.x, -1 * margin), Vec2(right.x, mH), color);
-    
-    mLayout[LAYER_GUIDELINE]->addChild(draw);
-    
-    
-    gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
-                                   , mWallPostions.rightBottom
-                                   , Vec2(mCenter.x, -1 * mH)
-                                   , Vec2(mWallPostions.rightBottom.x, mWallPostions.rightBottom.y - margin)
-                                   , Vec2(mCenter.x, -1 * mH - margin)
-                                   , Color4F::GRAY);
-    
-    gui::inst()->drawParallelogram(mLayout[LAYER_GUIDELINE]
-                                   , mWallPostions.leftBottom
-                                   , Vec2(mCenter.x, -1 * mH)
-                                   , Vec2(mWallPostions.leftBottom.x, mWallPostions.leftBottom.y - margin)
-                                   , Vec2(mCenter.x, -1 * mH - margin)
-                                   , Color4F::GRAY);
     
     /*
      gui::inst()->drawTriangle(mMainLayoput

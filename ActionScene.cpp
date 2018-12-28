@@ -348,7 +348,7 @@ RepeatForever * ActionScene::getRunningAnimation(bool isSpeedUp) {
 
 Sprite* ActionScene::createRunner(int idx) {
 	mSufferState[idx] = SUFFER_STATE_NONE;
-		
+    mFinalFlags[idx] = false;
 	auto p = gui::inst()->addSprite(0, 8, RACE_DEFAULT_IMG, mFullLayer);
     
     if(mScale == -1)
@@ -451,21 +451,33 @@ void ActionScene::timer(float f) {
 		
         //rank
         if (p.ratioLength >= 100.f) {	//결승점에서는 순위
-			mRunner[n]->stopAllActions();
-            mRunner[n]->runAction(getRunningAnimation());
-            mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL * 4, Vec2(mFullLayer->getContentSize().width + mRunner[n]->getContentSize().width
-                                                                            , mRunnerInitPosition[n].y)));
-			//mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
-            
-            
-			//mRunnerLabel[n]->setString(to_string(p.rank));
-            
-            if(n == raceParticipantNum) {
-                setRankInfo(p.rank);
+            if(mFinalFlags[n] == false) {
+                mFinalFlags[n] = true;
+                mRunner[n]->stopAllActions();
+                mRunner[n]->runAction(getRunningAnimation());
+                mRunner[n]->runAction(MoveTo::create(RACE_UPDATE_INTERVAL * 4, Vec2(mFullLayer->getContentSize().width + mRunner[n]->getContentSize().width
+                                                                                , mRunnerInitPosition[n].y)));
+                //mRunner[n]->setPosition(Vec2(mGoalLength, mRunnerInitPosition[n].y));
+                //mRunnerLabel[n]->setString(to_string(p.rank));
+                
+                if(n == raceParticipantNum) {
+                    setRankInfo(p.rank);
+//                    Color3B fontColor = Color3B::BLACK;
+//                    if(p.rank <= 2) {
+//                        auto pt = ParticleFireworks::create();
+//                        pt->setDuration(0.5);
+//                        this->addChild(pt);
+//                        fontColor = Color3B::ORANGE;
+//                    }
+//                    gui::inst()->addLabel(4, 3, getRankString(p.rank), this, 32, ALIGNMENT_CENTER, fontColor)->runAction(
+//                                                                                            Sequence::create(ScaleTo::create(0.5, 3)
+//                                                                                                             , RemoveSelf::create()
+//                                                                                                             , NULL)
+//                                                                                            );
+                }
             }
             finishCnt++;
             continue;
-			
 		}
 		else { //순위 전
             //공격 아이템 사용시 효과

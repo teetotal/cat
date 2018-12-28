@@ -43,7 +43,8 @@ bool FarmingScene::init()
 	mGridSize.height = a1.y - a2.y;
 
     
-//    auto bg = gui::inst()->addBG("layers/dark_forest/rocks.png", this);
+//    auto bg = gui::inst()->addBG("layers/dark_forest/sky.png", this);
+//    bg->setLocalZOrder(-2);
 //    bg->setOpacity(192);
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
     gui::inst()->addTextButton(8, 6, "Extend", this, [=](Ref * pSender) {
@@ -79,6 +80,7 @@ bool FarmingScene::init()
 	this->addChild(mCharacter, 99);
     
     initDeco();
+//    mMainLayoput->addChild(ParticleRain::create());
 
 	updateFarming(0);
 	this->schedule(schedule_selector(FarmingScene::updateFarming), 1.f);
@@ -98,7 +100,20 @@ void FarmingScene::initDeco() {
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mainLayerHeight), "", false, Color3B::GRAY);
     //wall bg
     mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/sky.png", mMainLayoput));
-    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/clouds_2.png", mMainLayoput));
+    
+//    auto bgLeft = Sprite::create("layers/dark_forest/sky.png");
+//    bgLeft->setContentSize(Size(mMainLayoput->getContentSize().width / 2 + 13, mMainLayoput->getContentSize().height));
+//    bgLeft->setRotationSkewY(-1*degrees);
+//    bgLeft->setAnchorPoint(Vec2::ZERO);
+//    mMainLayoput->addChild(bgLeft);
+    auto bgRight = Sprite::create("layers/dark_forest/clouds_2.png");
+    bgRight->setContentSize(Size(mMainLayoput->getContentSize().width / 2 + 13, mMainLayoput->getContentSize().height));
+    bgRight->setRotationSkewY(degrees);
+    bgRight->setPosition(Vec2(mMainLayoput->getContentSize().width, 0));
+    bgRight->setAnchorPoint(Vec2(1,0));
+    mMainLayoput->addChild(bgRight);
+    
+//    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/clouds_2.png", mMainLayoput));
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/rocks.png", mMainLayoput));
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_1.png", mMainLayoput));
 //    mMainLayoput->addChild(gui::inst()->getfittedSprite("layers/dark_forest/ground_2.png", mMainLayoput));
@@ -109,7 +124,7 @@ void FarmingScene::initDeco() {
 //    mUIDeco.addWall(_div/ 8, Color4F::WHITE, Color4F::BLACK);
     mUIDeco.addBottom(_div, _div, Color4F(Color3B(135, 118, 38)), Color4F(Color3B(123, 108, 5)));
 //    mUIDeco.addBottom(_div, _div, Color4F::GRAY, Color4F::YELLOW);
-//    mUIDeco.drawGuidLine();
+    mUIDeco.drawGuideLine(true, false);
     
     Vec2 posMainLayer = gui::inst()->getCenter();
     posMainLayer.y  += mMainLayoput->getContentSize().height / 2;
@@ -160,11 +175,11 @@ void FarmingScene::initDeco() {
         else {
             p->sprite = NULL;
             //bg
-            string szImg = (n % 3 == 0) ? "field.png" : "rock.png";
-            Sprite * img = gui::inst()->getfittedSprite(szImg, p->l);
-            img->setScale(0.5);
-            img->setFlippedX(n % 2 == 0 ? true : false);
-            p->l->addChild(img);
+//            string szImg = (n % 3 == 0) ? "field.png" : "rock.png";
+//            Sprite * img = gui::inst()->getfittedSprite(szImg, p->l);
+//            img->setScale(0.5);
+//            img->setFlippedX(n % 2 == 0 ? true : false);
+//            p->l->addChild(img);
         }
         
         //this->addChild(p->l, 0);
@@ -633,7 +648,7 @@ void FarmingScene::createSeedMenu()
 	end = Vec2(start.x + 7, start.y -1);
 	
 	int margin = 10;
-	int layerSize = 30;
+	int layerSize = 25;
 
 	int cnt = (int)logics::hInst->getFarm()->getSeeds()->size();
 

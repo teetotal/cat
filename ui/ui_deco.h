@@ -82,7 +82,7 @@ public:
         init(pParentNode, p->mDegrees);
         addBottom(p->mBottomDivCnt, p->mDrawBottomDivCnt, p->mBottomColor1, p->mBottomColor2);
         addWall(p->mWallDivCnt, p->mWallColor1, p->mWallColor2);
-        drawGuidLine();
+        drawGuideLine();
     };
     //바닥 좌표, 타일
     void addBottom(int posDiv, int drawDiv, Color4F color1 = Color4F::BLACK, Color4F color2 = Color4F::GRAY);
@@ -119,7 +119,7 @@ public:
     void createWall(int div, POSITION_VECTOR * vecLeft, POSITION_VECTOR * vecRight, Color4F color){
         createWall(true, div, vecLeft, vecRight, color, getDarkColor(color));
     };
-    void drawGuidLine();
+    void drawGuideLine(bool isBottom = true, bool isLine = true);
     
     //objecs -------------
     void addObject(OBJECT &obj){
