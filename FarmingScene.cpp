@@ -762,6 +762,11 @@ RepeatForever * FarmingScene::getFarmingAnimation() {
 	return RepeatForever::create(Animate::create(animation));
 }
 
+void FarmingScene::tillageCallback(Ref * pSender, MainScene::field * p){
+    logics::hInst->getFarm()->remove(p->id);
+    clear(p);
+    closePopup(pSender);
+}
 
 void FarmingScene::showInfo(MainScene::field * p) {
     Size size = Size(150, 150);
@@ -778,7 +783,7 @@ void FarmingScene::showInfo(MainScene::field * p) {
 	);
 
 	string szHarvest, szRemain;
-	string szReaped = "Reaped: " + to_string(p->accumulation);
+    string szReaped = (!logics::hInst->getFarm()->getSeed(p->seedId)->isDeco) ? "Reaped: " + to_string(p->accumulation) : "";
 
 	switch (p->status) {
 	case farming::farming_status_decay:
@@ -790,31 +795,35 @@ void FarmingScene::showInfo(MainScene::field * p) {
 	case farming::farming_status_grown:
 		szHarvest = "Grown: " + to_string(p->getGrownCnt(logics::hInst->getFarm()->getSeed(p->seedId)->timeGrow));
 	default:
-		szRemain = "";
-		int nRemain = (int)(p->finishTime - getNow());
-		int min = nRemain / 60;
-		int sec = nRemain % 60;
-		if (min > 0)
-			szRemain += to_string(min) + " min ";
-		szRemain += to_string(sec) + " sec..";
+        szRemain = "";
+        if(!logics::hInst->getFarm()->getSeed(p->seedId)->isDeco){
+            int nRemain = (int)(p->finishTime - getNow());
+            int min = nRemain / 60;
+            int sec = nRemain % 60;
+            if (min > 0)
+                szRemain += to_string(min) + " min ";
+            szRemain += to_string(sec) + " sec..";
+        }
+		
 		break;
 	} 
 
-	Size grid = Size(3, 7);
+	Size grid = Size(5, 8);
 	int idx = 1;
     gui::inst()->setScale(
-	gui::inst()->addSpriteAutoDimension(1, idx++, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO)
+	gui::inst()->addSpriteAutoDimension(2, idx++, MainScene::getItemImg(logics::hInst->getFarm()->getSeed(p->seedId)->farmProductId), mPopupLayer, ALIGNMENT_CENTER, grid, Size::ZERO, Size::ZERO)
                           , size.height / grid.height);
-	gui::inst()->addLabelAutoDimension(1, idx++, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addLabelAutoDimension(2, idx++, szName, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 	if(szHarvest.size() > 1)
-		gui::inst()->addLabelAutoDimension(1, idx++, szHarvest, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(2, idx++, szHarvest, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::BLACK, grid, Size::ZERO, Size::ZERO);
 	if(szReaped.size() > 1)
-		gui::inst()->addLabelAutoDimension(1, idx++, szReaped, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::GRAY, grid, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(2, idx++, szReaped, mPopupLayer, 12, ALIGNMENT_NONE, Color3B::GRAY, grid, Size::ZERO, Size::ZERO);
 	if(szRemain.size() > 1)
-		gui::inst()->addLabelAutoDimension(1, idx++, szRemain, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
+		gui::inst()->addLabelAutoDimension(2, idx++, szRemain, mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
 
-	//close
-	gui::inst()->addTextButtonAutoDimension(1, 6, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
+    gui::inst()->addTextButtonAutoDimension(1, 6, logics::hInst->getL10N("FARM_TILLAGE"), mPopupLayer, CC_CALLBACK_1(FarmingScene::tillageCallback, this, p)
+                                            , 12, ALIGNMENT_CENTER, Color3B::ORANGE, grid, Size::ZERO, Size::ZERO);
+	gui::inst()->addTextButtonAutoDimension(3, 6, "CLOSE", mPopupLayer, CC_CALLBACK_1(FarmingScene::closePopup, this)
 		, 12, ALIGNMENT_CENTER, Color3B::RED, grid, Size::ZERO, Size::ZERO);
 	
 }

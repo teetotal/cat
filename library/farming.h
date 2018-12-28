@@ -240,6 +240,7 @@ public:
 	};
 	void setStatus();				//농작물 상태 설정		
 	bool harvest(int fieldIdx, int &farmProductId, int &output); //수확
+    void remove(int fieldId); //제거
 	bool plant(int fieldIdx, int seedId);	//심기		
 	bool care(int fieldIdx, int boost = 0); //가꾸기
 	void addSeed(seed *s) {	//씨앗 등록

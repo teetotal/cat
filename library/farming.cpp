@@ -101,7 +101,13 @@ void farming::setStatus(int fieldIdx) {
 		
 	mLock.unlock();
 }
-
+//제거
+void farming::remove(int fieldId) {
+    int fieldIdx = getIdx(fieldId);
+    mLock.lock();
+    mFields[fieldIdx]->init();
+    mLock.unlock();
+}
 //수확
 bool farming::harvest(int fieldIdx, int &farmProductId, int &output) {
 	mLock.lock();

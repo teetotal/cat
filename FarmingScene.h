@@ -103,6 +103,7 @@ private:
 	void closeCallback(Ref * pSender) {
 		Director::getInstance()->popScene();
 	};
+    void tillageCallback(Ref * pSender, MainScene::field * p);
 	RepeatForever * getFarmingAnimation();
 	void updateFarming(float f);
 
