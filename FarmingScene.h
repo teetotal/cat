@@ -101,6 +101,7 @@ private:
 	void seedCallback(cocos2d::Ref* pSender, int seedId);
 	void questCallback(cocos2d::Ref* pSender, int idx);
 	void setQuest();
+    void focusOnEmpty();
 
 	void closeCallback(Ref * pSender) {
 		Director::getInstance()->popScene();

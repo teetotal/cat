@@ -85,17 +85,16 @@ bool FarmingScene::init()
 	updateFarming(0);
 	this->schedule(schedule_selector(FarmingScene::updateFarming), 1.f);
 
+    focusOnEmpty();
     return true;
 }
 
 void FarmingScene::initDeco() {
+    const float defaultH = ((Director::getInstance()->getVisibleSize().height / 2) / 6 );
     const float degrees = 27.f;
-    const float _div = logics::hInst->getActor()->farmExtendCnt * 6;
-    
-//    const float layerWidth = gui::inst()->getTanLen(Director::getInstance()->getVisibleSize().height / 2, degrees) * 2;
-//    mMainLayoput = gui::inst()->createLayout(Size(layerWidth, Director::getInstance()->getVisibleSize().height), "", false, Color3B::GRAY);
-
-    float mainLayerHeight = (Director::getInstance()->getVisibleSize().height / 2) * logics::hInst->getActor()->farmExtendCnt;
+    const float _div = 6 + ((logics::hInst->getActor()->farmExtendCnt - 1) * 2);
+   
+    float mainLayerHeight = (Director::getInstance()->getVisibleSize().height / 2) + ((logics::hInst->getActor()->farmExtendCnt - 1) * 2 * defaultH);
     const float layerWidth = gui::inst()->getTanLen(mainLayerHeight / 2, degrees) * 2;
     mMainLayoput = gui::inst()->createLayout(Size(layerWidth, mainLayerHeight), "", false, Color3B::GRAY);
     //wall bg
@@ -134,7 +133,6 @@ void FarmingScene::initDeco() {
 //    mMainLayoput->setScale(2);
     
     this->addChild(mMainLayoput, -1);
-    
     
     for (int n = (int)logics::hInst->getFarm()->getFields()->size(); n < mUIDeco.getBottomVecSize(); n++) {
         MainScene::field * node = new MainScene::field();
@@ -353,8 +351,9 @@ void FarmingScene::selectField(MainScene::field * p) {
 }
 
 bool FarmingScene::resetMode(bool isClearSelectedLayer) {
-    if(isClearSelectedLayer)
+    if(isClearSelectedLayer) {
         selectField(NULL);
+    }
     mMode = Mode_Max;
     return true;
 }
@@ -438,6 +437,7 @@ bool FarmingScene::onTouchEnded(Touch* touch, Event* event) {
 		if (pField->sprite && pField->sprite->getBoundingBox().intersectsRect(p->sprite->getBoundingBox())
             && p->seedId == pField->seedId && p->level == pField->level
             && logics::hInst->getFarm()->getSeed(p->seedId)->isDeco == false
+            && p->status != farming::farming_status_sprout
             ) {
             //merge
             levelUp(pField);
@@ -542,12 +542,12 @@ void FarmingScene::onTouchMoved(Touch *touch, Event *event) {
 //                  , movedPoint.y
 //                  );
             
-//            if((movedPoint.x < mMainLayoput->getContentSize().width * -0.5)
+            if((movedPoint.x < mMainLayoput->getContentSize().width * -0.5)
 //               || movedPoint.y < mMainLayoput->getContentSize().height * -0.5
 //               || movedPoint.x > mMainLayoput->getContentSize().width
 //               || movedPoint.y > mMainLayoput->getContentSize().height * 1.5
-//               )
-//                break;
+               )
+                break;
             
             mMainLayoput->setPosition(movedPoint);
             mTouchDownPosition = touch->getLocation();
@@ -565,10 +565,14 @@ void FarmingScene::swap(MainScene::field* a, MainScene::field * b) {
 
 	logics::hInst->getFarm()->swap(a, b);
 
-    if (a->sprite) 
+    if (a->sprite) {
         a->sprite->setPosition(getSpritePos(a));
-    if (b->sprite)
+        stopAction(a->sprite);
+    }
+    if (b->sprite) {
         b->sprite->setPosition(getSpritePos(b));
+        stopAction(b->sprite);
+    }
 
     if(a->level > 0 && !logics::hInst->getFarm()->getSeed(a->seedId)->isDeco) {
         setLabel(to_string(a->level), a);
@@ -622,7 +626,8 @@ void FarmingScene::setOpacity() {
             n++;
 			continue;
         }
-		if (pField->level == p->level && pField->seedId == p->seedId) {
+        
+        if (pField->level == p->level && pField->seedId == p->seedId) {
 
 		}
 		else {
@@ -657,7 +662,7 @@ void FarmingScene::createSeedMenu()
 	end = Vec2(start.x + 7, start.y -1);
 	
 	int margin = 10;
-	int layerSize = 25;
+	int layerSize = 30;
 
 	int cnt = (int)logics::hInst->getFarm()->getSeeds()->size();
 
@@ -729,33 +734,6 @@ void FarmingScene::addSprite(MainScene::field * p, int seedId) {
 
 void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
 {
-    /*
-	//seed * s = mSeedVector[seedIdx];		
-	int n = 0;
-	farming::field *f;
-	while (logics::hInst->getFarm()->getField(n, f)) {
-		MainScene::field * p = (MainScene::field*)f;
-	
-        if (p->seedId != 0) {
-            n++;
-			continue;
-        }
-		
-		errorCode err = logics::hInst->farmingPlant(n, seedId);
-		if (err != error_success) {
-			//에러 팝업
-			Director::getInstance()->pushScene(AlertScene::createScene(err));
-			return;
-		}
-		
-		addSprite(p, 0);
-        setLabel(to_string(p->level), p);
-
-		//s->itemQuantity--;
-		updatePoint();
-		break;
-	}
-     */
     if(mSelectedField->sprite)
         return;
     
@@ -774,6 +752,19 @@ void FarmingScene::seedCallback(cocos2d::Ref * pSender, int seedId)
     }
     
     updatePoint();
+    focusOnEmpty();
+}
+
+void FarmingScene::focusOnEmpty() {
+    int n = 0;
+    farming::field * f;
+    while (logics::hInst->getFarm()->getField(n, f)) {
+        MainScene::field * p = (MainScene::field*)f;
+        if(p->seedId == 0)
+            return selectField(p);
+        n++;
+    }
+    
     selectField(NULL);
 }
 
