@@ -49,7 +49,7 @@ bool FarmingScene::init()
 //    bg->setOpacity(192);
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
     mExtendBtn = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("EXTEND"), this, CC_CALLBACK_1(FarmingScene::showExtend, this), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
-	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this);
+	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
     
     if(logics::hInst->getActor()->farmExtendCnt >= 6){
         mExtendBtn->setEnabled(false);
@@ -659,24 +659,31 @@ void FarmingScene::createSeedMenu()
     
 	Vec2 start, end;
 	start = Vec2(1, 7);
-	end = Vec2(start.x + 7, start.y -1);
-	
-	int margin = 10;
-	int layerSize = 30;
-
-	int cnt = (int)logics::hInst->getFarm()->getSeeds()->size();
-
-    Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1));
+	end = Vec2(start.x + 7, start.y - 1);
+	Size sizeOfScrollView = gui::inst()->getScrollViewSize(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1));
+    
+	int layerSize = sizeOfScrollView.height;
+    float margin = layerSize * 0.2; //margin 20%
+    
+    farming::seeds * seeds = logics::hInst->getFarm()->getSeeds();
+    CC_ASSERT(seeds);
+//    int cnt = (int)logics::hInst->getFarm()->getSeeds()->size();
+    //counting
+    int n = 0;
+    for (farming::seeds::iterator it = seeds->begin(); it != seeds->end(); ++it) {
+        if(!it->second->isDeco && mCurrentFarmLevel < n)
+            continue;
+        
+        n++;
+    }
+    
 	//mScrollView = gui::inst()->addScrollView(start, end, Size::ZERO, Size::ZERO, "", Size(sizeOfScrollView.width, 30 * cnt), this);
-	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * cnt + margin, sizeOfScrollView.height), this);
+	mScrollView = gui::inst()->addScrollView(start, end, Size(-1, -1), Size(-1, -1), Size(-1, -1), Size(-1, -1), "", Size((layerSize + margin) * n + margin, sizeOfScrollView.height), this);
 	mScrollView->setBackGroundColor(Color3B::WHITE);
 	mScrollView->setBackGroundColorOpacity(64);
 	mScrollView->setBackGroundColorType(Layout::BackGroundColorType::GRADIENT);
 	
-    farming::seeds * seeds = logics::hInst->getFarm()->getSeeds();
-    CC_ASSERT(seeds);
-
-    int n = 0;
+    n = 0;
 	for (farming::seeds::iterator it = seeds->begin(); it != seeds->end(); ++it) {
         if(!it->second->isDeco && mCurrentFarmLevel < n)
             continue;
@@ -684,9 +691,18 @@ void FarmingScene::createSeedMenu()
         n++;
         
 		auto layout = gui::inst()->createLayout(Size(layerSize, layerSize));
-		auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
-		sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
-		sprite->setOpacity(192);
+//        auto sprite = gui::inst()->addSpriteAutoDimension(0, 0, MainScene::getItemImg(it->second->id), layout, ALIGNMENT_CENTER, Size(1, 1), Size::ZERO, Size::ZERO);
+//        sprite->setContentSize(Size(layerSize * 0.8, layerSize * 0.8));
+//        sprite->setOpacity(192);
+        
+        auto pBtn = gui::inst()->addSpriteButton(0, 0
+                                                 , MainScene::getItemImg(it->second->id)
+                                                 , MainScene::getItemImg(it->second->id)
+                                                 , layout
+                                                 , CC_CALLBACK_1(FarmingScene::seedCallback, this, it->second->id)
+                                                 , ALIGNMENT_CENTER
+                                                 , layout->getContentSize(), Size(1, 1), Size::ZERO, Size::ZERO);
+        gui::inst()->setScaleAuto(pBtn, layerSize * 1.0);
         
         if(it->second->isDeco)
             gui::inst()->addLabelAutoDimension(0, 0
@@ -699,11 +715,12 @@ void FarmingScene::createSeedMenu()
                                                     , Size::ZERO, Size::ZERO);
 
 
+        
 		gui::inst()->addTextButtonAutoDimension(0, 1
 			, COIN + to_string(logics::hInst->getTrade()->getPriceBuy(it->second->id))
 			, layout
 			, CC_CALLBACK_1(FarmingScene::seedCallback, this, it->second->id)
-			, 10
+			, 12
 			, ALIGNMENT_CENTER
 			, Color3B::BLUE
 			, Size(1, 2)

@@ -416,6 +416,13 @@ MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string t
 
         pMenu->setPosition(Point(pX, pointY));
     }
+    
+    //bgcolor 는 이렇게 하면 되는데, 생성 후 위치를 변경하면 문제.
+//    auto bgColorLayer = LayerColor::create(Color4B::GRAY);
+//    bgColorLayer->setOpacity(64);
+//    bgColorLayer->setContentSize(pItem->getContentSize());
+//    bgColorLayer->setPosition(Vec2(pMenu->getPosition().x - pItem->getContentSize().width / 2, pMenu->getPosition().y - pItem->getContentSize().height / 2));
+//    p->addChild(bgColorLayer);
 
     p->addChild(pMenu);
 

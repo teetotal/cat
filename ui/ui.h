@@ -414,6 +414,12 @@ public:
         return targetHeight / p->getContentSize().height;
     };
     //set Scale
+    void setScaleAuto(Node * p, float targetSize) {
+      if(p->getContentSize().width > p->getContentSize().height)
+          return setScale(p, targetSize);
+        
+        return setScaleByHeight(p, targetSize);
+    };
 	void setScale(Node * p, float targetWidth) {
 		//float ratio = targetWidth / p->getContentSize().width;
 		p->setScale(getScale(p, targetWidth));
