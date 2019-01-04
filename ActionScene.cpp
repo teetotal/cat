@@ -462,6 +462,7 @@ void ActionScene::timer(float f) {
                 
                 if(n == raceParticipantNum) {
                     setRankInfo(p.rank);
+                    mMyRank->runAction(Blink::create(RACE_UPDATE_INTERVAL * 4, 6));
 //                    Color3B fontColor = Color3B::BLACK;
 //                    if(p.rank <= 2) {
 //                        auto pt = ParticleFireworks::create();
@@ -483,6 +484,13 @@ void ActionScene::timer(float f) {
             //공격 아이템 사용시 효과
             if(p.shootCurrentType == itemType_race_attactFront || p.shootCurrentType == itemType_race_attactFirst) {
                 mRunnerLabel[n]->setString(getSkillIcon(p.shootCurrentType));
+                string sz  = getSkillIcon(p.shootCurrentType) + " " + wstring_to_utf8(names[n]) + "->" + wstring_to_utf8(names[p.shootTarget]);
+                gui::inst()->addLabel(4, 2, sz, this, 0, ALIGNMENT_CENTER, Color3B::GRAY)->runAction(
+                                                                 Sequence::create(MoveBy::create(RACE_UPDATE_INTERVAL, Vec2(0, 20))
+                                                                                  , FadeOut::create(RACE_UPDATE_INTERVAL)
+                                                                                  , RemoveSelf::create()
+                                                                                  , NULL)
+                );
             }
             else{
                 mRunnerLabel[n]->setString(" ");
@@ -570,6 +578,17 @@ void ActionScene::timer(float f) {
 
 void ActionScene::setRankInfo(int rank) {
     mMyRank->setString(getRankString(rank));
+    switch(rank) {
+        case 1:
+            mMyRank->setColor(Color3B::RED);
+            break;
+        case 2:
+            mMyRank->setColor(Color3B::ORANGE);
+            break;
+        default:
+            mMyRank->setColor(Color3B::GRAY);
+            break;
+    }
 }
 
 void ActionScene::result() {
@@ -595,15 +614,11 @@ void ActionScene::result() {
 	mPopupLayer = gui::inst()->addPopup(mPopupLayerBackground, this, Size(300, 200), BG_RACE, Color4B::WHITE);
 
 	//결과처리
-	wstring sz;
-	sz += L"순위: ";
-	sz += to_wstring(mRaceCurrent->rank);
-	
 	int idx = 1;
-	gui::inst()->addLabelAutoDimension(2, idx++, wstring_to_utf8(sz), mPopupLayer, 14, ALIGNMENT_CENTER, Color3B::BLACK
+	gui::inst()->addLabelAutoDimension(2, idx++, getRankString(mRaceCurrent->rank), mPopupLayer, 28, ALIGNMENT_CENTER, Color3B::BLACK
 		, grid, Size::ZERO, Size::ZERO);
 
-	sz = L"";
+	wstring sz = L"";
 	int prize = logics::hInst->getRaceReward(mRaceCurrent->id, mRaceCurrent->rank - 1);
 	if (mRaceCurrent->prize > 0) {
 		sz += L"상금: ";
@@ -618,7 +633,7 @@ void ActionScene::result() {
 		sz += to_wstring(mRaceCurrent->rewardItemQuantity);
 	}
 	
-	gui::inst()->addLabelAutoDimension(2, idx++, wstring_to_utf8(sz), mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK
+	gui::inst()->addLabelAutoDimension(2, idx++,  wstring_to_utf8(sz), mPopupLayer, 12, ALIGNMENT_CENTER, Color3B::BLACK
 		, grid, Size::ZERO, Size::ZERO);
 	//this->addChild(l);
 	idx++;

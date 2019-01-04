@@ -1477,10 +1477,12 @@ int logics::getRaceReward(int id, int rankIdx) {
 }
 
 
-void logics::invokeRaceByRank(int rank, itemType type, int quantity) {
+void logics::invokeRaceByRank(int rank, itemType type, int quantity, int fromSeq) {
 	for (int n = 0; n <= raceParticipantNum; n++) {
-		if (mRaceParticipants->at(n).currentRank == rank)
-			return invokeRaceItem(n, type, quantity);
+		if (mRaceParticipants->at(n).currentRank == rank) {
+            mRaceParticipants->at(fromSeq).shootTarget = n;
+            return invokeRaceItem(n, type, quantity);
+        }
 	}
 }
 
@@ -1495,6 +1497,7 @@ void logics::invokeRaceItem(int idx, itemType type, int quantity) {
 
 	for (int m = 0; m < quantity; m++)
 		mRaceParticipants->at(idx).sufferItems.push(type);
+    
 	return;
 }
 
@@ -1513,11 +1516,11 @@ void logics::invokeRaceItem(int seq, itemType type, int quantity, int currentRan
 		break;
 	case itemType_race_attactFront:	//전방 공격
 		if (currentRank > 1)
-			invokeRaceByRank(currentRank - 1, itemType_race_attactFront, quantity);
+			invokeRaceByRank(currentRank - 1, itemType_race_attactFront, quantity, seq);
 		break;
 	case itemType_race_attactFirst:	//1등 공격
 		if (currentRank > 1)
-			invokeRaceByRank(1, itemType_race_attactFirst, quantity);
+			invokeRaceByRank(1, itemType_race_attactFirst, quantity, seq);
 		break;
 
 	default:

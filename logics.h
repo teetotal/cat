@@ -350,6 +350,7 @@ struct _raceParticipant : _property {
     int shootItemCountAccumul; //누적
 	itemType shootCurrentType; //현재 사용한 아이템 타입
 	int shootCurrentQuantity; //현재 사용한 아이템 수량
+    int shootTarget;          //공격 대상
 
 	_raceParticipant() {
 		this->idx = 0;
@@ -363,6 +364,7 @@ struct _raceParticipant : _property {
         this->shootItemCountAccumul = 0;
 		this->shootCurrentType = itemType_max;
 		this->shootCurrentQuantity = 0;
+        this->shootTarget = 0;
 	};
 	bool operator <(const _raceParticipant &a) const {
 		return this->totalLength > a.totalLength;		
@@ -646,7 +648,7 @@ private:
 	//race AI 아이템 발동
 	void invokeRaceItemAI();
 	//race 순위에 아이템 적용
-	void invokeRaceByRank(int rank, itemType type, int quantity);
+	void invokeRaceByRank(int rank, itemType type, int quantity, int fromSeq);
 	void clearRaceItem(int idx) {
 		while (!mRaceParticipants->at(idx).sufferItems.empty())
 		{
