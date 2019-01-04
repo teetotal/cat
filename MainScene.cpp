@@ -125,9 +125,10 @@ bool MainScene::init()
     mFarming = gui::inst()->addTextButton(2,6, logics::hInst->getL10N("MAINMENU_FARM"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
 	
 
-    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);	    
-    mHP = gui::inst()->addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
-	mPoint = gui::inst()->addTextButton(8, 0, COIN, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 0, ALIGNMENT_CENTER, Color3B::GRAY);
+    mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
+    
+    mHP.addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
+	mPoint.addTextButton(8, 0, COIN, this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_PURCHASE), 0, ALIGNMENT_CENTER, Color3B::BLACK);
 
     mProperties = gui::inst()->addLabel(8, 2, "", this, 12, ALIGNMENT_CENTER, fontColor);
 	   
@@ -276,8 +277,8 @@ bool MainScene::initFarm() {
 	Vec2 a1 = gui::inst()->getPointVec2(0, 0, ALIGNMENT_NONE);
 	Vec2 a2 = gui::inst()->getPointVec2(1, 1, ALIGNMENT_NONE);
 //    Size gridSize = Size(a2.x - a1.x, a1.y - a2.y);
-	int id = 0;
-	//farm init or load	
+//    int id = 0;
+	//farm init or load
 	sqlite3_stmt * stmt = Sql::inst()->select("select * from farm");
 	if (stmt == NULL)
 		return false;
@@ -473,23 +474,23 @@ void MainScene::updateState(bool isInventoryUpdated) {
 	
 	string szHP = wstring_to_utf8(szwHP);
 
-    if(szHP.compare(mHP->getString()) != 0 ){
+    if(szHP.compare(mHP.getString()) != 0 ){
 		
-        mHP->runAction(gui::inst()->createActionFocus());
+        mHP.getNode()->runAction(gui::inst()->createActionFocus());
 		
 		//mHP->runAction(RepeatForever::create(Sequence::create(Blink::create(1, 1), NULL)));
 
     }
-    mHP->setString(szHP);
+    mHP.setString(szHP);
 
     string szPoint = COIN;
     //szPoint += to_string(logics::hInst->getActor()->point);
     szPoint += numberFormat(logics::hInst->getActor()->point);
     //szPoint += " +";
-    if(szPoint.compare(mPoint->getString()) != 0 ){
-        mPoint->runAction(gui::inst()->createActionFocus());
+    if(szPoint.compare(mPoint.getString()) != 0 ){
+        mPoint.getNode()->runAction(gui::inst()->createActionFocus());
     }
-    mPoint->setString(szPoint);
+    mPoint.setString(szPoint);
 
 	if(isInventoryUpdated)
 		mInventory->runAction(gui::inst()->createActionFocus());

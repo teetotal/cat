@@ -10,6 +10,7 @@
 #include "ui/ui_gacha.h"
 #include "ui/ui_cultivation.h"
 #include "ui/ui_deco.h"
+#include "ui/ui_bgText.h"
 
 #include "logics.h"
 
@@ -119,7 +120,8 @@ private:
     LoadingBar * loadingBar;
 
     Label * mName, * mJobTitle, * mExp, * mProperties;
-    MenuItemLabel * mPoint, * mHP, * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
+    MenuItemLabel * mInventory, * mFarming, * mSell, * mBuy, * mAchievement;
+    ui_bgText mPoint, mHP;
     Layout * mAlertLayer;
 
 	//Quantity

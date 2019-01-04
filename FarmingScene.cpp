@@ -49,7 +49,7 @@ bool FarmingScene::init()
 //    bg->setOpacity(192);
 	gui::inst()->addTextButton(0, 0, "BACK", this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::RED);
     mExtendBtn = gui::inst()->addTextButton(8, 6, logics::hInst->getL10N("EXTEND"), this, CC_CALLBACK_1(FarmingScene::showExtend, this), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
-	mPoint = gui::inst()->addLabel(8, 0, COIN + to_string(logics::hInst->getActor()->point), this, 0, ALIGNMENT_CENTER, Color3B::GRAY);
+	mPoint.addTextButton(8, 0, COIN + to_string(logics::hInst->getActor()->point), this, CC_CALLBACK_1(FarmingScene::closeCallback, this), 0, ALIGNMENT_CENTER, Color3B::BLACK);
     
     if(logics::hInst->getActor()->farmExtendCnt >= 6){
         mExtendBtn->setEnabled(false);
@@ -190,9 +190,9 @@ void FarmingScene::initDeco() {
 
 void FarmingScene::updatePoint() {	
 	string sz = COIN + numberFormat(logics::hInst->getActor()->point);
-	if (sz.compare(mPoint->getString()) != 0) {
-		mPoint->setString(sz);
-		mPoint->runAction(gui::inst()->createActionFocus());
+	if (sz.compare(mPoint.getString()) != 0) {
+		mPoint.setString(sz);
+		mPoint.getNode()->runAction(gui::inst()->createActionFocus());
 	}
 	
 }
@@ -254,7 +254,7 @@ void FarmingScene::questCallback(cocos2d::Ref* pSender, int idx) {
 		, "coin.png"
 		, 8
 		, from
-		, mPoint->getPosition()
+		, mPoint.getPosition()
 		, Size(20, 20)
 	);
 

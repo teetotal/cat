@@ -346,6 +346,7 @@ MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string t
         , Size margin
         , const string img
         , bool isBGImg
+        , bool isAttachParent
 ) {
 
     //if(fontSize > 0) MenuItemFont::setFontSize(fontSize);
@@ -424,7 +425,8 @@ MenuItemLabel * gui::addTextButtonRaw(Menu* &pMenu, int x, int y, const string t
 //    bgColorLayer->setPosition(Vec2(pMenu->getPosition().x - pItem->getContentSize().width / 2, pMenu->getPosition().y - pItem->getContentSize().height / 2));
 //    p->addChild(bgColorLayer);
 
-    p->addChild(pMenu);
+    if(isAttachParent)
+        p->addChild(pMenu);
 
     //if(fontSize > 0) MenuItemFont::setFontSize(mDefaultFontSize);
 

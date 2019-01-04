@@ -29,7 +29,7 @@ private:
 #define PARTICLE_CLINK "particles/particle_clink.plist"
 
 	gui mGui;
-	Label * mPoint;
+	ui_bgText mPoint;
 
 	enum Mode {
 		Mode_Seed,

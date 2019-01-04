@@ -247,6 +247,7 @@ public:
             , Size margin = Size(GRID_INVALID_VALUE,GRID_INVALID_VALUE)
             , const string img = ""
             , bool isBGImg = true
+            , bool isAttachParent = true
     );
 
 	MenuItemImage * addSpriteButton(int x
@@ -537,9 +538,12 @@ public:
     Vec2 mOrigin;
     Vec2 mVisibleSize;
 	Size mResolution;
-private:
+    
     const char* mDefaultFont;
     int mDefaultFontSize;
+    
+private:
+    
 
     static gui * hInstance;
 
