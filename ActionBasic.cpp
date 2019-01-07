@@ -27,7 +27,7 @@ int loopAnimation = 4 * 3;
 float step = 100.0f / PLAYTIME * animationDelay;
 int _timingInfo[][3] =  //runner, curveCnt, difficult
 {{0, 0, 0}
-    , {1, 2, 120}
+//    , {1, 2, 120}
     , {1, 3, 80}
     , {1, 4, 40}
     
@@ -42,7 +42,7 @@ int _timingInfo[][3] =  //runner, curveCnt, difficult
 
 int _catchRatInfo[][3] = //slot, 등장 주기, 시작 슬롯idx
 {{0,0}
-    , {4, 5, 3}
+//    , {4, 5, 3}
     , {5, 5, 2}
     , {6, 5, 1}
     
@@ -60,7 +60,7 @@ int _tapInfo[][3] = //enable tap, hurdle level. 보너스 점수 종류
 {
    {0, 0, 0},
     
-    {0, 1, 1},  //grade 1
+//    {0, 1, 1},  //grade 1
     {0, 1, 2},  //grade 2
     {0, 1, 3},  //grade 3
     
