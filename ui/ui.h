@@ -34,6 +34,14 @@ struct IMG_LEVEL {
 
 typedef std::vector<IMG_LEVEL> IMG_LEVEL_VECTOR;
 
+#define TOUCH_INIT(__TYPE__) \
+auto listener = EventListenerTouchOneByOne::create();\
+listener->setSwallowTouches(true);\
+listener->onTouchBegan = CC_CALLBACK_2(__TYPE__::onTouchBegan, this);\
+listener->onTouchEnded = CC_CALLBACK_2(__TYPE__::onTouchEnded, this);\
+listener->onTouchMoved = CC_CALLBACK_2(__TYPE__::onTouchMoved, this);\
+_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
 #define POPUP_LIST(_PARENT_NODE, _GRID_SIZE, _NEWLINE, _START_VEC2, _END_VEC2, _MARGIN, _NODE_MARGIN, _NODE_SIZE, _FOR, _CONTINUE, _IMG, _CALLBACK, _SZ0, _SZ1, _SZ2, _SZ3, _SZ4, _IMG_POINTER) \
     Color3B fontColor0 = Color3B::BLACK; \
     Color3B fontColor1 = Color3B::BLACK; \
@@ -460,6 +468,7 @@ public:
 		p->setPosition(getCenter());
 		pParent->addChild(p);
 	};
+    DrawNode * drawLine(Node * p, Vec2 start, Vec2 end, Color4F color = Color4F::GRAY, GLfloat width = 3.f);
     DrawNode * drawCircle(Node * p, Vec2 pos, float radius, Color4F color);
     DrawNode * drawTriangle(Node * p, Vec2 a, Vec2 b, Vec2 c, Color4F color);
     DrawNode * drawRect(Node * p, Vec2 pos, Size size, Color4F color);

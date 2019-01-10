@@ -14,6 +14,9 @@
 #include "AdvertisementScene.h"
 #include "ui/ui_color.h"
 
+//physics actions
+#include "ActionBall.h"
+
 using namespace cocos2d::ui;
 
 #define PARTICLE_FINAL "particles/particle_finally.plist"
@@ -123,8 +126,9 @@ bool MainScene::init()
     gui::inst()->addTextButton(0, 6, logics::hInst->getL10N("MAINMENU_ACTION"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_ACTION), 0, ALIGNMENT_CENTER, fontColor);
 	gui::inst()->addTextButton(1, 6, logics::hInst->getL10N("MAINMENU_RACE"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RACE), 0, ALIGNMENT_CENTER, fontColor);
     mFarming = gui::inst()->addTextButton(2,6, logics::hInst->getL10N("MAINMENU_FARM"), this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_FARMING), 0, ALIGNMENT_CENTER, fontColor);
-	
-
+    gui::inst()->addTextButton(3,6, "Physics", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_TEMP), 0, ALIGNMENT_CENTER, fontColor);
+    
+    
     mExp = gui::inst()->addLabel(4, 0, "", this, 12, ALIGNMENT_CENTER);
     
     mHP.addTextButton(7, 0, "♥", this, CC_CALLBACK_1(MainScene::callback2, this, SCENECODE_RECHARGE), 0, ALIGNMENT_CENTER, Color3B::ORANGE);
@@ -582,17 +586,16 @@ void MainScene::callback2(cocos2d::Ref* pSender, SCENECODE type){
 	mCurrentScene = type;
 
    	switch (type) {
-		/*
+		
 	case SCENECODE_TEMP:
-		Director::getInstance()->pushScene(HelloWorld::createScene());
+        Director::getInstance()->pushScene(ActionBall::createScene());
 		break;
-		*/
 	case SCENECODE_CLOSEPOPUP:
 		closePopup();
 		break;
 	case SCENECODE_ACTION: //Action
-		actionList();
-		break;
+        actionList();
+        break;
 	case SCENECODE_RECHARGE: //HP 충전
 		showInventory(inventoryType_HP);
 		break;

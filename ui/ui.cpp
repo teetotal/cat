@@ -774,9 +774,20 @@ MenuItemImage * gui::addSpriteButtonRaw(
 	return pItem;
 }
 
+DrawNode * gui::drawLine(Node * p, Vec2 start, Vec2 end, Color4F color, GLfloat width)
+{
+    auto draw = DrawNode::create();
+    draw->setLineWidth(width);
+    draw->drawLine(start, end, color);
+    
+    p->addChild(draw);
+    return draw;
+}
+
 DrawNode * gui::drawCircle(Node * p, Vec2 center, float radius, Color4F color){
     auto draw = DrawNode::create();
     draw->drawDot(center, radius, color);
+    draw->setContentSize(Size(radius * 2, radius * 2));
     p->addChild(draw);
     return draw;
 }
