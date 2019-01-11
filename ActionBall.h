@@ -22,9 +22,12 @@ private:
     bool onTouchBegan(Touch* touch, Event* event) ;
     bool onTouchEnded(Touch* touch, Event* event);
     void onTouchMoved(Touch *touch, Event *event);
+    bool onContactBegin(PhysicsContact &contact);
     
-    Node * mBall;
+    Node * mBall, * mCoin;
     Node * mLine;
+    Label * mScoreLabel;
+    int mScore;
     Vec2 mStartPos;
 };
 
