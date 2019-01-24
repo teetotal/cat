@@ -6,7 +6,7 @@
 //
 
 #include "LotteryScene.h"
-#include "ui_gacha.h"
+#include "ui/ui_gacha.h"
 
 #define PARTICLE_FINAL "particles/particle_finally.plist"
 #define PARTICLE_MAGIC "particles/particle_magic.plist"
